@@ -253,7 +253,7 @@ export default function ProductSlider() {
         </div>
 
         {/* Quick View Products */}
-        <div className="mt-12 grid grid-cols-2 md:grid-cols-5 gap-4">
+        {/* <div className="mt-12 grid grid-cols-2 md:grid-cols-5 gap-4">
           {products.map((product, index) => (
             <button
               key={product.id}
@@ -275,7 +275,7 @@ export default function ProductSlider() {
               <p className="text-xs text-gray-600 truncate">{product.model}</p>
             </button>
           ))}
-        </div>
+        </div> */}
       </div>
     </section>
   )
