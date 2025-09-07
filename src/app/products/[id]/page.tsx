@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
+import AddToCartButton from '@/components/AddToCartButton'
 
 interface Product {
   id: number
@@ -289,14 +290,7 @@ export default function ProductDetailPage() {
               </div>
 
               <div className="flex gap-4">
-                <button className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all font-bold text-lg transform hover:scale-105 shadow-lg">
-                  <div className="flex items-center justify-center gap-2">
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m6-5v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01" />
-                    </svg>
-                    افزودن به سبد خرید
-                  </div>
-                </button>
+                <AddToCartButton product={product} quantity={quantity} />
                 <button className="px-6 py-4 border-2 border-orange-500 text-orange-500 rounded-xl hover:bg-orange-500 hover:text-white transition-all font-bold transform hover:scale-105">
                   خرید فوری
                 </button>

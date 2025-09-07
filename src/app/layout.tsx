@@ -3,6 +3,8 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import GlobalSearch from '@/components/GlobalSearch'
+import CartSidebar from '@/components/CartSidebar'
+import ClientOnly from '@/components/ClientOnly'
 
 export const metadata: Metadata = {
   title: {
@@ -55,6 +57,9 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <ClientOnly>
+          <CartSidebar />
+        </ClientOnly>
       </body>
     </html>
   )

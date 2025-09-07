@@ -320,9 +320,6 @@ export default function ProductsPage() {
                       <div className="text-2xl font-bold text-blue-600">
                         {formatPrice(product.price)} تومان
                       </div>
-                      <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
-                        مشاهده
-                      </button>
                     </div>
                   </div>
                 </Link>

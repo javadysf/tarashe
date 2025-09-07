@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import logo from "../../public/pics/logo.jpg"
 import login from "../../public/pics/login.png"
+import CartButton from './CartButton'
 
 
 export default function Navbar() {
@@ -49,13 +50,16 @@ export default function Navbar() {
               </Link>
             ))}
             </div>
-            <Link
-              href="/auth/login"
-              className="bg-primary gap-2 text-white px-4 py-2 flex rounded-lg hover:bg-primary-dark transition-colors font-medium"
-            >
-              ورود
-<Image alt='login' src={login} width={32} height={16} />
-            </Link>
+            <div className="flex items-center gap-4">
+              <CartButton />
+              <Link
+                href="/auth/login"
+                className="bg-primary gap-2 text-white px-4 py-2 flex rounded-lg hover:bg-primary-dark transition-colors font-medium"
+              >
+                ورود
+                <Image alt='login' src={login} width={32} height={16} />
+              </Link>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
