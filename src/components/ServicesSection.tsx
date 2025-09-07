@@ -78,7 +78,7 @@ export default function ServicesSection() {
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">خدمات ما</h2>
+          <h2 className="text-4xl font-bold text-primary mb-4">خدمات ما</h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             ما در تراشه طیف گسترده‌ای از خدمات فنی و فروش قطعات را ارائه می‌دهیم
           </p>
@@ -89,11 +89,11 @@ export default function ServicesSection() {
             <Link
               key={service.id}
               href={service.href}
-              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-200 transform hover:-translate-y-2"
+              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary transform hover:-translate-y-2"
             >
               {/* Image Background */}
               <div className="relative h-48 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-500/80 to-purple-600/80 z-10"></div>
+                <div className="absolute inset-0 bg-primary/80 z-10"></div>
                 <Image
                   src={service.image}
                   alt={service.title}
@@ -111,7 +111,7 @@ export default function ServicesSection() {
 
               {/* Content */}
               <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
                   {service.title}
                 </h3>
                 <p className="text-gray-600 text-sm leading-relaxed">
@@ -119,7 +119,7 @@ export default function ServicesSection() {
                 </p>
                 
                 {/* Arrow Icon */}
-                <div className="mt-4 flex items-center text-blue-600 group-hover:text-blue-700">
+                <div className="mt-4 flex items-center text-primary group-hover:text-primary">
                   <span className="text-sm font-medium ml-2">مشاهده بیشتر</span>
                   <svg 
                     className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
@@ -140,7 +140,7 @@ export default function ServicesSection() {
 
         {/* CTA Section */}
         <div className="mt-16 text-center">
-          <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl p-8 md:p-12">
+          <div className="bg-light rounded-3xl p-8 md:p-12">
             <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
               نیاز به مشاوره دارید؟
             </h3>
@@ -150,13 +150,13 @@ export default function ServicesSection() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/contact"
-                className="bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-colors font-medium text-lg"
+                className="bg-success text-white px-8 py-4 rounded-xl hover:bg-success-dark transition-colors font-medium text-lg"
               >
                 تماس با ما
               </Link>
               <Link
                 href="/services"
-                className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-xl hover:bg-blue-50 transition-colors font-medium text-lg"
+                className="border-2 border-primary text-primary px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors font-medium text-lg"
               >
                 مشاهده همه خدمات
               </Link>

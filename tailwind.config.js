@@ -7,19 +7,18 @@ module.exports = {
   ],
   theme: {
     extend: {
-      fontFamily: {
-        'nazanin': ['B-NAZANIN', 'sans-serif'],
-        'sans': ['B-NAZANIN', 'sans-serif'],
+      colors: {
+        primary: '#0D47A1',
+        'primary-dark': '#0A3D91',
+        light: '#ECEFF1',
+        success: '#4CAF50',
+        'success-dark': '#45A049',
       },
-      spacing: {
-        's-1': '0.25rem',
-        's-2': '0.5rem', 
-        's-3': '0.75rem',
-        's-4': '1rem',
-        's-5': '1.25rem',
-        's-6': '1.5rem',
-        's-8': '2rem',
-      }
+      backgroundImage: {
+        'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+        'gradient-conic':
+          'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+      },
     },
   },
   plugins: [],

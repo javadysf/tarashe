@@ -14,6 +14,7 @@
 body {
   font-family: 'B-NAZANIN', sans-serif;
   direction: rtl;
+  background-color: #ECEFF1;
 }
 
 /* Persian text optimizations */
@@ -27,6 +28,35 @@ body {
 
 .text-left {
   text-align: left !important;
+}
+
+/* Custom color classes */
+.bg-primary {
+  background-color: #0D47A1;
+}
+
+.text-primary {
+  color: #0D47A1;
+}
+
+.bg-light {
+  background-color: #ECEFF1;
+}
+
+.bg-success {
+  background-color: #4CAF50;
+}
+
+.text-success {
+  color: #4CAF50;
+}
+
+.hover\:bg-primary-dark:hover {
+  background-color: #0A3D91;
+}
+
+.hover\:bg-success-dark:hover {
+  background-color: #45A049;
 }
 
 /* Custom animations for auth pages */
@@ -55,4 +85,19 @@ body {
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Line clamp utility */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }

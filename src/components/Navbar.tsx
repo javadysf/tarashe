@@ -3,6 +3,10 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
+import logo from "../../public/pics/logo.jpg"
+import login from "../../public/pics/login.png"
+
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,35 +22,39 @@ export default function Navbar() {
   const isActive = (href: string) => pathname === href
 
   return (
-    <nav className="bg-white shadow-lg sticky top-0 z-50">
+    <nav className="bg-white shadow-lg sticky top-0 z-50 border-b border-gray-200">
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex gap-4 h-16">
+        <div className="flex gap-4 h-20">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors">
-              تراشه
-            </Link>
+            <Image alt='logo' width={100} className='rounded-full' src={logo} />            </Link>
           </div>
           
+
+          
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden md:flex justify-between w-full items-center gap-8">
+            <div className='flex gap-6'>
             {navItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`text-lg gap-2 font-medium transition-colors ${
                   isActive(item.href)
-                    ? 'text-blue-600 border-blue-600'
-                    : 'text-gray-700 hover:text-blue-600'
+                    ? 'text-primary border-b-2 border-primary'
+                    : 'text-gray-700 hover:text-primary'
                 }`}
               >
                 {item.label}
               </Link>
             ))}
+            </div>
             <Link
               href="/auth/login"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+              className="bg-primary gap-2 text-white px-4 py-2 flex rounded-lg hover:bg-primary-dark transition-colors font-medium"
             >
               ورود
+<Image alt='login' src={login} width={32} height={16} />
             </Link>
           </div>
 
@@ -67,6 +75,8 @@ export default function Navbar() {
             </button>
           </div>
         </div>
+
+
 
         {/* Mobile Menu */}
         {isOpen && (
