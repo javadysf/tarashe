@@ -1,10 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
-import GlobalSearch from '@/components/GlobalSearch'
-import CartSidebar from '@/components/CartSidebar'
-import ClientOnly from '@/components/ClientOnly'
+import ConditionalLayout from '@/components/ConditionalLayout'
 
 export const metadata: Metadata = {
   title: {
@@ -42,24 +38,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className="scroll-smooth">
       <body className="antialiased flex flex-col min-h-screen">
-        <Navbar />
-        
-        {/* Global Search Bar */}
-        <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-sm border-b border-gray-200 py-3">
-          <div className="container mx-auto px-4">
-            <div className="flex justify-center">
-              <GlobalSearch />
-            </div>
-          </div>
-        </div>
-        
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
-        <ClientOnly>
-          <CartSidebar />
-        </ClientOnly>
+        <ConditionalLayout>{children}</ConditionalLayout>
       </body>
     </html>
   )

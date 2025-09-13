@@ -8,7 +8,7 @@ export default function CartSidebar() {
   const { items, isOpen, toggleCart, removeItem, updateQuantity, clearCart, getTotalPrice } = useCartStore()
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(Math.round(price * 50000))
+    return new Intl.NumberFormat('fa-IR').format(price)
   }
 
   return (
@@ -54,12 +54,12 @@ export default function CartSidebar() {
                   <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
                     <img
                       src={item.image}
-                      alt={item.title}
+                      alt={item.name}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900 line-clamp-2 text-sm mb-2">
-                        {item.title}
+                        {item.name}
                       </h3>
                       <p className="text-primary font-bold text-sm">
                         {formatPrice(item.price)} تومان

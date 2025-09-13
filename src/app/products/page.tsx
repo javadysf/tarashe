@@ -3,18 +3,24 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { api } from '@/lib/api'
 
 interface Product {
-  id: number
-  title: string
+  _id: string
+  name: string
   price: number
   description: string
-  category: string
-  image: string
+  category: {
+    _id: string
+    name: string
+  }
+  images: { url: string; alt: string }[]
   rating: {
-    rate: number
+    average: number
     count: number
   }
+  brand: string
+  stock: number
 }
 
 interface Filters {
@@ -27,7 +33,7 @@ interface Filters {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('default')
   const [filters, setFilters] = useState<Filters>({
@@ -37,20 +43,6 @@ export default function ProductsPage() {
     minRating: 0
   })
   const [searchTerm, setSearchTerm] = useState('')
-
-  useEffect(() => {
-    // Check for URL parameters
-    const urlParams = new URLSearchParams(window.location.search)
-    const categoryParam = urlParams.get('category')
-    const searchParam = urlParams.get('search')
-    
-    if (categoryParam) {
-      setFilters(prev => ({ ...prev, category: categoryParam }))
-    }
-    if (searchParam) {
-      setSearchTerm(searchParam)
-    }
-  }, [])
 
   useEffect(() => {
     fetchProducts()
@@ -63,9 +55,8 @@ export default function ProductsPage() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('https://fakestoreapi.com/products')
-      const data = await response.json()
-      setProducts(data)
+      const response = await api.getProducts({ limit: 50 })
+      setProducts(response.products || [])
       setLoading(false)
     } catch (error) {
       console.error('Error fetching products:', error)
@@ -75,9 +66,8 @@ export default function ProductsPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('https://fakestoreapi.com/products/categories')
-      const data = await response.json()
-      setCategories(data)
+      const response = await api.getCategories()
+      setCategories(response)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -86,15 +76,13 @@ export default function ProductsPage() {
   const applyFiltersAndSort = () => {
     let filtered = products.filter(product => {
       const matchesSearch = searchTerm === '' || 
-        product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
       
       return (
         matchesSearch &&
-        (filters.category === '' || product.category === filters.category) &&
-        product.price >= filters.minPrice &&
-        product.price <= filters.maxPrice &&
-        product.rating.rate >= filters.minRating
+        (filters.category === '' || product.category._id === filters.category) &&
+        product.rating.average >= filters.minRating
       )
     })
 
@@ -107,10 +95,10 @@ export default function ProductsPage() {
         filtered.sort((a, b) => b.price - a.price)
         break
       case 'rating':
-        filtered.sort((a, b) => b.rating.rate - a.rating.rate)
+        filtered.sort((a, b) => b.rating.average - a.rating.average)
         break
       case 'name':
-        filtered.sort((a, b) => a.title.localeCompare(b.title))
+        filtered.sort((a, b) => a.name.localeCompare(b.name))
         break
       default:
         break
@@ -120,17 +108,7 @@ export default function ProductsPage() {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(Math.round(price * 50000))
-  }
-
-  const translateCategory = (category: string) => {
-    const translations: { [key: string]: string } = {
-      "men's clothing": "پوشاک مردانه",
-      "women's clothing": "پوشاک زنانه",
-      "jewelery": "جواهرات",
-      "electronics": "الکترونیک"
-    }
-    return translations[category] || category
+    return new Intl.NumberFormat('fa-IR').format(price)
   }
 
   if (loading) {
@@ -174,50 +152,19 @@ export default function ProductsPage() {
               
               {/* Category Filter */}
               <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">دسته‌بندی</label>
+                <label className="block text-sm font-medium text-gray-700 mb-3">دستهبندی</label>
                 <select
                   value={filters.category}
                   onChange={(e) => setFilters({...filters, category: e.target.value})}
                   className="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">همه دسته‌ها</option>
+                  <option value="">همه دستهها</option>
                   {categories.map(category => (
-                    <option key={category} value={category}>
-                      {translateCategory(category)}
+                    <option key={category._id} value={category._id}>
+                      {category.name}
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* Price Range */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-3">محدوده قیمت (تومان)</label>
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-gray-500">حداقل قیمت</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1000"
-                      value={filters.minPrice}
-                      onChange={(e) => setFilters({...filters, minPrice: Number(e.target.value)})}
-                      className="w-full"
-                    />
-                    <span className="text-sm text-gray-600">{formatPrice(filters.minPrice)}</span>
-                  </div>
-                  <div>
-                    <label className="text-xs text-gray-500">حداکثر قیمت</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1000"
-                      value={filters.maxPrice}
-                      onChange={(e) => setFilters({...filters, maxPrice: Number(e.target.value)})}
-                      className="w-full"
-                    />
-                    <span className="text-sm text-gray-600">{formatPrice(filters.maxPrice)}</span>
-                  </div>
-                </div>
               </div>
 
               {/* Rating Filter */}
@@ -261,7 +208,7 @@ export default function ProductsPage() {
                 onChange={(e) => setSortBy(e.target.value)}
                 className="p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
-                <option value="default">مرتب‌سازی پیش‌فرض</option>
+                <option value="default">مرتبسازی پیشفرض</option>
                 <option value="price-low">قیمت: کم به زیاد</option>
                 <option value="price-high">قیمت: زیاد به کم</option>
                 <option value="rating">بالاترین امتیاز</option>
@@ -273,25 +220,25 @@ export default function ProductsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {filteredProducts.map((product) => (
                 <Link
-                  key={product.id}
-                  href={`/products/${product.id}`}
+                  key={product._id}
+                  href={`/products/${product._id}`}
                   className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-2"
                 >
                   <div className="relative h-64 overflow-hidden">
                     <Image
-                      src={product.image}
-                      alt={product.title}
+                      src={product.images[0]?.url || '/pics/battery.jpg'}
+                      alt={product.images[0]?.alt || product.name}
                       fill
                       className="object-contain group-hover:scale-110 transition-transform duration-500 p-4"
                     />
                     <div className="absolute top-4 right-4 bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                      {translateCategory(product.category)}
+                      {product.category.name}
                     </div>
                   </div>
 
                   <div className="p-6">
                     <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                      {product.title}
+                      {product.name}
                     </h3>
                     
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">
@@ -304,7 +251,7 @@ export default function ProductsPage() {
                           <svg
                             key={i}
                             className={`w-4 h-4 ${
-                              i < Math.floor(product.rating.rate) ? 'text-yellow-400' : 'text-gray-300'
+                              i < Math.floor(product.rating.average) ? 'text-yellow-400' : 'text-gray-300'
                             }`}
                             fill="currentColor"
                             viewBox="0 0 20 20"

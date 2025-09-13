@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { api } from '@/lib/api'
 
 interface Category {
   name: string
@@ -11,7 +12,7 @@ interface Category {
 }
 
 export default function CategoriesSection() {
-  const [categories, setCategories] = useState<string[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -20,9 +21,8 @@ export default function CategoriesSection() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('https://fakestoreapi.com/products/categories')
-      const data = await response.json()
-      setCategories(data)
+      const response = await api.getCategories()
+      setCategories(response)
       setLoading(false)
     } catch (error) {
       console.error('Error fetching categories:', error)
@@ -30,36 +30,36 @@ export default function CategoriesSection() {
     }
   }
 
-  const getCategoryInfo = (category: string): Category => {
+  const getCategoryInfo = (category: any): Category => {
     const categoryMap: { [key: string]: Category } = {
-      "men's clothing": {
-        name: "men's clothing",
-        persianName: "پوشاک مردانه",
+      "باتری لپ تاپ": {
+        name: category.name,
+        persianName: category.name,
         gradient: "from-[#0D47A1] to-[#1565C0]",
-        icon: "👔"
+        icon: "🔋"
       },
-      "women's clothing": {
-        name: "women's clothing", 
-        persianName: "پوشاک زنانه",
+      "شارژر لپ تاپ": {
+        name: category.name,
+        persianName: category.name,
         gradient: "from-[#0D47A1] to-[#1976D2]",
-        icon: "👗"
+        icon: "⚡"
       },
-      "jewelery": {
-        name: "jewelery",
-        persianName: "جواهرات",
+      "قطعات لپ تاپ": {
+        name: category.name,
+        persianName: category.name,
         gradient: "from-[#0D47A1] to-[#1E88E5]",
-        icon: "💎"
+        icon: "🔧"
       },
-      "electronics": {
-        name: "electronics",
-        persianName: "الکترونیک",
+      "لوازم جانبی": {
+        name: category.name,
+        persianName: category.name,
         gradient: "from-[#0D47A1] to-[#2196F3]",
-        icon: "📱"
+        icon: "💻"
       }
     }
-    return categoryMap[category] || {
-      name: category,
-      persianName: category,
+    return categoryMap[category.name] || {
+      name: category.name,
+      persianName: category.name,
       gradient: "from-gray-500 to-gray-600",
       icon: "📦"
     }
@@ -100,8 +100,8 @@ export default function CategoriesSection() {
             const categoryInfo = getCategoryInfo(category)
             return (
               <Link
-                key={category}
-                href={`/products?category=${encodeURIComponent(category)}`}
+                key={category._id}
+                href={`/products?category=${encodeURIComponent(category._id)}`}
                 className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105"
               >
                 <div className={`h-48 bg-gradient-to-br ${categoryInfo.gradient} relative`}>

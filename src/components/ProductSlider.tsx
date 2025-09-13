@@ -3,90 +3,53 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { api } from '@/lib/api'
 
 interface Product {
-  id: number
+  _id: string
   name: string
   brand: string
   model: string
   price: number
   originalPrice?: number
-  image: string
-  rating: number
+  images: { url: string; alt: string }[]
+  rating: { average: number; count: number }
   inStock: boolean
+  stock: number
 }
 
-const products: Product[] = [
-  {
-    id: 1,
-    name: 'باتری لپ تاپ HP Pavilion',
-    brand: 'HP',
-    model: 'Pavilion 15',
-    price: 850000,
-    originalPrice: 1200000,
-    image: '/pics/battery.jpg',
-    rating: 4.8,
-    inStock: true
-  },
-  {
-    id: 2,
-    name: 'باتری لپ تاپ Dell Inspiron',
-    brand: 'Dell',
-    model: 'Inspiron 15 3000',
-    price: 920000,
-    originalPrice: 1100000,
-    image: '/pics/battery.jpg',
-    rating: 4.6,
-    inStock: true
-  },
-  {
-    id: 3,
-    name: 'باتری لپ تاپ Lenovo ThinkPad',
-    brand: 'Lenovo',
-    model: 'ThinkPad E15',
-    price: 1150000,
-    image: '/pics/battery.jpg',
-    rating: 4.9,
-    inStock: false
-  },
-  {
-    id: 4,
-    name: 'باتری لپ تاپ Asus VivoBook',
-    brand: 'Asus',
-    model: 'VivoBook 15',
-    price: 780000,
-    originalPrice: 950000,
-    image: '/pics/battery.jpg',
-    rating: 4.5,
-    inStock: true
-  },
-  {
-    id: 5,
-    name: 'باتری لپ تاپ Acer Aspire',
-    brand: 'Acer',
-    model: 'Aspire 5',
-    price: 690000,
-    image: '/pics/battery.jpg',
-    rating: 4.3,
-    inStock: true
-  }
-]
+const products: Product[] = []
 
 export default function ProductSlider() {
+  const [products, setProducts] = useState<Product[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
-  
-  console.log('Current slide:', currentSlide)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAutoPlaying) return
+    fetchFeaturedProducts()
+  }, [])
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const response = await api.getProducts({ isFeatured: 'true', limit: 5 })
+      setProducts(response.products || [])
+    } catch (error) {
+      console.error('Error fetching products:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!isAutoPlaying || products.length === 0) return
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % products.length)
     }, 4000)
 
     return () => clearInterval(interval)
-  }, [isAutoPlaying])
+  }, [isAutoPlaying, products.length])
 
   const nextSlide = () => {
     const newSlide = (currentSlide + 1) % products.length
@@ -104,6 +67,20 @@ export default function ProductSlider() {
     return new Intl.NumberFormat('fa-IR').format(price)
   }
 
+  if (loading) {
+    return (
+      <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse bg-gray-300 rounded-3xl h-96 md:h-[500px]"></div>
+        </div>
+      </section>
+    )
+  }
+
+  if (products.length === 0) {
+    return null
+  }
+
   return (
     <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -117,12 +94,12 @@ export default function ProductSlider() {
             style={{ transform: `translateX(${currentSlide * 100}%)` }}
           >
             {products.map((product) => (
-              <div key={product.id} className="w-full flex-shrink-0">
+              <div key={product._id} className="w-full flex-shrink-0">
                 <div className="relative h-96 md:h-[500px] bg-gradient-to-r from-blue-600 to-purple-600">
                   <div className="absolute inset-0 bg-black/20"></div>
                   <Image
-                    src={product.image}
-                    alt={product.name}
+                    src={product.images[0]?.url || '/pics/battery.jpg'}
+                    alt={product.images[0]?.alt || product.name}
                     fill
                     className="object-cover mix-blend-overlay"
                     priority={products.indexOf(product) === currentSlide}
@@ -150,7 +127,7 @@ export default function ProductSlider() {
                                 <svg
                                   key={i}
                                   className={`w-5 h-5 ${
-                                    i < Math.floor(product.rating) ? 'text-yellow-400' : 'text-gray-300'
+                                    i < Math.floor(product.rating.average) ? 'text-yellow-400' : 'text-gray-300'
                                   }`}
                                   fill="currentColor"
                                   viewBox="0 0 20 20"
@@ -158,15 +135,15 @@ export default function ProductSlider() {
                                   <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                 </svg>
                               ))}
-                              <span className="mr-2 text-sm">({product.rating})</span>
+                              <span className="mr-2 text-sm">({product.rating.average})</span>
                             </div>
                             
                             <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                              product.inStock 
+                              product.stock > 0 
                                 ? 'bg-green-500/20 text-green-100 border border-green-400/30' 
                                 : 'bg-red-500/20 text-red-100 border border-red-400/30'
                             }`}>
-                              {product.inStock ? 'موجود در انبار' : 'ناموجود'}
+                              {product.stock > 0 ? 'موجود در انبار' : 'ناموجود'}
                             </div>
                           </div>
 
@@ -183,16 +160,16 @@ export default function ProductSlider() {
 
                           <div className="flex gap-4">
                             <Link
-                              href={`/products/${product.id}`}
+                              href={`/products/${product._id}`}
                               className="bg-white text-gray-900 px-8 py-3 rounded-xl font-medium hover:bg-gray-100 transition-colors"
                             >
                               مشاهده جزئیات
                             </Link>
                             <button 
                               className="border-2 border-white text-white px-8 py-3 rounded-xl font-medium hover:bg-white hover:text-gray-900 transition-colors"
-                              disabled={!product.inStock}
+                              disabled={product.stock === 0}
                             >
-                              {product.inStock ? 'افزودن به سبد' : 'ناموجود'}
+                              {product.stock > 0 ? 'افزودن به سبد' : 'ناموجود'}
                             </button>
                           </div>
                         </div>
@@ -202,8 +179,8 @@ export default function ProductSlider() {
                             <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-3xl transform rotate-6"></div>
                             <div className="relative bg-white/20 backdrop-blur-sm rounded-3xl p-8">
                               <Image
-                                src={product.image}
-                                alt={product.name}
+                                src={product.images[0]?.url || '/pics/battery.jpg'}
+                                alt={product.images[0]?.alt || product.name}
                                 width={400}
                                 height={300}
                                 className="w-full h-64 object-cover rounded-2xl"
@@ -256,7 +233,7 @@ export default function ProductSlider() {
         {/* <div className="mt-12 grid grid-cols-2 md:grid-cols-5 gap-4">
           {products.map((product, index) => (
             <button
-              key={product.id}
+              key={product._id}
               onClick={() => setCurrentSlide(index)}
               className={`relative p-4 rounded-xl transition-all ${
                 index === currentSlide 
@@ -265,8 +242,8 @@ export default function ProductSlider() {
               }`}
             >
               <Image
-                src={product.image}
-                alt={product.name}
+                src={product.images[0]?.url || '/pics/battery.jpg'}
+                alt={product.images[0]?.alt || product.name}
                 width={100}
                 height={80}
                 className="w-full h-16 object-cover rounded-lg mb-2"

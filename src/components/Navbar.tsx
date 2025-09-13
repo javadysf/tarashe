@@ -1,17 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Image from 'next/image'
 import logo from "../../public/pics/logo.jpg"
 import login from "../../public/pics/login.png"
 import CartButton from './CartButton'
+import { useAuthStore } from '@/store/authStore'
 
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const pathname = usePathname()
+  const { user, logout, checkAuth } = useAuthStore()
+
+  useEffect(() => {
+    checkAuth()
+  }, [])
 
   const navItems = [
     { href: '/', label: 'خانه' },
@@ -52,13 +58,33 @@ export default function Navbar() {
             </div>
             <div className="flex items-center gap-4">
               <CartButton />
-              <Link
-                href="/auth/login"
-                className="bg-primary gap-2 text-white px-4 py-2 flex rounded-lg hover:bg-primary-dark transition-colors font-medium"
-              >
-                ورود
-                <Image alt='login' src={login} width={32} height={16} />
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-gray-700">سلام {user.name}</span>
+                  <Link href="/profile" className="text-sm text-green-600 hover:text-green-700 px-3 py-1 rounded">
+                    پروفایل
+                  </Link>
+                  {user.role === 'admin' && (
+                    <Link href="/admin" className="text-sm text-blue-600 hover:text-blue-700 px-3 py-1 rounded">
+                      پنل ادمین
+                    </Link>
+                  )}
+                  <button 
+                    onClick={logout}
+                    className="text-sm text-red-600 hover:text-red-700 px-3 py-1 rounded"
+                  >
+                    خروج
+                  </button>
+                </div>
+              ) : (
+                <Link
+                  href="/auth/login"
+                  className="bg-primary gap-2 text-white px-4 py-2 flex rounded-lg hover:bg-primary-dark transition-colors font-medium"
+                >
+                  ورود
+                  <Image alt='login' src={login} width={32} height={16} />
+                </Link>
+              )}
             </div>
           </div>
 
