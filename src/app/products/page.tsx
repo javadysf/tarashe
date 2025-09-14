@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { api } from '@/lib/api'
@@ -31,6 +32,7 @@ interface Filters {
 }
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams()
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<any[]>([])
@@ -47,7 +49,13 @@ export default function ProductsPage() {
   useEffect(() => {
     fetchProducts()
     fetchCategories()
-  }, [])
+    
+    // Read category from URL
+    const categoryFromUrl = searchParams.get('category')
+    if (categoryFromUrl) {
+      setFilters(prev => ({ ...prev, category: categoryFromUrl }))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     applyFiltersAndSort()

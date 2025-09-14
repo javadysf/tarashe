@@ -85,6 +85,11 @@ export default function AdminPage() {
                 <span className="font-medium text-purple-900">مدیریت کاربران</span>
                 <p className="text-sm text-purple-600">مشاهده و مدیریت کاربران</p>
               </Link>
+              
+              <Link href="/admin/reviews" className="block w-full text-right px-4 py-3 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors">
+                <span className="font-medium text-orange-900">مدیریت نظرات</span>
+                <p className="text-sm text-orange-600">مشاهده و حذف نظرات کاربران</p>
+              </Link>
             </div>
           </div>
 

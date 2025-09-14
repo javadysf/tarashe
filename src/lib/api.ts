@@ -3,20 +3,51 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/a
 class ApiClient {
   private getAuthHeader() {
     if (typeof window === 'undefined') return {};
-    const token = localStorage.getItem('token');
+    
+    // Try to get token from localStorage first
+    let token = localStorage.getItem('token');
+    
+    // If not found, try to get from auth store
+    if (!token) {
+      try {
+        const { useAuthStore } = require('@/store/authStore');
+        token = useAuthStore.getState().token;
+      } catch (error) {
+        console.log('Could not get token from store');
+      }
+    }
+    
+    console.log('Auth token:', token ? 'Present' : 'Missing');
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
+    
+    // Default headers
+    const defaultHeaders: Record<string, string> = {
+      ...this.getAuthHeader(),
+    };
+    
+    // Only add Content-Type for non-FormData requests
+    if (!(options.body instanceof FormData)) {
+      defaultHeaders['Content-Type'] = 'application/json';
+    }
+    
     const config: RequestInit = {
       headers: {
-        'Content-Type': 'application/json',
-        ...this.getAuthHeader(),
+        ...defaultHeaders,
         ...options.headers,
       },
       ...options,
     };
+
+    console.log('Request config:', {
+      url,
+      method: config.method || 'GET',
+      headers: config.headers,
+      bodyType: config.body?.constructor.name
+    });
 
     const response = await fetch(url, config);
     const data = await response.json();
@@ -54,6 +85,32 @@ class ApiClient {
     });
   }
 
+  async uploadAvatar(file: File) {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    return this.request('/auth/upload-avatar', {
+      method: 'POST',
+      body: formData,
+      headers: {}, // Remove Content-Type to let browser set it with boundary
+    });
+  }
+
+  async uploadProductImages(files: File[], alt?: string) {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('images', file);
+    });
+    if (alt) {
+      formData.append('alt', alt);
+    }
+    
+    return this.request('/products/upload-images', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   // Products
   async getProducts(params?: any) {
     const query = params ? `?${new URLSearchParams(params)}` : '';
@@ -67,6 +124,13 @@ class ApiClient {
   // Categories
   async getCategories() {
     return this.request('/categories');
+  }
+
+  async createCategory(categoryData: any) {
+    return this.request('/categories', {
+      method: 'POST',
+      body: JSON.stringify(categoryData),
+    });
   }
 
   async getCategory(id: string) {
@@ -151,6 +215,16 @@ class ApiClient {
     return this.request(`/products/${productId}/reviews`, {
       method: 'POST',
       body: JSON.stringify(reviewData),
+    });
+  }
+
+  async getAllReviews() {
+    return this.request('/products/reviews/all');
+  }
+
+  async deleteReview(reviewId: string) {
+    return this.request(`/products/reviews/${reviewId}`, {
+      method: 'DELETE',
     });
   }
 }

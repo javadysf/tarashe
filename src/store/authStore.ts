@@ -33,7 +33,6 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         localStorage.setItem('token', token);
       }
       set({ user, token, isLoading: false });
-      return { user, token };
     } catch (error) {
       set({ isLoading: false });
       throw error;

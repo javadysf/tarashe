@@ -22,6 +22,7 @@ export default function ProfilePage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -91,6 +92,28 @@ export default function ProfilePage() {
     }
   }
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploadingAvatar(true)
+    try {
+      const response = await api.uploadAvatar(file)
+      toast.success('✨ تصویر پروفایل با موفقیت بروزرسانی شد!', {
+        position: 'top-right',
+        autoClose: 2500,
+      })
+      checkAuth()
+    } catch (error: any) {
+      toast.error('❌ ' + (error.message || 'خطا در آپلود تصویر'), {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
   const getStatusColor = (status: string) => {
     const colors = {
       pending: 'bg-yellow-100 text-yellow-800',
@@ -130,9 +153,36 @@ export default function ProfilePage() {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex items-center space-x-6 space-x-reverse">
             <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                {user.name.charAt(0)}
-              </div>
+              {user.avatar ? (
+                <Image
+                  src={user.avatar}
+                  alt={user.name}
+                  width={96}
+                  height={96}
+                  className="w-24 h-24 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {user.name.charAt(0)}
+                </div>
+              )}
+              <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                {uploadingAvatar ? (
+                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploadingAvatar}
+                  className="hidden"
+                />
+              </label>
             </div>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
