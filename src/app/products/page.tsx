@@ -87,9 +87,12 @@ export default function ProductsPage() {
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase())
       
+      const categoryId = product.category?._id || product.category
+      const matchesCategory = filters.category === '' || categoryId === filters.category
+      
       return (
         matchesSearch &&
-        (filters.category === '' || product.category._id === filters.category) &&
+        matchesCategory &&
         product.rating.average >= filters.minRating
       )
     })

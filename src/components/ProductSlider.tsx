@@ -18,8 +18,6 @@ interface Product {
   stock: number
 }
 
-const products: Product[] = []
-
 export default function ProductSlider() {
   const [products, setProducts] = useState<Product[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)

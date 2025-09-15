@@ -30,7 +30,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
         </div>
       </div>
       
-      <main className="flex-grow">
+      <main className="flex-grow pt-16">
         {children}
       </main>
       <Footer />

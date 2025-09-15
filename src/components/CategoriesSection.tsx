@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { api } from '@/lib/api'
 
 interface Category {
@@ -104,44 +105,44 @@ export default function CategoriesSection() {
                 href={`/products?category=${encodeURIComponent(category._id)}`}
                 className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105"
               >
-                <div className={`h-48 bg-gradient-to-br ${categoryInfo.gradient} relative`}>
-                  {/* Background Pattern */}
-                  <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-4 right-4 text-6xl opacity-50">
-                      {categoryInfo.icon}
-                    </div>
-                    <div className="absolute bottom-4 left-4 text-4xl opacity-30">
-                      {categoryInfo.icon}
-                    </div>
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-8xl opacity-20">
-                      {categoryInfo.icon}
-                    </div>
-                  </div>
-
-                  {/* Floating Elements */}
-                  <div className="absolute top-6 left-6 w-3 h-3 bg-white/30 rounded-full animate-pulse"></div>
-                  <div className="absolute bottom-8 right-8 w-2 h-2 bg-white/40 rounded-full animate-bounce"></div>
-                  <div className="absolute top-1/3 right-1/4 w-1 h-1 bg-white/50 rounded-full animate-ping"></div>
+                <div className="h-48 relative bg-gray-100">
+                  {/* Category Image */}
+                  <Image
+                    src={category.image?.url || '/pics/battery.jpg'}
+                    alt={category.image?.alt || category.name}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = '/pics/battery.jpg'
+                    }}
+                  />
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
 
                   {/* Content */}
-                  <div className="relative z-10 h-full flex flex-col justify-center items-center text-white p-6">
-                    <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">
-                      {categoryInfo.icon}
-                    </div>
-                    <h3 className="text-xl font-bold text-center group-hover:scale-105 transition-transform duration-300">
-                      {categoryInfo.persianName}
+                  <div className="relative z-10 h-full flex flex-col justify-end p-6">
+                    <h3 className="text-xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
+                      {category.name}
                     </h3>
                     
+                    {category.description && (
+                      <p className="text-white/80 text-sm mb-3 line-clamp-2">
+                        {category.description}
+                      </p>
+                    )}
+                    
                     {/* Arrow Icon */}
-                    <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <svg className="w-6 h-6 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="flex items-center text-white/90 group-hover:text-white transition-colors">
+                      <span className="text-sm font-medium ml-2">مشاهده محصولات</span>
+                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                       </svg>
                     </div>
                   </div>
 
                   {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300"></div>
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
                   
                   {/* Shine Effect */}
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
@@ -154,10 +155,10 @@ export default function CategoriesSection() {
         {/* View All Categories Button */}
         <div className="text-center mt-12">
           <Link
-            href="/products"
-            className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl hover:bg-primary-dark transition-all font-medium text-lg transform hover:scale-105 shadow-lg"
+            href="/categories"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-all font-medium text-lg transform hover:scale-105 shadow-lg"
           >
-            <span>مشاهده همه محصولات</span>
+            <span>مشاهده همه دستهبندیها</span>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>

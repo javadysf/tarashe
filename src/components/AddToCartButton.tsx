@@ -4,8 +4,8 @@ import { useCartStore } from '@/store/cartStore'
 import { useState } from 'react'
 
 interface Product {
-  id: number
-  title: string
+  id: string
+  name: string
   price: number
   image: string
 }
@@ -23,15 +23,13 @@ export default function AddToCartButton({ product, quantity = 1, className = "" 
   const handleAddToCart = async () => {
     setIsAdding(true)
     
-    // Add multiple items based on quantity
-    for (let i = 0; i < quantity; i++) {
-      addItem({
-        id: product.id,
-        title: product.title,
-        price: product.price,
-        image: product.image
-      })
-    }
+    addItem({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      quantity
+    })
     
     // Show success animation
     setTimeout(() => {

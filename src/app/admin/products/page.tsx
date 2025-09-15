@@ -19,7 +19,9 @@ interface Product {
 export default function AdminProductsPage() {
   const { user } = useAuthStore()
   const [products, setProducts] = useState<Product[]>([])
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -31,10 +33,25 @@ export default function AdminProductsPage() {
     try {
       const response = await api.getProducts({ limit: 50 })
       setProducts(response.products)
+      setFilteredProducts(response.products)
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term)
+    if (!term.trim()) {
+      setFilteredProducts(products)
+    } else {
+      const filtered = products.filter(product => 
+        product.name.toLowerCase().includes(term.toLowerCase()) ||
+        product.brand.toLowerCase().includes(term.toLowerCase()) ||
+        product.category.name.toLowerCase().includes(term.toLowerCase())
+      )
+      setFilteredProducts(filtered)
     }
   }
 
@@ -48,7 +65,13 @@ export default function AdminProductsPage() {
     
     try {
       await api.deleteProduct(id)
-      setProducts(products.filter(p => p._id !== id))
+      const updatedProducts = products.filter(p => p._id !== id)
+      setProducts(updatedProducts)
+      setFilteredProducts(updatedProducts.filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.category.name.toLowerCase().includes(searchTerm.toLowerCase())
+      ))
     } catch (error) {
       toast.error('❌ خطا در حذف محصول', {
         position: 'top-right',
@@ -69,6 +92,29 @@ export default function AdminProductsPage() {
           </Link>
         </div>
 
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="جستجو در محصولات (نام، برند، دستهبندی)..."
+              value={searchTerm}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+            />
+          </div>
+          {searchTerm && (
+            <div className="mt-2 text-sm text-gray-600">
+              {filteredProducts.length} محصول از {products.length} محصول یافت شد
+            </div>
+          )}
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -87,33 +133,62 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {products.map((product) => (
-                  <tr key={product._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {product.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.brand}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Intl.NumberFormat('fa-IR').format(product.price)} تومان
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.stock}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {product.category.name}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <Link href={`/admin/products/edit/${product._id}`} className="text-blue-600 hover:text-blue-900 ml-4">
-                        ویرایش
-                      </Link>
-                      <button onClick={() => deleteProduct(product._id)} className="text-red-600 hover:text-red-900">
-                        حذف
-                      </button>
+                {filteredProducts.length > 0 ? (
+                  filteredProducts.map((product) => (
+                    <tr key={product._id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {product.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.brand}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Intl.NumberFormat('fa-IR').format(product.price)} تومان
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.stock}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {product.category.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                        <Link href={`/admin/products/edit/${product._id}`} className="text-blue-600 hover:text-blue-900 ml-4">
+                          ویرایش
+                        </Link>
+                        <button onClick={() => deleteProduct(product._id)} className="text-red-600 hover:text-red-900">
+                          حذف
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center">
+                      <div className="text-gray-500">
+                        <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                          {searchTerm ? 'نتیجه‌ای یافت نشد' : 'هیچ محصولی موجود نیست'}
+                        </h3>
+                        <p className="text-gray-500">
+                          {searchTerm 
+                            ? `برای "${searchTerm}" محصولی یافت نشد. کلمات کلیدی دیگری امتحان کنید.`
+                            : 'اولین محصول خود را اضافه کنید'
+                          }
+                        </p>
+                        {searchTerm && (
+                          <button
+                            onClick={() => handleSearch('')}
+                            className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            پاک کردن جستجو
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>

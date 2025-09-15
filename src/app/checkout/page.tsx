@@ -43,10 +43,10 @@ export default function CheckoutPage() {
   }, [user])
 
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !loading) {
       router.push('/products')
     }
-  }, [items, router])
+  }, [items, router, loading])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -62,8 +62,11 @@ export default function CheckoutPage() {
       const orderData = {
         items: items.map(item => ({
           product: item.id,
+          name: item.name,
+          price: item.price,
           quantity: item.quantity
         })),
+        totalAmount: getTotalPrice(),
         shippingAddress: {
           name: formData.name,
           phone: formData.phone,
@@ -72,21 +75,21 @@ export default function CheckoutPage() {
           state: formData.state,
           postalCode: formData.postalCode
         },
-        notes: formData.notes,
+        notes: formData.notes || '',
         paymentMethod: formData.paymentMethod
       }
 
-      await api.createOrder(orderData)
-      clearCart()
-      router.push('/profile?tab=orders')
-      toast.success('🎉 سفارش شما با موفقیت ثبت شد!', {
-        position: 'top-center',
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
+      const response = await api.createOrder(orderData)
+      const orderId = response.order?._id || response._id
+      
+      if (orderId) {
+        // پاک کردن سبد قبل از هدایت
+        clearCart()
+        // هدایت به صفحه موفقیت
+        window.location.href = `/order-success?orderId=${orderId}`
+      } else {
+        throw new Error('شماره سفارش دریافت نشد')
+      }
     } catch (error: any) {
       toast.error('❌ ' + (error.message || 'خطا در ثبت سفارش'), {
         position: 'top-center',

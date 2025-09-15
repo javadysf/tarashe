@@ -12,7 +12,7 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
-  addItem: (product: Omit<CartItem, 'quantity'>) => void
+  addItem: (product: Omit<CartItem, 'quantity'> & { quantity: number }) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
@@ -35,13 +35,13 @@ export const useCartStore = create<CartStore>()(
           set({
             items: items.map(item =>
               item.id === product.id
-                ? { ...item, quantity: item.quantity + 1 }
+                ? { ...item, quantity: item.quantity + product.quantity }
                 : item
             )
           })
         } else {
           set({
-            items: [...items, { ...product, quantity: 1 }]
+            items: [...items, { ...product, quantity: product.quantity }]
           })
         }
       },

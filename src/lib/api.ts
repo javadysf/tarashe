@@ -111,6 +111,19 @@ class ApiClient {
     });
   }
 
+  async uploadCategoryImage(file: File, alt?: string) {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (alt) {
+      formData.append('alt', alt);
+    }
+    
+    return this.request('/categories/upload-image', {
+      method: 'POST',
+      body: formData,
+    });
+  }
+
   // Products
   async getProducts(params?: any) {
     const query = params ? `?${new URLSearchParams(params)}` : '';

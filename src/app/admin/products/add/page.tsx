@@ -205,18 +205,61 @@ export default function AddProductPage() {
     }
   }
 
+  const [newCategoryImage, setNewCategoryImage] = useState<File | null>(null)
+  const [newCategoryImagePreview, setNewCategoryImagePreview] = useState<string>('')
+  const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false)
+
+  const handleCategoryImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('فقط فایلهای تصویری مجاز هستند')
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('حجم فایل باید کمتر از 5MB باشد')
+        return
+      }
+      setNewCategoryImage(file)
+      setNewCategoryImagePreview(URL.createObjectURL(file))
+    }
+  }
+
   const handleCreateCategory = async () => {
-    if (!newCategoryName.trim()) return
+    if (!newCategoryName.trim()) {
+      toast.error('نام دستهبندی الزامی است')
+      return
+    }
+    
+    if (!newCategoryImage) {
+      toast.error('تصویر دستهبندی الزامی است')
+      return
+    }
     
     try {
-      const response = await api.createCategory({ name: newCategoryName })
+      setUploadingCategoryImage(true)
+      
+      // Upload image first
+      const imageResponse = await api.uploadCategoryImage(newCategoryImage, newCategoryName)
+      
+      // Create category with image
+      const response = await api.createCategory({ 
+        name: newCategoryName,
+        image: imageResponse.image
+      })
+      
       setCategories([...categories, response.category])
       setFormData({...formData, category: response.category._id})
       setNewCategoryName('')
+      setNewCategoryImage(null)
+      setNewCategoryImagePreview('')
       setShowNewCategory(false)
-      toast.success('دستهبندی جدید ایجاد شد!')
+      
+      toast.success('✅ دستهبندی جدید با عکس ایجاد شد!')
     } catch (error: any) {
-      toast.error(error.message || 'خطا در ایجاد دستهبندی')
+      toast.error('❌ ' + (error.message || 'خطا در ایجاد دستهبندی'))
+    } finally {
+      setUploadingCategoryImage(false)
     }
   }
 
@@ -373,29 +416,89 @@ export default function AddProductPage() {
                 </div>
                 
                 {showNewCategory && (
-                  <div className="mb-4 p-4 bg-white/60 rounded-lg border border-purple-200">
-                    <div className="flex gap-3">
-                      <input
-                        type="text"
-                        placeholder="نام دستهبندی جدید"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                      />
-                      <button
-                        type="button"
-                        onClick={handleCreateCategory}
-                        className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-medium"
-                      >
-                        ایجاد
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowNewCategory(false)}
-                        className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all duration-200 font-medium"
-                      >
-                        انصراف
-                      </button>
+                  <div className="mb-4 p-6 bg-white/60 rounded-lg border border-purple-200">
+                    <h4 className="text-sm font-semibold text-purple-800 mb-4">ایجاد دستهبندی جدید</h4>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">نام دستهبندی *</label>
+                        <input
+                          type="text"
+                          placeholder="نام دستهبندی جدید"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">تصویر دستهبندی *</label>
+                        <div className="flex items-center gap-4">
+                          <label className="cursor-pointer bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
+                            <span className="text-purple-700 text-sm font-medium">انتخاب تصویر</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleCategoryImageSelect}
+                              className="sr-only"
+                            />
+                          </label>
+                          
+                          {newCategoryImagePreview && (
+                            <div className="relative">
+                              <img
+                                src={newCategoryImagePreview}
+                                alt="پیشنمایش"
+                                className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewCategoryImage(null)
+                                  setNewCategoryImagePreview('')
+                                  URL.revokeObjectURL(newCategoryImagePreview)
+                                }}
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        <button
+                          type="button"
+                          onClick={handleCreateCategory}
+                          disabled={uploadingCategoryImage || !newCategoryName.trim() || !newCategoryImage}
+                          className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          {uploadingCategoryImage ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                              در حال ایجاد...
+                            </>
+                          ) : (
+                            'ایجاد'
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowNewCategory(false)
+                            setNewCategoryName('')
+                            setNewCategoryImage(null)
+                            if (newCategoryImagePreview) {
+                              URL.revokeObjectURL(newCategoryImagePreview)
+                              setNewCategoryImagePreview('')
+                            }
+                          }}
+                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all duration-200 font-medium"
+                        >
+                          انصراف
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}
