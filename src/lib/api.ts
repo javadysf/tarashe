@@ -232,13 +232,18 @@ class ApiClient {
   }
 
   async getAllReviews() {
-    return this.request('/products/reviews/all');
+    return this.request('/reviews');
   }
 
   async deleteReview(reviewId: string) {
     return this.request(`/products/reviews/${reviewId}`, {
       method: 'DELETE',
     });
+  }
+
+  // Admin Stats
+  async getAdminStats() {
+    return this.request('/admin/stats');
   }
 }
 

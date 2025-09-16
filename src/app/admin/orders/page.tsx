@@ -11,12 +11,22 @@ interface Order {
   status: string
   createdAt: string
   items: { product: { name: string }; quantity: number }[]
+  shippingAddress?: {
+    address: string
+    city: string
+    postalCode: string
+    phone: string
+  }
+  phone?: string
+  address?: string
 }
 
 export default function AdminOrdersPage() {
   const { user } = useAuthStore()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+  const [showModal, setShowModal] = useState(false)
 
   useEffect(() => {
     if (user?.role === 'admin') {
@@ -98,7 +108,15 @@ export default function AdminOrdersPage() {
                 {orders.map((order) => (
                   <tr key={order._id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      #{order._id.slice(-6)}
+                      <button
+                        onClick={() => {
+                          setSelectedOrder(order)
+                          setShowModal(true)
+                        }}
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        #{order._id.slice(-6)}
+                      </button>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div>
@@ -141,6 +159,114 @@ export default function AdminOrdersPage() {
                 هیچ سفارشی یافت نشد
               </div>
             )}
+          </div>
+        )}
+        
+        {/* Order Details Modal */}
+        {showModal && selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    جزئیات سفارش #{selectedOrder._id.slice(-6)}
+                  </h2>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Customer Info */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">اطلاعات مشتری</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <p><span className="font-medium">نام:</span> {selectedOrder.user.name}</p>
+                    <p><span className="font-medium">ایمیل:</span> {selectedOrder.user.email}</p>
+                    {(selectedOrder.phone || selectedOrder.shippingAddress?.phone) && (
+                      <p><span className="font-medium">شماره تماس:</span> {selectedOrder.phone || selectedOrder.shippingAddress?.phone}</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Shipping Address */}
+                {(selectedOrder.address || selectedOrder.shippingAddress) && (
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-3">آدرس ارسال</h3>
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                      {selectedOrder.shippingAddress ? (
+                        <>
+                          <p><span className="font-medium">آدرس:</span> {selectedOrder.shippingAddress.address}</p>
+                          <p><span className="font-medium">شهر:</span> {selectedOrder.shippingAddress.city}</p>
+                          <p><span className="font-medium">کد پستی:</span> {selectedOrder.shippingAddress.postalCode}</p>
+                        </>
+                      ) : (
+                        <p><span className="font-medium">آدرس:</span> {selectedOrder.address}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Order Info */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">اطلاعات سفارش</h3>
+                  <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                    <p><span className="font-medium">شماره سفارش:</span> #{selectedOrder._id}</p>
+                    <p><span className="font-medium">تاریخ:</span> {new Date(selectedOrder.createdAt).toLocaleDateString('fa-IR')}</p>
+                    <p><span className="font-medium">وضعیت:</span> 
+                      <span className={`mr-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedOrder.status)}`}>
+                        {getStatusText(selectedOrder.status)}
+                      </span>
+                    </p>
+                    <p><span className="font-medium">مبلغ کل:</span> {new Intl.NumberFormat('fa-IR').format(selectedOrder.totalAmount)} تومان</p>
+                  </div>
+                </div>
+                
+                {/* Order Items */}
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">محصولات سفارش</h3>
+                  <div className="space-y-3">
+                    {selectedOrder.items.map((item, index) => (
+                      <div key={index} className="bg-gray-50 p-4 rounded-lg flex justify-between items-center">
+                        <div>
+                          <p className="font-medium">{item.product.name}</p>
+                          <p className="text-sm text-gray-600">تعداد: {item.quantity}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Actions */}
+                <div className="flex justify-end space-x-3 space-x-reverse">
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+                  >
+                    بستن
+                  </button>
+                  <select
+                    value={selectedOrder.status}
+                    onChange={(e) => {
+                      updateOrderStatus(selectedOrder._id, e.target.value)
+                      setSelectedOrder({...selectedOrder, status: e.target.value})
+                    }}
+                    className="px-4 py-2 border border-gray-300 rounded-lg"
+                  >
+                    <option value="pending">در انتظار</option>
+                    <option value="confirmed">تایید شده</option>
+                    <option value="processing">در حال پردازش</option>
+                    <option value="shipped">ارسال شده</option>
+                    <option value="delivered">تحویل داده شده</option>
+                    <option value="cancelled">لغو شده</option>
+                  </select>
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -79,7 +79,7 @@ export default function Navbar() {
           <Link href="/" className="flex gap-4 items-center space-x-2 group">
             <div className="relative">
               <Image 
-                alt='logo' 
+                alt='logo'
                 width={65} 
                 height={65}
                 className='rounded-full ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all duration-300 group-hover:scale-105' 
