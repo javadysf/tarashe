@@ -29,13 +29,16 @@ interface Product {
   }
   brand: string
   stock: number
+  attributes?: { [key: string]: string }
 }
 
 interface Filters {
   category: string
+  brand: string[]
   minPrice: number
   maxPrice: number
   minRating: number
+  attributes: { [key: string]: string[] }
 }
 
 export default function ProductsPage() {
@@ -43,17 +46,22 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<any[]>([])
+  const [brands, setBrands] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('default')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [filters, setFilters] = useState<Filters>({
     category: 'all',
+    brand: [],
     minPrice: 0,
     maxPrice: 10000000,
-    minRating: 0
+    minRating: 0,
+    attributes: {}
   })
   const [searchTerm, setSearchTerm] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
+  const [attributeValues, setAttributeValues] = useState<{ [key: string]: string[] }>({})
 
   useEffect(() => {
     fetchProducts()
@@ -67,8 +75,22 @@ export default function ProductsPage() {
   }, [searchParams])
 
   useEffect(() => {
+    if (filters.category && filters.category !== 'all') {
+      fetchCategoryAttributes(filters.category)
+    } else {
+      setCategoryAttributes([])
+      setAttributeValues({})
+    }
+  }, [filters.category])
+
+  useEffect(() => {
     applyFiltersAndSort()
   }, [products, filters, sortBy, searchTerm])
+
+  useEffect(() => {
+    const uniqueBrands = [...new Set(products.map(product => product.brand))].filter(Boolean)
+    setBrands(uniqueBrands)
+  }, [products])
 
   const fetchProducts = async () => {
     try {
@@ -92,6 +114,28 @@ export default function ProductsPage() {
     }
   }
 
+  const fetchCategoryAttributes = async (categoryId: string) => {
+    try {
+      const response = await api.getCategoryAttributes(categoryId)
+      setCategoryAttributes(response)
+      
+      // Extract unique values for each attribute from products
+      const values: { [key: string]: string[] } = {}
+      response.forEach((attr: any) => {
+        const attrValues = new Set<string>()
+        products.forEach(product => {
+          if (product.attributes && product.attributes[attr._id]) {
+            attrValues.add(product.attributes[attr._id])
+          }
+        })
+        values[attr._id] = Array.from(attrValues)
+      })
+      setAttributeValues(values)
+    } catch (error) {
+      console.error('Error fetching category attributes:', error)
+    }
+  }
+
   const applyFiltersAndSort = () => {
     let filtered = products.filter(product => {
       const matchesSearch = searchTerm === '' || 
@@ -102,12 +146,21 @@ export default function ProductsPage() {
       const categoryId = product.category?._id || product.category
       const matchesCategory = filters.category === 'all' || categoryId === filters.category
       
+      const matchesBrand = filters.brand.length === 0 || filters.brand.includes(product.brand)
+      
       const matchesPrice = product.price >= filters.minPrice && product.price <= filters.maxPrice
+      
+      const matchesAttributes = Object.entries(filters.attributes).every(([attrId, values]) => {
+        if (values.length === 0) return true
+        return product.attributes && values.includes(product.attributes[attrId])
+      })
       
       return (
         matchesSearch &&
         matchesCategory &&
+        matchesBrand &&
         matchesPrice &&
+        matchesAttributes &&
         product.rating.average >= filters.minRating
       )
     })
@@ -190,6 +243,43 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Debug Section */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+          <h3 className="text-sm font-semibold text-yellow-800 mb-2">دیباگ ویژگیها</h3>
+          <div className="text-xs text-yellow-700 space-y-1">
+            <p>دسته انتخاب شده: {filters.category === 'all' ? 'همه' : categories.find(c => c._id === filters.category)?.name || 'نامشخص'}</p>
+            <p>تعداد ویژگیهای دسته: {categoryAttributes.length}</p>
+            <p>فیلترهای ویژگی: {Object.keys(filters.attributes).length}</p>
+          </div>
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() => {
+                console.log('Category Attributes:', categoryAttributes)
+                console.log('Attribute Values:', attributeValues)
+                console.log('Products with attributes:', products.filter(p => p.attributes && Object.keys(p.attributes).length > 0))
+              }}
+              className="text-xs bg-yellow-200 px-2 py-1 rounded"
+            >
+              نمایش جزئیات
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const attrs = await api.getAttributes()
+                  console.log('All attributes:', attrs)
+                  alert(`تعداد کل ویژگیها: ${attrs.length}`)
+                } catch (error: any) {
+                  console.error('Error:', error)
+                  alert('خطا: ' + error.message)
+                }
+              }}
+              className="text-xs bg-blue-200 px-2 py-1 rounded"
+            >
+              تست API
+            </button>
+          </div>
+        </div>
+
         {/* Search Header */}
         <SearchHeader
           searchTerm={searchTerm}
@@ -216,9 +306,12 @@ export default function ProductsPage() {
               filters={filters}
               setFilters={setFilters}
               categories={categories}
+              brands={brands}
               searchTerm={searchTerm}
               setSearchTerm={setSearchTerm}
               productsCount={filteredProducts.length}
+              categoryAttributes={categoryAttributes}
+              attributeValues={attributeValues}
             />
           </div>
 
@@ -270,7 +363,7 @@ export default function ProductsPage() {
                   <p className="text-gray-600 mb-6">لطفاً فیلترهای خود را تغییر دهید یا عبارت جستجوی دیگری امتحان کنید</p>
                   <Button
                     onClick={() => {
-                      setFilters({category: 'all', minPrice: 0, maxPrice: 10000000, minRating: 0})
+                      setFilters({category: 'all', brand: [], minPrice: 0, maxPrice: 10000000, minRating: 0, attributes: {}})
                       setSearchTerm('')
                     }}
                     variant="outline"

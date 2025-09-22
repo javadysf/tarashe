@@ -10,40 +10,50 @@ import { Filter, X, Star } from 'lucide-react'
 
 interface Filters {
   category: string
+  brand: string[]
   minPrice: number
   maxPrice: number
   minRating: number
+  attributes: { [key: string]: string[] }
 }
 
 interface FilterSidebarProps {
   filters: Filters
   setFilters: (filters: Filters) => void
   categories: any[]
+  brands: string[]
   searchTerm: string
   setSearchTerm: (term: string) => void
   productsCount: number
+  categoryAttributes: any[]
+  attributeValues: { [key: string]: string[] }
 }
 
 export default function FilterSidebar({ 
   filters, 
   setFilters, 
-  categories, 
+  categories,
+  brands, 
   searchTerm, 
   setSearchTerm,
-  productsCount 
+  productsCount,
+  categoryAttributes = [],
+  attributeValues = {}
 }: FilterSidebarProps) {
   
   const clearFilters = () => {
     setFilters({
       category: 'all',
+      brand: [],
       minPrice: 0,
       maxPrice: 10000000,
-      minRating: 0
+      minRating: 0,
+      attributes: {}
     })
     setSearchTerm('')
   }
 
-  const hasActiveFilters = (filters.category && filters.category !== 'all') || filters.minRating > 0 || searchTerm
+  const hasActiveFilters = (filters.category && filters.category !== 'all') || filters.brand.length > 0 || filters.minRating > 0 || Object.keys(filters.attributes).length > 0 || searchTerm
 
   return (
     <motion.div
@@ -91,6 +101,33 @@ export default function FilterSidebar({
             </Select>
           </div>
 
+          {/* Brand Filter */}
+          <div className="space-y-3">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              برند
+            </label>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {brands.map(brand => (
+                <label key={brand} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={filters.brand.includes(brand)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setFilters({...filters, brand: [...filters.brand, brand]})
+                      } else {
+                        setFilters({...filters, brand: filters.brand.filter(b => b !== brand)})
+                      }
+                    }}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <span className="text-sm text-gray-700">{brand}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
           {/* Price Range Filter */}
           <div className="space-y-3">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -112,6 +149,49 @@ export default function FilterSidebar({
               </div>
             </div>
           </div>
+
+          {/* Dynamic Attributes Filter */}
+          {categoryAttributes.map((attr) => (
+            <div key={attr._id} className="space-y-3">
+              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                {attr.name}
+              </label>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {(attributeValues[attr._id] || []).map(value => (
+                  <label key={value} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filters.attributes[attr._id]?.includes(value) || false}
+                      onChange={(e) => {
+                        const currentValues = filters.attributes[attr._id] || []
+                        if (e.target.checked) {
+                          setFilters({
+                            ...filters, 
+                            attributes: {
+                              ...filters.attributes,
+                              [attr._id]: [...currentValues, value]
+                            }
+                          })
+                        } else {
+                          const newValues = currentValues.filter(v => v !== value)
+                          const newAttributes = { ...filters.attributes }
+                          if (newValues.length === 0) {
+                            delete newAttributes[attr._id]
+                          } else {
+                            newAttributes[attr._id] = newValues
+                          }
+                          setFilters({...filters, attributes: newAttributes})
+                        }
+                      }}
+                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                    />
+                    <span className="text-sm text-gray-700">{value}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
 
           {/* Rating Filter */}
           <div className="space-y-3">
@@ -170,6 +250,38 @@ export default function FilterSidebar({
                       onClick={() => setFilters({...filters, category: 'all'})}
                     />
                   </Badge>
+                )}
+                {filters.brand.map(brand => (
+                  <Badge key={brand} variant="secondary" className="flex items-center gap-1">
+                    {brand}
+                    <X 
+                      className="w-3 h-3 cursor-pointer" 
+                      onClick={() => setFilters({...filters, brand: filters.brand.filter(b => b !== brand)})}
+                    />
+                  </Badge>
+                ))}
+                {Object.entries(filters.attributes).map(([attrId, values]) => 
+                  values.map(value => {
+                    const attr = categoryAttributes.find(a => a._id === attrId)
+                    return (
+                      <Badge key={`${attrId}-${value}`} variant="secondary" className="flex items-center gap-1">
+                        {attr?.name}: {value}
+                        <X 
+                          className="w-3 h-3 cursor-pointer" 
+                          onClick={() => {
+                            const newValues = filters.attributes[attrId].filter(v => v !== value)
+                            const newAttributes = { ...filters.attributes }
+                            if (newValues.length === 0) {
+                              delete newAttributes[attrId]
+                            } else {
+                              newAttributes[attrId] = newValues
+                            }
+                            setFilters({...filters, attributes: newAttributes})
+                          }}
+                        />
+                      </Badge>
+                    )
+                  })
                 )}
                 {filters.minRating > 0 && (
                   <Badge variant="secondary" className="flex items-center gap-1">

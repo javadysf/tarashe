@@ -38,6 +38,7 @@ export default function AddProductPage() {
     brand: string
     model: string
     stock: string
+    attributes: { [key: string]: string }
     images: Array<{
       url: string
       alt: string
@@ -54,6 +55,7 @@ export default function AddProductPage() {
     brand: '',
     model: '',
     stock: '',
+    attributes: {},
     images: []
   })
 
@@ -63,12 +65,30 @@ export default function AddProductPage() {
     }
   }, [user])
 
+  useEffect(() => {
+    if (formData.category) {
+      fetchCategoryAttributes(formData.category)
+    } else {
+      setCategoryAttributes([])
+      setFormData(prev => ({ ...prev, attributes: {} }))
+    }
+  }, [formData.category])
+
   const fetchCategories = async () => {
     try {
       const response = await api.getCategories()
       setCategories(response)
     } catch (error) {
       console.error('Error fetching categories:', error)
+    }
+  }
+
+  const fetchCategoryAttributes = async (categoryId: string) => {
+    try {
+      const response = await api.getCategoryAttributes(categoryId)
+      setCategoryAttributes(response)
+    } catch (error) {
+      console.error('Error fetching category attributes:', error)
     }
   }
 
@@ -81,7 +101,8 @@ export default function AddProductPage() {
         ...formData,
         price: Number(formData.price),
         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
-        stock: Number(formData.stock)
+        stock: Number(formData.stock),
+        attributes: Object.keys(formData.attributes).length > 0 ? formData.attributes : undefined
       }
 
       await api.createProduct(productData)
@@ -208,6 +229,7 @@ export default function AddProductPage() {
   const [newCategoryImage, setNewCategoryImage] = useState<File | null>(null)
   const [newCategoryImagePreview, setNewCategoryImagePreview] = useState<string>('')
   const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false)
+  const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
 
   const handleCategoryImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -514,6 +536,91 @@ export default function AddProductPage() {
                     <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
+
+                {/* Debug Info */}
+                <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <p className="text-xs text-yellow-800">
+                    دیباگ: دسته انتخاب شده: {formData.category || 'هیچ'} | تعداد ویژگیها: {categoryAttributes.length}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('Category:', formData.category)
+                      console.log('Category Attributes:', categoryAttributes)
+                      console.log('Form Attributes:', formData.attributes)
+                    }}
+                    className="text-xs bg-yellow-200 px-2 py-1 rounded mt-2 mr-2"
+                  >
+                    نمایش جزئیات
+                  </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const attrs = await api.getAttributes()
+                        console.log('All attributes:', attrs)
+                        toast.success(`تعداد ویژگیها: ${attrs.length}`)
+                      } catch (error: any) {
+                        console.error('Error:', error)
+                        toast.error(error.message)
+                      }
+                    }}
+                    className="text-xs bg-blue-200 px-2 py-1 rounded mt-2"
+                  >
+                    تست API
+                  </button>
+                </div>
+
+                {/* Dynamic Attributes */}
+                {categoryAttributes.length > 0 && (
+                  <div className="mt-6 p-4 bg-white/60 rounded-lg border border-purple-200">
+                    <h4 className="text-sm font-semibold text-purple-800 mb-4">ویژگیهای محصول</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {categoryAttributes.map((attr) => (
+                        <div key={attr._id}>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            {attr.name}
+                            {attr.isRequired && <span className="text-red-500 mr-1">*</span>}
+                          </label>
+                          {attr.type === 'select' ? (
+                            <select
+                              value={formData.attributes[attr._id] || ''}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                attributes: {
+                                  ...formData.attributes,
+                                  [attr._id]: e.target.value
+                                }
+                              })}
+                              required={attr.isRequired}
+                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                            >
+                              <option value="">انتخاب کنید</option>
+                              {attr.options?.map((option: string) => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type={attr.type === 'number' ? 'number' : 'text'}
+                              value={formData.attributes[attr._id] || ''}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                attributes: {
+                                  ...formData.attributes,
+                                  [attr._id]: e.target.value
+                                }
+                              })}
+                              required={attr.isRequired}
+                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                              placeholder={`وارد کردن ${attr.name}`}
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

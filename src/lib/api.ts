@@ -139,6 +139,10 @@ class ApiClient {
     return this.request('/categories');
   }
 
+  async getCategoriesWithAttributes() {
+    return this.request('/categories/with-attributes');
+  }
+
   async createCategory(categoryData: any) {
     return this.request('/categories', {
       method: 'POST',
@@ -244,6 +248,42 @@ class ApiClient {
   // Admin Stats
   async getAdminStats() {
     return this.request('/admin/stats');
+  }
+
+  // Attributes
+  async getAttributes() {
+    return this.request('/attributes');
+  }
+
+  async createAttribute(attributeData: any) {
+    return this.request('/attributes', {
+      method: 'POST',
+      body: JSON.stringify(attributeData),
+    });
+  }
+
+  async updateAttribute(id: string, attributeData: any) {
+    return this.request(`/attributes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(attributeData),
+    });
+  }
+
+  async deleteAttribute(id: string) {
+    return this.request(`/attributes/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getCategoryAttributes(categoryId: string) {
+    return this.request(`/attributes/category/${categoryId}`);
+  }
+
+  async assignAttributesToCategory(categoryId: string, attributeIds: string[]) {
+    return this.request(`/attributes/category/${categoryId}`, {
+      method: 'POST',
+      body: JSON.stringify({ attributeIds }),
+    });
   }
 }
 

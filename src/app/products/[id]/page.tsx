@@ -19,8 +19,9 @@ interface Product {
   stock: number
   images: { url: string; alt: string }[]
   rating: { average: number; count: number }
-  category: { name: string }
+  category: { _id: string; name: string }
   specifications: { key: string; value: string }[]
+  attributes: { [key: string]: string }
 }
 
 interface Review {
@@ -43,6 +44,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1)
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' })
   const [submittingReview, setSubmittingReview] = useState(false)
+  const [productAttributes, setProductAttributes] = useState<any[]>([])
 
   useEffect(() => {
     if (params.id) {
@@ -56,10 +58,22 @@ export default function ProductDetailPage() {
       setProduct(response)
       fetchReviews(id)
       fetchRelatedProducts(response.category._id, id)
+      if (response.category._id) {
+        fetchProductAttributes(response.category._id)
+      }
     } catch (error) {
       console.error('Error fetching product:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchProductAttributes = async (categoryId: string) => {
+    try {
+      const response = await api.getCategoryAttributes(categoryId)
+      setProductAttributes(response)
+    } catch (error) {
+      console.error('Error fetching product attributes:', error)
     }
   }
 
@@ -326,6 +340,25 @@ export default function ProductDetailPage() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">توضیحات محصول</h3>
                 <p className="text-gray-600 leading-relaxed">{product.description}</p>
               </div>
+
+              {/* Dynamic Attributes */}
+              {product.attributes && productAttributes.length > 0 && (
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">مشخصات محصول</h3>
+                  <div className="space-y-2">
+                    {productAttributes.map((attr) => {
+                      const value = product.attributes[attr._id]
+                      if (!value) return null
+                      return (
+                        <div key={attr._id} className="flex justify-between py-2 border-b border-gray-100">
+                          <span className="text-gray-600">{attr.name}:</span>
+                          <span className="font-medium text-gray-900">{value}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Specifications */}
               {product.specifications && product.specifications.length > 0 && (

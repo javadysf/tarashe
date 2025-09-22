@@ -3,8 +3,9 @@
 import { usePathname } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import GlobalSearch from '@/components/GlobalSearch'
+import SearchWithCategories from '@/components/SearchWithCategories'
 import CartSidebar from '@/components/CartSidebar'
+import SupportWidget from '@/components/SupportWidget'
 import ClientOnly from '@/components/ClientOnly'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -21,12 +22,10 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
     <>
       <Navbar />
       
-      {/* Global Search Bar */}
-      <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-sm border-b border-gray-200 py-3">
+      {/* Search Bar with Categories */}
+      <div className="sticky top-20 z-40 bg-gradient-to-r from-blue-50/80 to-purple-50/80 backdrop-blur-sm border-b border-gray-200/50 py-4">
         <div className="container mx-auto px-4">
-          <div className="flex justify-center">
-            <GlobalSearch />
-          </div>
+          <SearchWithCategories />
         </div>
       </div>
       
@@ -36,6 +35,7 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <Footer />
       <ClientOnly>
         <CartSidebar />
+        <SupportWidget />
       </ClientOnly>
       <ToastContainer
         position="top-right"

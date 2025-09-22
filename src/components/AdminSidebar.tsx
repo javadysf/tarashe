@@ -34,6 +34,16 @@ export default function AdminSidebar() {
       title: 'مدیریت نظرات',
       href: '/admin/reviews',
       icon: '⭐'
+    },
+    {
+      title: 'مدیریت دستهبندیها',
+      href: '/admin/categories',
+      icon: '📂'
+    },
+    {
+      title: 'مدیریت ویژگیها',
+      href: '/admin/attributes',
+      icon: '🏷️'
     }
   ]
 
