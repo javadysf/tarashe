@@ -21,7 +21,7 @@ interface FilterSidebarProps {
   filters: Filters
   setFilters: (filters: Filters) => void
   categories: any[]
-  brands: string[]
+  brands: any[]
   searchTerm: string
   setSearchTerm: (term: string) => void
   productsCount: number
@@ -108,23 +108,27 @@ export default function FilterSidebar({
               برند
             </label>
             <div className="space-y-2 max-h-48 overflow-y-auto">
-              {brands.map(brand => (
-                <label key={brand} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={filters.brand.includes(brand)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setFilters({...filters, brand: [...filters.brand, brand]})
-                      } else {
-                        setFilters({...filters, brand: filters.brand.filter(b => b !== brand)})
-                      }
-                    }}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                  <span className="text-sm text-gray-700">{brand}</span>
-                </label>
-              ))}
+              {brands.map(brand => {
+                const brandName = typeof brand === 'string' ? brand : brand.name
+                const brandId = typeof brand === 'string' ? brand : brand._id
+                return (
+                  <label key={brandId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={filters.brand.includes(brandId)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFilters({...filters, brand: [...filters.brand, brandId]})
+                        } else {
+                          setFilters({...filters, brand: filters.brand.filter(b => b !== brandId)})
+                        }
+                      }}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <span className="text-sm text-gray-700">{brandName}</span>
+                  </label>
+                )
+              })}
             </div>
           </div>
 
@@ -251,15 +255,19 @@ export default function FilterSidebar({
                     />
                   </Badge>
                 )}
-                {filters.brand.map(brand => (
-                  <Badge key={brand} variant="secondary" className="flex items-center gap-1">
-                    {brand}
-                    <X 
-                      className="w-3 h-3 cursor-pointer" 
-                      onClick={() => setFilters({...filters, brand: filters.brand.filter(b => b !== brand)})}
-                    />
-                  </Badge>
-                ))}
+                {filters.brand.map(brandId => {
+                  const brand = brands.find(b => (typeof b === 'string' ? b : b._id) === brandId)
+                  const brandName = typeof brand === 'string' ? brand : brand?.name || brandId
+                  return (
+                    <Badge key={brandId} variant="secondary" className="flex items-center gap-1">
+                      {brandName}
+                      <X 
+                        className="w-3 h-3 cursor-pointer" 
+                        onClick={() => setFilters({...filters, brand: filters.brand.filter(b => b !== brandId)})}
+                      />
+                    </Badge>
+                  )
+                })}
                 {Object.entries(filters.attributes).map(([attrId, values]) => 
                   values.map(value => {
                     const attr = categoryAttributes.find(a => a._id === attrId)

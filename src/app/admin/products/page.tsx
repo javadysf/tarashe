@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import Link from 'next/link'
 import { toast } from 'react-toastify'
+import AdminSidebar from '@/components/AdminSidebar'
 
 interface Product {
   _id: string
@@ -83,8 +84,10 @@ export default function AdminProductsPage() {
   if (user?.role !== 'admin') return null
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+      <AdminSidebar />
+      <div className="flex-1 p-8">
+        <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">مدیریت محصولات</h1>
           <Link href="/admin/products/add" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
@@ -140,7 +143,7 @@ export default function AdminProductsPage() {
                         {product.name}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {product.brand}
+                        {typeof product.brand === 'object' ? product.brand?.name : product.brand}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {new Intl.NumberFormat('fa-IR').format(product.price)} تومان
@@ -151,13 +154,21 @@ export default function AdminProductsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {product.category.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <Link href={`/admin/products/edit/${product._id}`} className="text-blue-600 hover:text-blue-900 ml-4">
-                          ویرایش
-                        </Link>
-                        <button onClick={() => deleteProduct(product._id)} className="text-red-600 hover:text-red-900">
-                          حذف
-                        </button>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex gap-2 justify-end">
+                          <Link 
+                            href={`/admin/products/edit/${product._id}`} 
+                            className="text-blue-600 hover:text-blue-900 transition-colors px-3 py-1 rounded bg-blue-50 hover:bg-blue-100"
+                          >
+                            ویرایش
+                          </Link>
+                          <button 
+                            onClick={() => deleteProduct(product._id)} 
+                            className="text-red-600 hover:text-red-900 transition-colors px-3 py-1 rounded bg-red-50 hover:bg-red-100"
+                          >
+                            حذف
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -193,6 +204,7 @@ export default function AdminProductsPage() {
             </table>
           </div>
         )}
+        </div>
       </div>
     </div>
   )

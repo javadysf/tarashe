@@ -23,7 +23,7 @@ interface Product {
     average: number
     count: number
   }
-  brand: string
+  brand: string | { _id: string; name: string; image?: string; isActive?: boolean; createdAt?: string; updatedAt?: string; __v?: number }
   stock: number
 }
 
@@ -51,6 +51,8 @@ export default function ProductListItem({ product, index }: ProductListItemProps
       />
     ))
   }
+
+  const brandName = typeof product.brand === 'string' ? product.brand : product.brand?.name
 
   return (
     <motion.div
@@ -107,8 +109,8 @@ export default function ProductListItem({ product, index }: ProductListItemProps
                 </Link>
                 
                 {/* Brand */}
-                {product.brand && (
-                  <div className="text-sm text-gray-500 mb-2">برند: {product.brand}</div>
+                {brandName && (
+                  <div className="text-sm text-gray-500 mb-2">برند: {brandName}</div>
                 )}
 
                 {/* Description */}

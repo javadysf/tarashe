@@ -25,10 +25,15 @@ export default function AddProductPage() {
     initAuth()
   }, [checkAuth, router])
   const [categories, setCategories] = useState<any[]>([])
+  const [brands, setBrands] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [showNewBrand, setShowNewBrand] = useState(false)
+  const [newBrandName, setNewBrandName] = useState('')
+  const [newBrandImage, setNewBrandImage] = useState<File | null>(null)
+  const [newBrandImagePreview, setNewBrandImagePreview] = useState<string>('')
   const [formData, setFormData] = useState<{
     name: string
     description: string
@@ -62,6 +67,7 @@ export default function AddProductPage() {
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchCategories()
+      fetchBrands()
     }
   }, [user])
 
@@ -83,6 +89,15 @@ export default function AddProductPage() {
     }
   }
 
+  const fetchBrands = async () => {
+    try {
+      const response = await api.getBrands()
+      setBrands(response)
+    } catch (error) {
+      console.error('Error fetching brands:', error)
+    }
+  }
+
   const fetchCategoryAttributes = async (categoryId: string) => {
     try {
       const response = await api.getCategoryAttributes(categoryId)
@@ -92,17 +107,24 @@ export default function AddProductPage() {
     }
   }
 
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
     try {
+      // Filter out empty attributes
+      const filteredAttributes = Object.fromEntries(
+        Object.entries(formData.attributes).filter(([_, value]) => value && value.trim())
+      )
+      
       const productData = {
         ...formData,
         price: Number(formData.price),
         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
         stock: Number(formData.stock),
-        attributes: Object.keys(formData.attributes).length > 0 ? formData.attributes : undefined
+        attributes: Object.keys(filteredAttributes).length > 0 ? filteredAttributes : undefined
       }
 
       await api.createProduct(productData)
@@ -230,6 +252,12 @@ export default function AddProductPage() {
   const [newCategoryImagePreview, setNewCategoryImagePreview] = useState<string>('')
   const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false)
   const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
+  const [showNewAttribute, setShowNewAttribute] = useState(false)
+  const [newAttribute, setNewAttribute] = useState({
+    name: '',
+    type: 'text' as 'text' | 'number' | 'select',
+    options: [''] as string[]
+  })
 
   const handleCategoryImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -249,12 +277,12 @@ export default function AddProductPage() {
 
   const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
-      toast.error('نام دستهبندی الزامی است')
+      toast.error('نام دسته بندی الزامی است')
       return
     }
     
     if (!newCategoryImage) {
-      toast.error('تصویر دستهبندی الزامی است')
+      toast.error('تصویر دسته بندی الزامی است')
       return
     }
     
@@ -277,12 +305,118 @@ export default function AddProductPage() {
       setNewCategoryImagePreview('')
       setShowNewCategory(false)
       
-      toast.success('✅ دستهبندی جدید با عکس ایجاد شد!')
+      // Auto-fetch attributes for the new category
+      fetchCategoryAttributes(response.category._id)
+      
+      toast.success('✅ دسته بندی جدید با عکس ایجاد شد!')
     } catch (error: any) {
-      toast.error('❌ ' + (error.message || 'خطا در ایجاد دستهبندی'))
+      toast.error('❌ ' + (error.message || 'خطا در ایجاد دسته بندی'))
     } finally {
       setUploadingCategoryImage(false)
     }
+  }
+
+  const handleBrandImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error('فقط فایلهای تصویری مجاز هستند')
+        return
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('حجم فایل باید کمتر از 5MB باشد')
+        return
+      }
+      setNewBrandImage(file)
+      setNewBrandImagePreview(URL.createObjectURL(file))
+    }
+  }
+
+  const handleCreateBrand = async () => {
+    if (!newBrandName.trim()) {
+      toast.error('نام برند الزامی است')
+      return
+    }
+    
+    if (!newBrandImage) {
+      toast.error('تصویر برند الزامی است')
+      return
+    }
+    
+    try {
+      const brandData = new FormData()
+      brandData.append('name', newBrandName)
+      brandData.append('image', newBrandImage)
+      
+      const response = await api.createBrand(brandData)
+      
+      setBrands([...brands, response.brand])
+      setFormData({...formData, brand: response.brand._id})
+      setNewBrandName('')
+      setNewBrandImage(null)
+      setNewBrandImagePreview('')
+      setShowNewBrand(false)
+      
+      toast.success('✅ برند جدید با موفقیت ایجاد شد!')
+    } catch (error: any) {
+      toast.error('❌ ' + (error.message || 'خطا در ایجاد برند'))
+    }
+  }
+
+  const handleCreateAttribute = async () => {
+    if (!newAttribute.name.trim()) {
+      toast.error('نام ویژگی الزامی است')
+      return
+    }
+    
+    try {
+      const attributeData = {
+        ...newAttribute,
+        options: newAttribute.type === 'select' ? newAttribute.options.filter(opt => opt.trim()) : undefined
+      }
+      
+      const response = await api.createAttribute(attributeData)
+      setNewAttribute({ name: '', type: 'text', options: [''] })
+      setShowNewAttribute(false)
+      
+      // Auto-assign to current category if selected
+      if (formData.category) {
+        try {
+          await api.assignAttributeToCategory(formData.category, response.attribute._id)
+          fetchCategoryAttributes(formData.category)
+          toast.success('✅ ویژگی جدید ایجاد و به دسته اضافه شد!')
+        } catch (assignError) {
+          toast.success('✅ ویژگی جدید ایجاد شد!')
+        }
+      } else {
+        toast.success('✅ ویژگی جدید ایجاد شد!')
+      }
+    } catch (error: any) {
+      toast.error('❌ ' + (error.message || 'خطا در ایجاد ویژگی'))
+    }
+  }
+
+  const addAttributeOption = () => {
+    setNewAttribute({
+      ...newAttribute,
+      options: [...newAttribute.options, '']
+    })
+  }
+
+  const updateAttributeOption = (index: number, value: string) => {
+    const newOptions = [...newAttribute.options]
+    newOptions[index] = value
+    setNewAttribute({
+      ...newAttribute,
+      options: newOptions
+    })
+  }
+
+  const removeAttributeOption = (index: number) => {
+    setNewAttribute({
+      ...newAttribute,
+      options: newAttribute.options.filter((_, i) => i !== index)
+    })
   }
 
   const removeImage = (index: number) => {
@@ -418,13 +552,13 @@ export default function AddProductPage() {
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
-              دستهبندی و جزئیات
+              دسته بندی و جزئیات
             </h3>
             
             <div className="space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-gray-700">دستهبندی *</label>
+                  <label className="block text-sm font-semibold text-gray-700">دسته بندی *</label>
                   <button
                     type="button"
                     onClick={() => setShowNewCategory(!showNewCategory)}
@@ -433,20 +567,20 @@ export default function AddProductPage() {
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    دستهبندی جدید
+                    دسته بندی جدید
                   </button>
                 </div>
                 
                 {showNewCategory && (
                   <div className="mb-4 p-6 bg-white/60 rounded-lg border border-purple-200">
-                    <h4 className="text-sm font-semibold text-purple-800 mb-4">ایجاد دستهبندی جدید</h4>
+                    <h4 className="text-sm font-semibold text-purple-800 mb-4">ایجاد دسته بندی جدید</h4>
                     
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">نام دستهبندی *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">نام دسته بندی *</label>
                         <input
                           type="text"
-                          placeholder="نام دستهبندی جدید"
+                          placeholder="نام دسته بندی جدید"
                           value={newCategoryName}
                           onChange={(e) => setNewCategoryName(e.target.value)}
                           className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
@@ -454,7 +588,7 @@ export default function AddProductPage() {
                       </div>
                       
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">تصویر دستهبندی *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">تصویر دسته بندی *</label>
                         <div className="flex items-center gap-4">
                           <label className="cursor-pointer bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
                             <span className="text-purple-700 text-sm font-medium">انتخاب تصویر</span>
@@ -531,109 +665,308 @@ export default function AddProductPage() {
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/70"
                 >
-                  <option value="">انتخاب دستهبندی</option>
+                  <option value="">انتخاب دسته بندی</option>
                   {categories.map((cat) => (
                     <option key={cat._id} value={cat._id}>{cat.name}</option>
                   ))}
                 </select>
 
-                {/* Debug Info */}
-                <div className="mt-4 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <p className="text-xs text-yellow-800">
-                    دیباگ: دسته انتخاب شده: {formData.category || 'هیچ'} | تعداد ویژگیها: {categoryAttributes.length}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      console.log('Category:', formData.category)
-                      console.log('Category Attributes:', categoryAttributes)
-                      console.log('Form Attributes:', formData.attributes)
-                    }}
-                    className="text-xs bg-yellow-200 px-2 py-1 rounded mt-2 mr-2"
-                  >
-                    نمایش جزئیات
-                  </button>
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        const attrs = await api.getAttributes()
-                        console.log('All attributes:', attrs)
-                        toast.success(`تعداد ویژگیها: ${attrs.length}`)
-                      } catch (error: any) {
-                        console.error('Error:', error)
-                        toast.error(error.message)
-                      }
-                    }}
-                    className="text-xs bg-blue-200 px-2 py-1 rounded mt-2"
-                  >
-                    تست API
-                  </button>
-                </div>
-
-                {/* Dynamic Attributes */}
-                {categoryAttributes.length > 0 && (
+                {/* Attributes Management - Only show when category is selected */}
+                {formData.category && (
                   <div className="mt-6 p-4 bg-white/60 rounded-lg border border-purple-200">
-                    <h4 className="text-sm font-semibold text-purple-800 mb-4">ویژگیهای محصول</h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {categoryAttributes.map((attr) => (
-                        <div key={attr._id}>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            {attr.name}
-                            {attr.isRequired && <span className="text-red-500 mr-1">*</span>}
-                          </label>
-                          {attr.type === 'select' ? (
-                            <select
-                              value={formData.attributes[attr._id] || ''}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                attributes: {
-                                  ...formData.attributes,
-                                  [attr._id]: e.target.value
-                                }
-                              })}
-                              required={attr.isRequired}
-                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                            >
-                              <option value="">انتخاب کنید</option>
-                              {attr.options?.map((option: string) => (
-                                <option key={option} value={option}>{option}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <input
-                              type={attr.type === 'number' ? 'number' : 'text'}
-                              value={formData.attributes[attr._id] || ''}
-                              onChange={(e) => setFormData({
-                                ...formData,
-                                attributes: {
-                                  ...formData.attributes,
-                                  [attr._id]: e.target.value
-                                }
-                              })}
-                              required={attr.isRequired}
-                              className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                              placeholder={`وارد کردن ${attr.name}`}
-                            />
-                          )}
+                  <div className="flex items-center justify-between mb-4">
+                    <h4 className="text-sm font-semibold text-purple-800">ویژگیهای محصول</h4>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewAttribute(!showNewAttribute)}
+                      className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      ویژگی جدید
+                    </button>
+                  </div>
+
+                  {/* Create New Attribute */}
+                  {showNewAttribute && (
+                    <div className="mb-4 p-4 bg-white/80 rounded-lg border border-purple-300">
+                      <h5 className="text-sm font-semibold text-purple-800 mb-3">ایجاد ویژگی جدید برای {categories.find(c => c._id === formData.category)?.name}</h5>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">نام ویژگی</label>
+                          <input
+                            type="text"
+                            value={newAttribute.name}
+                            onChange={(e) => setNewAttribute({...newAttribute, name: e.target.value})}
+                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                            placeholder="مثال: رنگ، اندازه، جنس"
+                          />
                         </div>
-                      ))}
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">نوع ویژگی</label>
+                          <select
+                            value={newAttribute.type}
+                            onChange={(e) => setNewAttribute({
+                              ...newAttribute, 
+                              type: e.target.value as 'text' | 'number' | 'select',
+                              options: e.target.value === 'select' ? [''] : []
+                            })}
+                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                          >
+                            <option value="text">متن</option>
+                            <option value="number">عدد</option>
+                            <option value="select">انتخابی</option>
+                          </select>
+                        </div>
+
+                        {newAttribute.type === 'select' && (
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">گزینهها</label>
+                            <div className="space-y-2">
+                              {newAttribute.options.map((option, index) => (
+                                <div key={index} className="flex gap-2">
+                                  <input
+                                    type="text"
+                                    value={option}
+                                    onChange={(e) => updateAttributeOption(index, e.target.value)}
+                                    className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                                    placeholder={`گزینه ${index + 1}`}
+                                  />
+                                  {newAttribute.options.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => removeAttributeOption(index)}
+                                      className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                                    >
+                                      ×
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              <button
+                                type="button"
+                                onClick={addAttributeOption}
+                                className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                              >
+                                + افزودن گزینه
+                              </button>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={handleCreateAttribute}
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors font-medium"
+                          >
+                            ایجاد ویژگی
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowNewAttribute(false)
+                              setNewAttribute({ name: '', type: 'text', options: [''] })
+                            }}
+                            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+                          >
+                            انصراف
+                          </button>
+                        </div>
+                      </div>
                     </div>
+                  )}
+
+                  {/* Category-specific Attributes */}
+                  {formData.category ? (
+                    <div className="space-y-4">
+                      <h5 className="text-sm font-semibold text-gray-700 mb-4">ویژگیهای {categories.find(c => c._id === formData.category)?.name}</h5>
+                      
+                      {categoryAttributes.length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {categoryAttributes.map((attr) => (
+                            <div key={attr._id} className="relative">
+                              <div className="flex items-center justify-between mb-2">
+                                <label className="block text-sm font-medium text-gray-700">
+                                  {attr.name}
+                                </label>
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    try {
+                                      await api.removeAttributeFromCategory(formData.category, attr._id)
+                                      toast.success('ویژگی از دسته حذف شد')
+                                      fetchCategoryAttributes(formData.category)
+                                      // Remove from form data
+                                      const newAttributes = { ...formData.attributes }
+                                      delete newAttributes[attr._id]
+                                      setFormData({ ...formData, attributes: newAttributes })
+                                    } catch (error: any) {
+                                      toast.error(error.message)
+                                    }
+                                  }}
+                                  className="text-red-500 hover:text-red-700 text-xs"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                              {attr.type === 'select' ? (
+                                <select
+                                  value={formData.attributes[attr._id] || ''}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    attributes: {
+                                      ...formData.attributes,
+                                      [attr._id]: e.target.value
+                                    }
+                                  })}
+                                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                                >
+                                  <option value="">انتخاب کنید</option>
+                                  {attr.options?.map((option: string) => (
+                                    <option key={option} value={option}>{option}</option>
+                                  ))}
+                                </select>
+                              ) : (
+                                <input
+                                  type={attr.type === 'number' ? 'number' : 'text'}
+                                  value={formData.attributes[attr._id] || ''}
+                                  onChange={(e) => setFormData({
+                                    ...formData,
+                                    attributes: {
+                                      ...formData.attributes,
+                                      [attr._id]: e.target.value
+                                    }
+                                  })}
+                                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                                  placeholder={`وارد کردن ${attr.name}`}
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500">این دسته هنوز ویژگی ندارد. برای ایجاد ویژگی جدید روی دکمه "ویژگی جدید" کلیک کنید.</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">ابتدا دسته بندی را انتخاب کنید</p>
+                  )}
                   </div>
                 )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">برند *</label>
-                  <input
-                    type="text"
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-sm font-semibold text-gray-700">برند *</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowNewBrand(!showNewBrand)}
+                      className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      برند جدید
+                    </button>
+                  </div>
+                  
+                  {showNewBrand && (
+                    <div className="mb-4 p-4 bg-white/60 rounded-lg border border-purple-200">
+                      <h4 className="text-sm font-semibold text-purple-800 mb-4">ایجاد برند جدید</h4>
+                      
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">نام برند *</label>
+                          <input
+                            type="text"
+                            placeholder="نام برند جدید"
+                            value={newBrandName}
+                            onChange={(e) => setNewBrandName(e.target.value)}
+                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                          />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">تصویر برند *</label>
+                          <div className="flex items-center gap-4">
+                            <label className="cursor-pointer bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
+                              <span className="text-purple-700 text-sm font-medium">انتخاب تصویر</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleBrandImageSelect}
+                                className="sr-only"
+                              />
+                            </label>
+                            
+                            {newBrandImagePreview && (
+                              <div className="relative">
+                                <img
+                                  src={newBrandImagePreview}
+                                  alt="پیشنمایش"
+                                  className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewBrandImage(null)
+                                    setNewBrandImagePreview('')
+                                    URL.revokeObjectURL(newBrandImagePreview)
+                                  }}
+                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <button
+                            type="button"
+                            onClick={handleCreateBrand}
+                            disabled={!newBrandName.trim() || !newBrandImage}
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            ایجاد
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowNewBrand(false)
+                              setNewBrandName('')
+                              setNewBrandImage(null)
+                              if (newBrandImagePreview) {
+                                URL.revokeObjectURL(newBrandImagePreview)
+                                setNewBrandImagePreview('')
+                              }
+                            }}
+                            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all duration-200 font-medium"
+                          >
+                            انصراف
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <select
                     required
                     value={formData.brand}
                     onChange={(e) => setFormData({...formData, brand: e.target.value})}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/70"
-                    placeholder="نام برند"
-                  />
+                  >
+                    <option value="">انتخاب برند</option>
+                    {brands.map((brand) => (
+                      <option key={brand._id} value={brand._id}>{brand.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
@@ -710,38 +1043,6 @@ export default function AddProductPage() {
                 </div>
                 
                 <p className="text-sm text-gray-600">حداکثر 20 تصویر • JPG, PNG, WEBP</p>
-                
-                {/* Debug buttons */}
-                <div className="mt-2 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      console.log('Current user:', user)
-                      console.log('Current token:', token)
-                      console.log('Images count:', formData.images.length)
-                    }}
-                    className="text-xs bg-gray-200 px-3 py-1 rounded"
-                  >
-                    تست اطلاعات
-                  </button>
-                  
-                  {!user && (
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await useAuthStore.getState().login('admin@tarashe.com', 'admin123')
-                          toast.success('✅ ورود موفق')
-                        } catch (error: any) {
-                          toast.error('❌ ' + error.message)
-                        }
-                      }}
-                      className="text-xs bg-blue-200 px-3 py-1 rounded"
-                    >
-                      ورود سریع ادمین
-                    </button>
-                  )}
-                </div>
               </div>
             </div>
             

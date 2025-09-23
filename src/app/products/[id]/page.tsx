@@ -14,7 +14,7 @@ interface Product {
   description: string
   price: number
   originalPrice?: number
-  brand: string
+  brand: string | { _id: string; name: string; image?: string }
   model: string
   stock: number
   images: { url: string; alt: string }[]
@@ -176,6 +176,8 @@ export default function ProductDetailPage() {
     return new Intl.NumberFormat('fa-IR').format(price)
   }
 
+  const brandName = typeof product?.brand === 'string' ? product?.brand : product?.brand?.name
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -242,9 +244,11 @@ export default function ProductDetailPage() {
                   <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
                     {product.category.name}
                   </span>
-                  <span className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">
-                    {product.brand}
-                  </span>
+                  {brandName && (
+                    <span className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">
+                      {brandName}
+                    </span>
+                  )}
                 </div>
                 
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>

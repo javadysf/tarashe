@@ -8,7 +8,7 @@ import { api } from '@/lib/api'
 interface Product {
   _id: string
   name: string
-  brand: string
+  brand: string | { _id: string; name: string; image?: string; isActive?: boolean; createdAt?: string; updatedAt?: string; __v?: number }
   model: string
   price: number
   originalPrice?: number
@@ -31,9 +31,24 @@ export default function ProductSlider() {
   const fetchFeaturedProducts = async () => {
     try {
       const response = await api.getProducts({ isFeatured: 'true', limit: 5 })
-      setProducts(response.products || [])
+      let items: Product[] = response.products || []
+
+      // Fallback: if no featured products, load latest products
+      if (!items.length) {
+        const fallback = await api.getProducts({ limit: 5 })
+        items = fallback.products || []
+      }
+
+      setProducts(items)
     } catch (error) {
       console.error('Error fetching products:', error)
+      // Final fallback on error
+      try {
+        const fallback = await api.getProducts({ limit: 5 })
+        setProducts(fallback.products || [])
+      } catch (e) {
+        console.error('Error fetching fallback products:', e)
+      }
     } finally {
       setLoading(false)
     }
@@ -64,6 +79,8 @@ export default function ProductSlider() {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fa-IR').format(price)
   }
+
+  const brandToText = (brand: Product['brand']) => typeof brand === 'string' ? brand : brand?.name
 
   if (loading) {
     return (
@@ -108,7 +125,7 @@ export default function ProductSlider() {
                       <div className="grid md:grid-cols-2 gap-8 items-center">
                         <div className="text-white">
                           <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
-                            <span className="text-sm font-medium">{product.brand}</span>
+                            <span className="text-sm font-medium">{brandToText(product.brand)}</span>
                           </div>
                           
                           <h3 className="text-3xl md:text-5xl font-bold mb-4 leading-tight">

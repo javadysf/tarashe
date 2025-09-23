@@ -116,7 +116,7 @@ export default function DiscountedProductsSection() {
                 </h3>
                 
                 <div className="mb-3">
-                  <span className="text-sm text-gray-500">{product.brand}</span>
+                  <span className="text-sm text-gray-500">{typeof product.brand === 'string' ? product.brand : product.brand?.name}</span>
                 </div>
 
                 {/* Rating */}

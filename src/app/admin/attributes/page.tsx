@@ -24,7 +24,6 @@ interface Category {
 }
 
 export default function AttributesPage() {
-  const [attributes, setAttributes] = useState<Attribute[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [newAttribute, setNewAttribute] = useState({
@@ -36,7 +35,6 @@ export default function AttributesPage() {
   const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
 
   useEffect(() => {
-    fetchAttributes()
     fetchCategories()
   }, [])
 
@@ -46,23 +44,14 @@ export default function AttributesPage() {
     }
   }, [selectedCategory])
 
-  const fetchAttributes = async () => {
-    try {
-      const response = await api.getAttributes()
-      setAttributes(response)
-    } catch (error) {
-      console.error('Error fetching attributes:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const fetchCategories = async () => {
     try {
       const response = await api.getCategories()
       setCategories(response)
     } catch (error) {
       console.error('Error fetching categories:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -75,45 +64,32 @@ export default function AttributesPage() {
     }
   }
 
-  const handleCreateAttribute = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleCreateAttributeForCategory = async () => {
+    if (!selectedCategory) {
+      toast.error('ابتدا دسته بندی را انتخاب کنید')
+      return
+    }
+    
+    if (!newAttribute.name.trim()) {
+      toast.error('نام ویژگی الزامی است')
+      return
+    }
+    
     try {
       const attributeData = {
         ...newAttribute,
         options: newAttribute.type === 'select' ? newAttribute.options.filter(opt => opt.trim()) : undefined
       }
-      await api.createAttribute(attributeData)
-      toast.success('ویژگی با موفقیت ایجاد شد')
+      
+      const response = await api.createAttribute(attributeData)
+      await api.assignAttributeToCategory(selectedCategory, response.attribute._id)
+      
+      fetchCategoryAttributes(selectedCategory)
       setNewAttribute({ name: '', type: 'text', options: [''] })
-      fetchAttributes()
+      
+      toast.success('ویژگی جدید برای دسته ایجاد شد')
     } catch (error: any) {
       toast.error(error.message || 'خطا در ایجاد ویژگی')
-    }
-  }
-
-  const handleDeleteAttribute = async (id: string) => {
-    if (!confirm('آیا از حذف این ویژگی اطمینان دارید؟')) return
-    
-    try {
-      await api.deleteAttribute(id)
-      toast.success('ویژگی حذف شد')
-      fetchAttributes()
-    } catch (error: any) {
-      toast.error(error.message || 'خطا در حذف ویژگی')
-    }
-  }
-
-  const handleAssignAttribute = async (attributeId: string) => {
-    if (!selectedCategory) return
-    
-    try {
-      const currentIds = categoryAttributes.map(attr => attr._id)
-      const newIds = [...currentIds, attributeId]
-      await api.assignAttributesToCategory(selectedCategory, newIds)
-      toast.success('ویژگی به دسته اختصاص داده شد')
-      fetchCategoryAttributes(selectedCategory)
-    } catch (error: any) {
-      toast.error(error.message || 'خطا در اختصاص ویژگی')
     }
   }
 
@@ -121,9 +97,7 @@ export default function AttributesPage() {
     if (!selectedCategory) return
     
     try {
-      const currentIds = categoryAttributes.map(attr => attr._id)
-      const newIds = currentIds.filter(id => id !== attributeId)
-      await api.assignAttributesToCategory(selectedCategory, newIds)
+      await api.removeAttributeFromCategory(selectedCategory, attributeId)
       toast.success('ویژگی از دسته حذف شد')
       fetchCategoryAttributes(selectedCategory)
     } catch (error: any) {
@@ -169,125 +143,17 @@ export default function AttributesPage() {
         <h1 className="text-3xl font-bold text-gray-900">مدیریت ویژگیها</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>ایجاد ویژگی جدید</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCreateAttribute} className="space-y-4">
-              <div>
-                <Label htmlFor="name">نام ویژگی</Label>
-                <Input
-                  id="name"
-                  value={newAttribute.name}
-                  onChange={(e) => setNewAttribute({...newAttribute, name: e.target.value})}
-                  placeholder="مثال: رنگ، اندازه، جنس"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="type">نوع ویژگی</Label>
-                <Select 
-                  value={newAttribute.type} 
-                  onValueChange={(value: 'text' | 'number' | 'select') => 
-                    setNewAttribute({...newAttribute, type: value, options: value === 'select' ? [''] : []})
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="text">متن</SelectItem>
-                    <SelectItem value="number">عدد</SelectItem>
-                    <SelectItem value="select">انتخابی</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {newAttribute.type === 'select' && (
-                <div>
-                  <Label>گزینهها</Label>
-                  <div className="space-y-2">
-                    {newAttribute.options.map((option, index) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={option}
-                          onChange={(e) => updateOption(index, e.target.value)}
-                          placeholder={`گزینه ${index + 1}`}
-                        />
-                        {newAttribute.options.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removeOption(index)}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    <Button type="button" variant="outline" onClick={addOption}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      افزودن گزینه
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              <Button type="submit" className="w-full">
-                ایجاد ویژگی
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>لیست ویژگیها</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {attributes.map((attribute) => (
-                <div key={attribute._id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
-                    <h3 className="font-medium">{attribute.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="secondary">{attribute.type}</Badge>
-                      {attribute.options && (
-                        <span className="text-sm text-gray-500">
-                          {attribute.options.length} گزینه
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteAttribute(attribute._id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       <Card>
         <CardHeader>
-          <CardTitle>مدیریت ویژگیهای دستهبندی</CardTitle>
+          <CardTitle>انتخاب دسته بندی</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div>
-              <Label>انتخاب دستهبندی</Label>
+              <Label>دسته بندی</Label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="دستهبندی را انتخاب کنید" />
+                  <SelectValue placeholder="دسته بندی را انتخاب کنید" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -298,50 +164,124 @@ export default function AttributesPage() {
                 </SelectContent>
               </Select>
             </div>
-
-            {selectedCategory && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h3 className="font-medium mb-3">ویژگیهای موجود</h3>
-                  <div className="space-y-2">
-                    {attributes
-                      .filter(attr => !categoryAttributes.find(ca => ca._id === attr._id))
-                      .map((attribute) => (
-                        <div key={attribute._id} className="flex items-center justify-between p-2 border rounded">
-                          <span>{attribute.name}</span>
-                          <Button
-                            size="sm"
-                            onClick={() => handleAssignAttribute(attribute._id)}
-                          >
-                            <Plus className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-medium mb-3">ویژگیهای اختصاص داده شده</h3>
-                  <div className="space-y-2">
-                    {categoryAttributes.map((attribute) => (
-                      <div key={attribute._id} className="flex items-center justify-between p-2 border rounded bg-blue-50">
-                        <span>{attribute.name}</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRemoveAttribute(attribute._id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
+
+      {selectedCategory && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>ایجاد ویژگی جدید برای {categories.find(c => c._id === selectedCategory)?.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="name">نام ویژگی</Label>
+                  <Input
+                    id="name"
+                    value={newAttribute.name}
+                    onChange={(e) => setNewAttribute({...newAttribute, name: e.target.value})}
+                    placeholder="مثال: رنگ، اندازه، جنس"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="type">نوع ویژگی</Label>
+                  <Select 
+                    value={newAttribute.type} 
+                    onValueChange={(value: 'text' | 'number' | 'select') => 
+                      setNewAttribute({...newAttribute, type: value, options: value === 'select' ? [''] : []})
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="text">متن</SelectItem>
+                      <SelectItem value="number">عدد</SelectItem>
+                      <SelectItem value="select">انتخابی</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {newAttribute.type === 'select' && (
+                  <div>
+                    <Label>گزینهها</Label>
+                    <div className="space-y-2">
+                      {newAttribute.options.map((option, index) => (
+                        <div key={index} className="flex gap-2">
+                          <Input
+                            value={option}
+                            onChange={(e) => updateOption(index, e.target.value)}
+                            placeholder={`گزینه ${index + 1}`}
+                          />
+                          {newAttribute.options.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => removeOption(index)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                      <Button type="button" variant="outline" onClick={addOption}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        افزودن گزینه
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                <Button onClick={handleCreateAttributeForCategory} className="w-full">
+                  ایجاد ویژگی
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>ویژگیهای {categories.find(c => c._id === selectedCategory)?.name}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {categoryAttributes.length > 0 ? (
+                  categoryAttributes.map((attribute) => (
+                    <div key={attribute._id} className="flex items-center justify-between p-3 border rounded bg-blue-50">
+                      <div>
+                        <span className="font-medium">{attribute.name}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge variant="secondary">{attribute.type}</Badge>
+                          {attribute.options && (
+                            <span className="text-sm text-gray-500">
+                              {attribute.options.length} گزینه
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRemoveAttribute(attribute._id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    این دسته هنوز ویژگی ندارد. برای ایجاد ویژگی جدید فرم بالا را استفاده کنید.
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   )
 }

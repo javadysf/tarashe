@@ -27,7 +27,7 @@ interface Product {
     average: number
     count: number
   }
-  brand: string
+  brand: string | { _id: string; name: string; image?: string; isActive?: boolean; createdAt?: string; updatedAt?: string; __v?: number }
   stock: number
   attributes?: { [key: string]: string }
 }
@@ -46,7 +46,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<any[]>([])
-  const [brands, setBrands] = useState<string[]>([])
+  const [brands, setBrands] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [sortBy, setSortBy] = useState('default')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
@@ -88,7 +88,16 @@ export default function ProductsPage() {
   }, [products, filters, sortBy, searchTerm])
 
   useEffect(() => {
-    const uniqueBrands = [...new Set(products.map(product => product.brand))].filter(Boolean)
+    const uniqueBrands = products
+      .map(product => product.brand)
+      .filter(Boolean)
+      .reduce((acc: any[], brand) => {
+        const brandId = typeof brand === 'string' ? brand : brand._id
+        if (!acc.find(b => (typeof b === 'string' ? b : b._id) === brandId)) {
+          acc.push(brand)
+        }
+        return acc
+      }, [])
     setBrands(uniqueBrands)
   }, [products])
 
@@ -141,12 +150,13 @@ export default function ProductsPage() {
       const matchesSearch = searchTerm === '' || 
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand?.toLowerCase().includes(searchTerm.toLowerCase())
+        (typeof product.brand === 'string' ? product.brand : product.brand?.name)?.toLowerCase().includes(searchTerm.toLowerCase())
       
       const categoryId = product.category?._id || product.category
       const matchesCategory = filters.category === 'all' || categoryId === filters.category
       
-      const matchesBrand = filters.brand.length === 0 || filters.brand.includes(product.brand)
+      const productBrandId = typeof product.brand === 'string' ? product.brand : product.brand?._id
+      const matchesBrand = filters.brand.length === 0 || filters.brand.includes(productBrandId)
       
       const matchesPrice = product.price >= filters.minPrice && product.price <= filters.maxPrice
       
@@ -243,43 +253,6 @@ export default function ProductsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Debug Section */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <h3 className="text-sm font-semibold text-yellow-800 mb-2">دیباگ ویژگیها</h3>
-          <div className="text-xs text-yellow-700 space-y-1">
-            <p>دسته انتخاب شده: {filters.category === 'all' ? 'همه' : categories.find(c => c._id === filters.category)?.name || 'نامشخص'}</p>
-            <p>تعداد ویژگیهای دسته: {categoryAttributes.length}</p>
-            <p>فیلترهای ویژگی: {Object.keys(filters.attributes).length}</p>
-          </div>
-          <div className="flex gap-2 mt-2">
-            <button
-              onClick={() => {
-                console.log('Category Attributes:', categoryAttributes)
-                console.log('Attribute Values:', attributeValues)
-                console.log('Products with attributes:', products.filter(p => p.attributes && Object.keys(p.attributes).length > 0))
-              }}
-              className="text-xs bg-yellow-200 px-2 py-1 rounded"
-            >
-              نمایش جزئیات
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  const attrs = await api.getAttributes()
-                  console.log('All attributes:', attrs)
-                  alert(`تعداد کل ویژگیها: ${attrs.length}`)
-                } catch (error: any) {
-                  console.error('Error:', error)
-                  alert('خطا: ' + error.message)
-                }
-              }}
-              className="text-xs bg-blue-200 px-2 py-1 rounded"
-            >
-              تست API
-            </button>
-          </div>
-        </div>
-
         {/* Search Header */}
         <SearchHeader
           searchTerm={searchTerm}

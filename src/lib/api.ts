@@ -184,9 +184,10 @@ class ApiClient {
   }
 
   async updateProduct(id: string, productData: any) {
+    const body = productData instanceof FormData ? productData : JSON.stringify(productData);
     return this.request(`/products/${id}`, {
       method: 'PUT',
-      body: JSON.stringify(productData),
+      body,
     });
   }
 
@@ -255,6 +256,31 @@ class ApiClient {
     return this.request('/attributes');
   }
 
+  // Brands
+  async getBrands() {
+    return this.request('/brands');
+  }
+
+  async createBrand(brandData: FormData) {
+    return this.request('/brands', {
+      method: 'POST',
+      body: brandData,
+    });
+  }
+
+  async updateBrand(id: string, brandData: FormData) {
+    return this.request(`/brands/${id}`, {
+      method: 'PUT',
+      body: brandData,
+    });
+  }
+
+  async deleteBrand(id: string) {
+    return this.request(`/brands/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async createAttribute(attributeData: any) {
     return this.request('/attributes', {
       method: 'POST',
@@ -279,10 +305,17 @@ class ApiClient {
     return this.request(`/attributes/category/${categoryId}`);
   }
 
-  async assignAttributesToCategory(categoryId: string, attributeIds: string[]) {
-    return this.request(`/attributes/category/${categoryId}`, {
+  async assignAttributeToCategory(categoryId: string, attributeId: string) {
+    return this.request('/attributes/assign', {
       method: 'POST',
-      body: JSON.stringify({ attributeIds }),
+      body: JSON.stringify({ categoryId, attributeId }),
+    });
+  }
+
+  async removeAttributeFromCategory(categoryId: string, attributeId: string) {
+    return this.request('/attributes/remove', {
+      method: 'POST',
+      body: JSON.stringify({ categoryId, attributeId }),
     });
   }
 }
