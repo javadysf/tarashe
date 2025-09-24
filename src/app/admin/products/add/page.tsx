@@ -28,12 +28,32 @@ export default function AddProductPage() {
   const [brands, setBrands] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
+
+  // Category creation states
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
+  const [newCategoryParent, setNewCategoryParent] = useState('')
+  const [newCategoryMode, setNewCategoryMode] = useState<'parent' | 'child'>('parent')
+  const [newCategoryImage, setNewCategoryImage] = useState<File | null>(null)
+  const [newCategoryImagePreview, setNewCategoryImagePreview] = useState<string>('')
+  const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false)
+
+  // Brand creation states
   const [showNewBrand, setShowNewBrand] = useState(false)
   const [newBrandName, setNewBrandName] = useState('')
   const [newBrandImage, setNewBrandImage] = useState<File | null>(null)
   const [newBrandImagePreview, setNewBrandImagePreview] = useState<string>('')
+
+  // Chosen categories in flow
+  const [parentCategoryId, setParentCategoryId] = useState<string>('')
+  const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
+  const [showNewAttribute, setShowNewAttribute] = useState(false)
+  const [newAttribute, setNewAttribute] = useState({
+    name: '',
+    type: 'text' as 'text' | 'number' | 'select',
+    options: [''] as string[]
+  })
+
   const [formData, setFormData] = useState<{
     name: string
     description: string
@@ -79,6 +99,12 @@ export default function AddProductPage() {
       setFormData(prev => ({ ...prev, attributes: {} }))
     }
   }, [formData.category])
+
+  useEffect(() => {
+    // When parent changes, reset chosen subcategory and attributes
+    setFormData(prev => ({ ...prev, category: '' }))
+    setCategoryAttributes([])
+  }, [parentCategoryId])
 
   const fetchCategories = async () => {
     try {
@@ -248,17 +274,6 @@ export default function AddProductPage() {
     }
   }
 
-  const [newCategoryImage, setNewCategoryImage] = useState<File | null>(null)
-  const [newCategoryImagePreview, setNewCategoryImagePreview] = useState<string>('')
-  const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false)
-  const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
-  const [showNewAttribute, setShowNewAttribute] = useState(false)
-  const [newAttribute, setNewAttribute] = useState({
-    name: '',
-    type: 'text' as 'text' | 'number' | 'select',
-    options: [''] as string[]
-  })
-
   const handleCategoryImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -292,23 +307,35 @@ export default function AddProductPage() {
       // Upload image first
       const imageResponse = await api.uploadCategoryImage(newCategoryImage, newCategoryName)
       
-      // Create category with image
+      // Create category with image (+ optional parent)
       const response = await api.createCategory({ 
         name: newCategoryName,
-        image: imageResponse.image
+        image: imageResponse.image,
+        parent: newCategoryMode === 'child' ? (newCategoryParent || parentCategoryId || undefined) : undefined
       })
       
-      setCategories([...categories, response.category])
-      setFormData({...formData, category: response.category._id})
+      // Refresh lists locally
+      const created = response.category
+      setCategories([...categories, created])
+
+      if (created.parent) {
+        // If it's a subcategory, preselect as product category
+        setParentCategoryId(String(created.parent))
+        setFormData({...formData, category: created._id})
+        fetchCategoryAttributes(created._id)
+      } else {
+        // If it's a parent, preselect as parent
+        setParentCategoryId(created._id)
+      }
+
+      // Reset UI state
       setNewCategoryName('')
+      setNewCategoryParent('')
       setNewCategoryImage(null)
       setNewCategoryImagePreview('')
       setShowNewCategory(false)
       
-      // Auto-fetch attributes for the new category
-      fetchCategoryAttributes(response.category._id)
-      
-      toast.success('✅ دسته بندی جدید با عکس ایجاد شد!')
+      toast.success('✅ دسته بندی جدید ایجاد شد!')
     } catch (error: any) {
       toast.error('❌ ' + (error.message || 'خطا در ایجاد دسته بندی'))
     } finally {
@@ -555,13 +582,14 @@ export default function AddProductPage() {
               دسته بندی و جزئیات
             </h3>
             
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-gray-700">دسته بندی *</label>
+            {/* Step 1: Parent Category */}
+            <div className="rounded-xl p-4 bg-white/70 border border-purple-100 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-semibold text-gray-700">دستهبندی اصلی *</label>
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowNewCategory(!showNewCategory)}
+                    onClick={() => { setShowNewCategory(true); setNewCategoryMode('parent'); setNewCategoryParent(''); }}
                     className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -570,123 +598,176 @@ export default function AddProductPage() {
                     دسته بندی جدید
                   </button>
                 </div>
-                
-                {showNewCategory && (
-                  <div className="mb-4 p-6 bg-white/60 rounded-lg border border-purple-200">
-                    <h4 className="text-sm font-semibold text-purple-800 mb-4">ایجاد دسته بندی جدید</h4>
-                    
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">نام دسته بندی *</label>
-                        <input
-                          type="text"
-                          placeholder="نام دسته بندی جدید"
-                          value={newCategoryName}
-                          onChange={(e) => setNewCategoryName(e.target.value)}
-                          className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                        />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">تصویر دسته بندی *</label>
-                        <div className="flex items-center gap-4">
-                          <label className="cursor-pointer bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
-                            <span className="text-purple-700 text-sm font-medium">انتخاب تصویر</span>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleCategoryImageSelect}
-                              className="sr-only"
-                            />
-                          </label>
-                          
-                          {newCategoryImagePreview && (
-                            <div className="relative">
-                              <img
-                                src={newCategoryImagePreview}
-                                alt="پیشنمایش"
-                                className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setNewCategoryImage(null)
-                                  setNewCategoryImagePreview('')
-                                  URL.revokeObjectURL(newCategoryImagePreview)
-                                }}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
-                              >
-                                ×
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex gap-3">
-                        <button
-                          type="button"
-                          onClick={handleCreateCategory}
-                          disabled={uploadingCategoryImage || !newCategoryName.trim() || !newCategoryImage}
-                          className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                          {uploadingCategoryImage ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                              در حال ایجاد...
-                            </>
-                          ) : (
-                            'ایجاد'
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setShowNewCategory(false)
-                            setNewCategoryName('')
-                            setNewCategoryImage(null)
-                            if (newCategoryImagePreview) {
-                              URL.revokeObjectURL(newCategoryImagePreview)
-                              setNewCategoryImagePreview('')
-                            }
-                          }}
-                          className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all duration-200 font-medium"
-                        >
-                          انصراف
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                
-                <select
-                  required
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/70"
-                >
-                  <option value="">انتخاب دسته بندی</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>{cat.name}</option>
-                  ))}
-                </select>
+              </div>
 
-                {/* Attributes Management - Only show when category is selected */}
-                {formData.category && (
-                  <div className="mt-6 p-4 bg-white/60 rounded-lg border border-purple-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h4 className="text-sm font-semibold text-purple-800">ویژگیهای محصول</h4>
+              <select
+                required
+                value={parentCategoryId}
+                onChange={(e) => setParentCategoryId(e.target.value)}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+              >
+                <option value="">انتخاب دسته اصلی</option>
+                {categories.filter(c => !c.parent).map((cat) => (
+                  <option key={cat._id} value={cat._id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Step 2: Subcategory (visible after parent) */}
+            {parentCategoryId && (
+              <div className="rounded-xl p-4 bg-white/70 border border-purple-100 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-700">زیردسته *</label>
+                  <div className="flex gap-2">
                     <button
                       type="button"
-                      onClick={() => setShowNewAttribute(!showNewAttribute)}
+                      onClick={() => { setShowNewCategory(true); setNewCategoryMode('child'); setNewCategoryParent(parentCategoryId); }}
                       className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
-                      ویژگی جدید
+                      زیردسته جدید
                     </button>
                   </div>
+                </div>
+                <select
+                  required
+                  value={formData.category}
+                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                >
+                  <option value="">انتخاب زیردسته</option>
+                  {categories
+                    .filter(c => !!c.parent && String(c.parent) === String(parentCategoryId))
+                    .map((cat) => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                </select>
+              </div>
+            )}
+
+            {/* Create Category/Subcategory Panel */}
+                  {showNewCategory && (
+              <div className="mb-4 p-6 bg-white/80 rounded-lg border border-purple-200">
+                <h4 className="text-sm font-semibold text-purple-800 mb-4">
+                  {newCategoryMode === 'parent' ? 'ایجاد دستهبندی جدید' : 'ایجاد زیردسته جدید'}
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">نام *</label>
+                    <input
+                      type="text"
+                      placeholder={newCategoryMode === 'parent' ? 'نام دستهبندی جدید' : 'نام زیردسته جدید'}
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                    />
+                  </div>
+                  {newCategoryMode === 'child' && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">والد</label>
+                      <select
+                        value={newCategoryParent || parentCategoryId}
+                        onChange={(e) => setNewCategoryParent(e.target.value)}
+                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                      >
+                        <option value="">انتخاب والد</option>
+                        {categories.filter(c => !c.parent).map((c) => (
+                          <option key={c._id} value={c._id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">تصویر *</label>
+                  <div className="flex items-center gap-4">
+                    <label className="cursor-pointer bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
+                      <span className="text-purple-700 text-sm font-medium">انتخاب تصویر</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCategoryImageSelect}
+                        className="sr-only"
+                      />
+                    </label>
+                    {newCategoryImagePreview && (
+                      <div className="relative">
+                        <img
+                          src={newCategoryImagePreview}
+                          alt="پیشنمایش"
+                          className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewCategoryImage(null)
+                            setNewCategoryImagePreview('')
+                            URL.revokeObjectURL(newCategoryImagePreview)
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={handleCreateCategory}
+                    disabled={uploadingCategoryImage || !newCategoryName.trim() || !newCategoryImage}
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {uploadingCategoryImage ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        در حال ایجاد...
+                      </>
+                    ) : (
+                      'ایجاد'
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewCategory(false)
+                      setNewCategoryName('')
+                      setNewCategoryParent('')
+                      setNewCategoryImage(null)
+                      if (newCategoryImagePreview) {
+                        URL.revokeObjectURL(newCategoryImagePreview)
+                        setNewCategoryImagePreview('')
+                      }
+                    }}
+                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all duration-200 font-medium"
+                  >
+                    انصراف
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Attributes (after subcategory picked) */}
+            {formData.category ? (
+              <div className="mt-6 p-4 bg-white/70 rounded-lg border border-purple-200">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-semibold text-purple-800">ویژگیهای محصول</h4>
+                  <button
+                    type="button"
+                    onClick={() => setShowNewAttribute(!showNewAttribute)}
+                    className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                    </svg>
+                    ویژگی جدید
+                  </button>
+                </div>
 
                   {/* Create New Attribute */}
                   {showNewAttribute && (
@@ -856,7 +937,7 @@ export default function AddProductPage() {
                     <p className="text-sm text-gray-500">ابتدا دسته بندی را انتخاب کنید</p>
                   )}
                   </div>
-                )}
+                ):""}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -993,8 +1074,8 @@ export default function AddProductPage() {
                   />
                 </div>
               </div>
-            </div>
-          </div>
+          
+         
 
           {/* Images Upload Section */}
           <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-100">

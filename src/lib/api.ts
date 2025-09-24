@@ -139,6 +139,10 @@ class ApiClient {
     return this.request('/categories');
   }
 
+  async getCategoriesTree() {
+    return this.request('/categories'); // backend flat for now; could switch to /categories/tree if added
+  }
+
   async getCategoriesWithAttributes() {
     return this.request('/categories/with-attributes');
   }

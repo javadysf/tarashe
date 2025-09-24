@@ -17,7 +17,8 @@ export default function CategoriesPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    image: null as File | null
+    image: null as File | null,
+    parent: ''
   })
   const [imagePreview, setImagePreview] = useState('')
 
@@ -88,11 +89,12 @@ export default function CategoriesPage() {
       const response = await api.createCategory({
         name: formData.name,
         description: formData.description,
-        image: imageResponse.image
+        image: imageResponse.image,
+        parent: formData.parent || undefined
       })
 
       setCategories([...categories, response.category])
-      setFormData({ name: '', description: '', image: null })
+      setFormData({ name: '', description: '', image: null, parent: '' })
       setImagePreview('')
       setShowAddForm(false)
       
@@ -164,15 +166,31 @@ export default function CategoriesPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">توضیحات</label>
-                  <input
-                    type="text"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">والد (اختیاری)</label>
+                  <select
+                    value={formData.parent}
+                    onChange={(e) => setFormData(prev => ({ ...prev, parent: e.target.value }))}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                    placeholder="توضیحات اختیاری"
-                  />
+                  >
+                    <option value="">— بدون والد (دسته اصلی) —</option>
+                    {categories
+                      .filter(c => !c.parent)
+                      .map((c) => (
+                        <option key={c._id} value={c._id}>{c.name}</option>
+                      ))}
+                  </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">توضیحات</label>
+                <input
+                  type="text"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  placeholder="توضیحات اختیاری"
+                />
               </div>
 
               <div>
@@ -231,7 +249,7 @@ export default function CategoriesPage() {
                   type="button"
                   onClick={() => {
                     setShowAddForm(false)
-                    setFormData({ name: '', description: '', image: null })
+                    setFormData({ name: '', description: '', image: null, parent: '' })
                     if (imagePreview) {
                       URL.revokeObjectURL(imagePreview)
                       setImagePreview('')

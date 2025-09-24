@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { api } from '@/lib/api'
+import Head from 'next/head'
 import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 import { toast } from 'react-toastify'
@@ -45,6 +46,8 @@ export default function ProductDetailPage() {
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' })
   const [submittingReview, setSubmittingReview] = useState(false)
   const [productAttributes, setProductAttributes] = useState<any[]>([])
+  const [categoryInfo, setCategoryInfo] = useState<any | null>(null)
+  const [parentCategoryInfo, setParentCategoryInfo] = useState<any | null>(null)
 
   useEffect(() => {
     if (params.id) {
@@ -60,6 +63,18 @@ export default function ProductDetailPage() {
       fetchRelatedProducts(response.category._id, id)
       if (response.category._id) {
         fetchProductAttributes(response.category._id)
+        try {
+          const cat = await api.getCategory(response.category._id)
+          setCategoryInfo(cat)
+          if (cat?.parent) {
+            const parent = await api.getCategory(cat.parent)
+            setParentCategoryInfo(parent)
+          } else {
+            setParentCategoryInfo(null)
+          }
+        } catch (e) {
+          // ignore
+        }
       }
     } catch (error) {
       console.error('Error fetching product:', error)
@@ -199,7 +214,61 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* SEO Meta + JSON-LD */}
+      <Head>
+        <title>{product.name} | تراشه</title>
+        <meta name="description" content={product.description?.slice(0, 150)} />
+        <meta property="og:title" content={`${product.name} | تراشه`} />
+        <meta property="og:description" content={product.description?.slice(0, 150)} />
+        <meta property="og:type" content="product" />
+        <meta property="og:image" content={product.images?.[0]?.url} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'Product',
+              name: product.name,
+              image: product.images?.map(i => i.url).filter(Boolean),
+              description: product.description,
+              brand: typeof (product.brand as any) === 'string' ? { '@type': 'Brand', name: product.brand } : { '@type': 'Brand', name: (product.brand as any)?.name },
+              category: categoryInfo?.name,
+              aggregateRating: product.rating?.average ? {
+                '@type': 'AggregateRating',
+                ratingValue: product.rating.average,
+                reviewCount: product.rating.count || reviews.length
+              } : undefined,
+              offers: {
+                '@type': 'Offer',
+                priceCurrency: 'IRR',
+                price: product.price,
+                availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+              }
+            })
+          }}
+        />
+      </Head>
       <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* Breadcrumbs */}
+        <nav className="text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
+          <ol className="flex items-center gap-2 flex-wrap">
+            <li><a href="/" className="hover:text-blue-600">خانه</a></li>
+            {parentCategoryInfo && (
+              <>
+                <li>›</li>
+                <li><a href={`/products?category=${parentCategoryInfo._id}`} className="hover:text-blue-600">{parentCategoryInfo.name}</a></li>
+              </>
+            )}
+            {categoryInfo && (
+              <>
+                <li>›</li>
+                <li><a href={`/products?category=${categoryInfo._id}`} className="hover:text-blue-600">{categoryInfo.name}</a></li>
+              </>
+            )}
+            <li>›</li>
+            <li className="text-gray-700">{product.name}</li>
+          </ol>
+        </nav>
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Images */}
@@ -339,27 +408,56 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
+              {/* Quick Specs Grid */}
+              {productAttributes.length > 0 && product.attributes && (
+                <div className="border-t pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">مشخصات کلیدی</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {productAttributes.slice(0, 6).map(attr => {
+                      const value = (product as any).attributes?.[attr._id]
+                      if (!value) return null
+                      return (
+                        <div key={attr._id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
+                          <span className="text-gray-600 text-sm">{attr.name}</span>
+                          <span className="text-gray-900 text-sm font-medium">{value}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Description */}
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">توضیحات محصول</h3>
                 <p className="text-gray-600 leading-relaxed">{product.description}</p>
               </div>
 
-              {/* Dynamic Attributes */}
-              {product.attributes && productAttributes.length > 0 && (
+              {/* Dynamic Attributes - Table */}
+              {product.attributes && (productAttributes.length > 0 || Object.keys((product as any).attributes || {}).length > 0) && (
                 <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">مشخصات محصول</h3>
-                  <div className="space-y-2">
-                    {productAttributes.map((attr) => {
-                      const value = product.attributes[attr._id]
-                      if (!value) return null
-                      return (
-                        <div key={attr._id} className="flex justify-between py-2 border-b border-gray-100">
-                          <span className="text-gray-600">{attr.name}:</span>
-                          <span className="font-medium text-gray-900">{value}</span>
-                        </div>
-                      )
-                    })}
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3">جدول مشخصات</h3>
+                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                    <table className="w-full text-sm">
+                      <tbody>
+                        {(productAttributes.length > 0
+                          ? productAttributes.map((attr: any) => ({
+                              key: attr._id,
+                              name: attr.name,
+                              value: (product as any).attributes?.[attr._id]
+                            }))
+                          : Object.entries((product as any).attributes || {}).map(([key, value]: any) => ({ key, name: key, value }))
+                        ).map((row: any) => {
+                          if (!row.value) return null
+                          return (
+                            <tr key={row.key} className="odd:bg-white even:bg-gray-50">
+                              <td className="w-1/3 text-gray-600 px-4 py-3">{row.name}</td>
+                              <td className="px-4 py-3 text-gray-900">{row.value}</td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               )}

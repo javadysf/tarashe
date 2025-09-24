@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { ChevronDown, Grid3X3 } from 'lucide-react'
@@ -11,17 +11,17 @@ interface Category {
   _id: string
   name: string
   description?: string
-  attributes?: {
-    _id: string
-    name: string
-    options: string[]
-  }[]
+  parent?: string | null
+  image?: { url?: string; alt?: string }
 }
+
+type CategoryMap = { [parentId: string]: Category[] }
 
 export default function SearchWithCategories() {
   const [isOpen, setIsOpen] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
+  const [activeParentId, setActiveParentId] = useState<string | null>(null)
 
   useEffect(() => {
     if (isOpen && categories.length === 0) {
@@ -32,27 +32,34 @@ export default function SearchWithCategories() {
   const fetchCategories = async () => {
     try {
       setLoading(true)
-      const categoriesResponse = await api.getCategories()
-      
-      // Get attributes for each category
-      const categoriesWithAttributes = await Promise.all(
-        categoriesResponse.map(async (category: any) => {
-          try {
-            const attributes = await api.getCategoryAttributes(category._id)
-            return { ...category, attributes }
-          } catch (error) {
-            return category
-          }
-        })
-      )
-      
-      setCategories(categoriesWithAttributes)
+      const response = await api.getCategories()
+      setCategories(response)
     } catch (error) {
       console.error('Error fetching categories:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  const { parents, childrenByParent }: { parents: Category[]; childrenByParent: CategoryMap } = useMemo(() => {
+    const parents: Category[] = []
+    const childrenByParent: CategoryMap = {}
+    for (const c of categories) {
+      if (!c.parent) parents.push(c)
+      else {
+        const pid = typeof c.parent === 'string' ? c.parent : String(c.parent)
+        if (!childrenByParent[pid]) childrenByParent[pid] = []
+        childrenByParent[pid].push(c)
+      }
+    }
+    parents.sort((a, b) => a.name.localeCompare(b.name, 'fa'))
+    Object.values(childrenByParent).forEach(list => list.sort((a, b) => a.name.localeCompare(b.name, 'fa')))
+    return { parents, childrenByParent }
+  }, [categories])
+
+  useEffect(() => {
+    if (!activeParentId && parents.length) setActiveParentId(parents[0]._id)
+  }, [parents, activeParentId])
 
   return (
     <div className="flex items-center gap-4 w-full max-w-6xl">
@@ -74,52 +81,59 @@ export default function SearchWithCategories() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.2 }}
-
-              className="absolute top-full right-0 mt-2 w-screen bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 p-6 z-[9999]"
+              className="absolute top-full right-0 mt-2 w-screen bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 p-0 z-[9999]"
             >
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4 border-b border-gray-200 pb-2">
-                    دسته بندی محصولات
-                  </h3>
-                  
-                  <div className="grid grid-cols-3 gap-6 max-h-96 overflow-y-auto custom-scrollbar">
-                    {categories.map((category) => (
-                      <div key={category._id} className="space-y-2">
-                        <Link
-                          href={`/products?category=${category._id}`}
-                          className="block p-3 rounded-xl hover:bg-blue-50 transition-all duration-300 font-semibold text-gray-900 hover:text-blue-600 border-b border-gray-200 pb-2"
-                          onClick={() => setIsOpen(false)}
-                        >
-                          {category.name}
-                        </Link>
-                        
-                        <div className="space-y-1">
-                          {category.attributes && category.attributes.length > 0 ? (
-                            category.attributes.map((attribute: any) => 
-                              attribute.options && attribute.options.map((option: string, index: number) => (
-                                <Link
-                                  key={`${attribute._id}-${index}`}
-                                  href={`/products?category=${category._id}&${attribute.name}=${encodeURIComponent(option)}`}
-                                  className="block px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg"
-                                  onClick={() => setIsOpen(false)}
-                                >
-                                  {option}
-                                </Link>
-                              ))
-                            )
-                          ) : (
-                            <div className="px-3 py-2 text-sm text-gray-400">
-                              هیچ ویژگی تعریف نشده
-                            </div>
-                          )}
-                        </div>
+                <div className="grid grid-cols-12">
+                  {/* Parents */}
+                  <div className="col-span-12 md:col-span-4 border-l border-gray-200 bg-gray-50 rounded-r-2xl overflow-auto max-h-[70vh]">
+                    <div className="px-4 py-3 border-b border-gray-200 font-bold text-gray-900">دستهبندی کالاها</div>
+                    <ul className="divide-y divide-gray-200">
+                      {parents.map((p) => {
+                        const isActive = p._id === activeParentId
+                        return (
+                          <li key={p._id}>
+                            <button
+                              onMouseEnter={() => setActiveParentId(p._id)}
+                              onFocus={() => setActiveParentId(p._id)}
+                              onClick={() => setActiveParentId(p._id)}
+                              className={`w-full text-right px-4 py-3 flex items-center justify-between gap-3 transition-colors ${isActive ? 'bg-white text-blue-700' : 'hover:bg-white'}`}
+                            >
+                              <span className="font-medium truncate">{p.name}</span>
+                              <svg className={`w-4 h-4 transition-transform ${isActive ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                              </svg>
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
+
+                  {/* Children */}
+                  <div className="col-span-12 md:col-span-8 p-6 max-h-[70vh] overflow-auto">
+                    {activeParentId ? (
+                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {(childrenByParent[activeParentId] || []).map((sub) => (
+                          <Link
+                            key={sub._id}
+                            href={`/products?category=${encodeURIComponent(sub._id)}`}
+                            className="group flex items-center justify-between gap-3 rounded-xl p-3 hover:bg-gray-50 transition-colors"
+                            onClick={() => setIsOpen(false)}
+                          >
+                            <span className="font-semibold text-gray-900 group-hover:text-blue-700 truncate">{sub.name}</span>
+                            <span className="text-gray-400 group-hover:text-blue-500">›</span>
+                          </Link>
+                        ))}
+                        {(childrenByParent[activeParentId] || []).length === 0 && (
+                          <div className="col-span-full text-center text-gray-500 py-6">زیردسته‌ای ثبت نشده</div>
+                        )}
                       </div>
-                    ))}
+                    ) : null}
                   </div>
                 </div>
               )}
