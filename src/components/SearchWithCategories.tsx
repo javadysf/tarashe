@@ -47,6 +47,7 @@ export default function SearchWithCategories() {
     for (const c of categories) {
       if (!c.parent) parents.push(c)
       else {
+        // Only show direct children (level 2) of level 1 categories
         const pid = typeof c.parent === 'string' ? c.parent : String(c.parent)
         if (!childrenByParent[pid]) childrenByParent[pid] = []
         childrenByParent[pid].push(c)
@@ -117,20 +118,41 @@ export default function SearchWithCategories() {
                   {/* Children */}
                   <div className="col-span-12 md:col-span-8 p-6 max-h-[70vh] overflow-auto">
                     {activeParentId ? (
-                      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {(childrenByParent[activeParentId] || []).map((sub) => (
-                          <Link
-                            key={sub._id}
-                            href={`/products?category=${encodeURIComponent(sub._id)}`}
-                            className="group flex items-center justify-between gap-3 rounded-xl p-3 hover:bg-gray-50 transition-colors"
-                            onClick={() => setIsOpen(false)}
-                          >
-                            <span className="font-semibold text-gray-900 group-hover:text-blue-700 truncate">{sub.name}</span>
-                            <span className="text-gray-400 group-hover:text-blue-500">›</span>
-                          </Link>
+                      <div className="space-y-4">
+                        {(childrenByParent[activeParentId] || []).map((sub: any) => (
+                          <div key={sub._id} className="rounded-xl border border-gray-200">
+                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-t-xl">
+                              <Link
+                                href={`/products?category=${encodeURIComponent(sub._id)}`}
+                                className="font-semibold text-gray-900 hover:text-blue-700 truncate"
+                                onClick={() => setIsOpen(false)}
+                              >
+                                {sub.name}
+                              </Link>
+                              <span className="text-gray-300">›</span>
+                            </div>
+                            {(childrenByParent[sub._id] || []).length > 0 && (
+                              <div className="p-2">
+                                <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-1">
+                                  {(childrenByParent[sub._id] || []).map((g: any) => (
+                                    <li key={g._id}>
+                                      <Link
+                                        href={`/products?category=${encodeURIComponent(g._id)}`}
+                                        className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50 text-gray-700 hover:text-blue-700"
+                                        onClick={() => setIsOpen(false)}
+                                      >
+                                        <span className="truncate">{g.name}</span>
+                                        <span className="text-gray-300">›</span>
+                                      </Link>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </div>
                         ))}
                         {(childrenByParent[activeParentId] || []).length === 0 && (
-                          <div className="col-span-full text-center text-gray-500 py-6">زیردسته‌ای ثبت نشده</div>
+                          <div className="text-gray-500 py-2">زیردسته‌ای ثبت نشده</div>
                         )}
                       </div>
                     ) : null}

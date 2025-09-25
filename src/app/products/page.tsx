@@ -9,6 +9,7 @@ import ProductListItem from '@/components/ProductListItem'
 import FilterSidebar from '@/components/FilterSidebar'
 import SearchHeader from '@/components/SearchHeader'
 import ProductStats from '@/components/ProductStats'
+import CategoryHierarchy from '@/components/CategoryHierarchy'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
 import { Package, RefreshCw } from 'lucide-react'
@@ -62,13 +63,14 @@ export default function ProductsPage() {
   const [error, setError] = useState<string | null>(null)
   const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
   const [attributeValues, setAttributeValues] = useState<{ [key: string]: string[] }>({})
+  const [currentCategoryId, setCurrentCategoryId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    fetchProducts()
-    fetchCategories()
-    
-    // Read category from URL
+    // Read category from URL on mount/URL change and fetch accordingly
     const categoryFromUrl = searchParams.get('category')
+    setCurrentCategoryId(categoryFromUrl || undefined)
+    fetchProducts(categoryFromUrl || undefined)
+    fetchCategories()
     if (categoryFromUrl) {
       setFilters(prev => ({ ...prev, category: categoryFromUrl }))
     }
@@ -77,9 +79,15 @@ export default function ProductsPage() {
   useEffect(() => {
     if (filters.category && filters.category !== 'all') {
       fetchCategoryAttributes(filters.category)
+      // Refetch products from API with deep category filter
+      fetchProducts(filters.category)
     } else {
       setCategoryAttributes([])
       setAttributeValues({})
+      // Load default product set when category cleared
+      if (filters.category === 'all') {
+        fetchProducts()
+      }
     }
   }, [filters.category])
 
@@ -101,10 +109,12 @@ export default function ProductsPage() {
     setBrands(uniqueBrands)
   }, [products])
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (categoryId?: string) => {
     try {
       setError(null)
-      const response = await api.getProducts({ limit: 100 })
+      const params: any = { limit: 100 }
+      if (categoryId && categoryId !== 'all') params.category = categoryId
+      const response = await api.getProducts(params)
       setProducts(response.products || [])
       setLoading(false)
     } catch (error) {
@@ -153,7 +163,8 @@ export default function ProductsPage() {
         (typeof product.brand === 'string' ? product.brand : product.brand?.name)?.toLowerCase().includes(searchTerm.toLowerCase())
       
       const categoryId = product.category?._id || product.category
-      const matchesCategory = filters.category === 'all' || categoryId === filters.category
+      // Server already returns deep-filtered list when category is set, so don't over-filter on client
+      const matchesCategory = filters.category === 'all' ? true : true
       
       const productBrandId = typeof product.brand === 'string' ? product.brand : product.brand?._id
       const matchesBrand = filters.brand.length === 0 || filters.brand.includes(productBrandId)
@@ -204,6 +215,26 @@ export default function ProductsPage() {
     setError(null)
     fetchProducts()
     fetchCategories()
+  }
+
+  const handleCategorySelect = (categoryId: string) => {
+    if (categoryId) {
+      setCurrentCategoryId(categoryId)
+      setFilters(prev => ({ ...prev, category: categoryId }))
+      fetchProducts(categoryId)
+      // Update URL without page reload
+      const url = new URL(window.location.href)
+      url.searchParams.set('category', categoryId)
+      window.history.pushState({}, '', url.toString())
+    } else {
+      setCurrentCategoryId(undefined)
+      setFilters(prev => ({ ...prev, category: 'all' }))
+      fetchProducts()
+      // Update URL without page reload
+      const url = new URL(window.location.href)
+      url.searchParams.delete('category')
+      window.history.pushState({}, '', url.toString())
+    }
   }
 
   const LoadingSkeleton = () => (
@@ -264,12 +295,10 @@ export default function ProductsPage() {
           setViewMode={setViewMode}
         />
 
-        {/* Product Stats */}
-        <ProductStats
-          totalProducts={products.length}
-          categories={categories}
-          averageRating={products.length > 0 ? products.reduce((acc, p) => acc + p.rating.average, 0) / products.length : 0}
-          topCategory={categories.length > 0 ? categories[0]?.name || 'نامشخص' : 'نامشخص'}
+        {/* Category Hierarchy */}
+        <CategoryHierarchy
+          currentCategoryId={currentCategoryId}
+          onCategorySelect={handleCategorySelect}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

@@ -41,6 +41,7 @@ export default function CategorySidebar() {
       if (!c.parent) {
         parents.push(c)
       } else {
+        // Only show direct children (level 2) of level 1 categories
         const pid = typeof c.parent === 'string' ? c.parent : String(c.parent)
         if (!childrenByParent[pid]) childrenByParent[pid] = []
         childrenByParent[pid].push(c)

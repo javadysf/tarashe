@@ -9,14 +9,8 @@ import CategorySidebar from '@/components/CategorySidebar'
 export default function Home() {
   return (
     <>
-      {/* Category Sidebar */}
-      <CategorySidebar />
-
       {/* Product Slider */}
       <ProductSlider />
-      
-      {/* Search Section */}
-      <SearchSection />
       
       {/* Categories Section */}
       <CategoriesSection />

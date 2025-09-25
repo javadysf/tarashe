@@ -33,7 +33,7 @@ export default function AddProductPage() {
   const [showNewCategory, setShowNewCategory] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryParent, setNewCategoryParent] = useState('')
-  const [newCategoryMode, setNewCategoryMode] = useState<'parent' | 'child'>('parent')
+  const [newCategoryMode, setNewCategoryMode] = useState<'parent' | 'child' | 'grandchild'>('parent')
   const [newCategoryImage, setNewCategoryImage] = useState<File | null>(null)
   const [newCategoryImagePreview, setNewCategoryImagePreview] = useState<string>('')
   const [uploadingCategoryImage, setUploadingCategoryImage] = useState(false)
@@ -46,6 +46,7 @@ export default function AddProductPage() {
 
   // Chosen categories in flow
   const [parentCategoryId, setParentCategoryId] = useState<string>('')
+  const [secondLevelCategoryId, setSecondLevelCategoryId] = useState<string>('')
   const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
   const [showNewAttribute, setShowNewAttribute] = useState(false)
   const [newAttribute, setNewAttribute] = useState({
@@ -104,7 +105,16 @@ export default function AddProductPage() {
     // When parent changes, reset chosen subcategory and attributes
     setFormData(prev => ({ ...prev, category: '' }))
     setCategoryAttributes([])
+    setSecondLevelCategoryId('')
   }, [parentCategoryId])
+
+  useEffect(() => {
+    // When second-level changes, reset deepest selection
+    setFormData(prev => ({ ...prev, category: '' }))
+    if (secondLevelCategoryId) {
+      // Optionally could load attributes for preview, but we bind to final level
+    }
+  }, [secondLevelCategoryId])
 
   const fetchCategories = async () => {
     try {
@@ -311,21 +321,35 @@ export default function AddProductPage() {
       const response = await api.createCategory({ 
         name: newCategoryName,
         image: imageResponse.image,
-        parent: newCategoryMode === 'child' ? (newCategoryParent || parentCategoryId || undefined) : undefined
+        parent: newCategoryMode === 'child'
+          ? (newCategoryParent || parentCategoryId || undefined)
+          : newCategoryMode === 'grandchild'
+            ? (newCategoryParent || secondLevelCategoryId || undefined)
+            : undefined
       })
       
       // Refresh lists locally
       const created = response.category
       setCategories([...categories, created])
 
-      if (created.parent) {
-        // If it's a subcategory, preselect as product category
-        setParentCategoryId(String(created.parent))
-        setFormData({...formData, category: created._id})
-        fetchCategoryAttributes(created._id)
-      } else {
+      if (!created.parent) {
         // If it's a parent, preselect as parent
         setParentCategoryId(created._id)
+      } else {
+        // Determine where it belongs
+        const parentId = String(created.parent)
+        const parentOfParent = categories.find(c => String(c._id) === parentId)?.parent
+        if (parentOfParent) {
+          // Created as third-level (grandchild)
+          setParentCategoryId(String(parentOfParent))
+          setSecondLevelCategoryId(parentId)
+          setFormData({ ...formData, category: created._id })
+          fetchCategoryAttributes(created._id)
+        } else {
+          // Created as second-level (child)
+          setParentCategoryId(parentId)
+          setSecondLevelCategoryId(created._id)
+        }
       }
 
       // Reset UI state
@@ -633,13 +657,46 @@ export default function AddProductPage() {
                 </div>
                 <select
                   required
-                  value={formData.category}
-                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  value={secondLevelCategoryId}
+                  onChange={(e) => setSecondLevelCategoryId(e.target.value)}
                   className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
                 >
                   <option value="">انتخاب زیردسته</option>
                   {categories
                     .filter(c => !!c.parent && String(c.parent) === String(parentCategoryId))
+                    .map((cat) => (
+                      <option key={cat._id} value={cat._id}>{cat.name}</option>
+                    ))}
+                </select>
+              </div>
+            )}
+
+            {/* Step 3: Sub-Subcategory (visible after second-level) */}
+            {secondLevelCategoryId && (
+              <div className="rounded-xl p-4 bg-white/70 border border-purple-100 mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-sm font-semibold text-gray-700">زیر‌دستهٔ سطح سوم (اختیاری)</label>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => { setShowNewCategory(true); setNewCategoryMode('grandchild'); setNewCategoryParent(secondLevelCategoryId); }}
+                      className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      زیر‌دسته سطح سوم
+                    </button>
+                  </div>
+                </div>
+                <select
+                  value={formData.category}
+                  onChange={(e) => setFormData({...formData, category: e.target.value})}
+                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                >
+                  <option value="">انتخاب زیر‌دستهٔ سطح سوم</option>
+                  {categories
+                    .filter(c => !!c.parent && String(c.parent) === String(secondLevelCategoryId))
                     .map((cat) => (
                       <option key={cat._id} value={cat._id}>{cat.name}</option>
                     ))}
