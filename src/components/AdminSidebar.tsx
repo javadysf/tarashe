@@ -36,12 +36,12 @@ export default function AdminSidebar() {
       icon: '⭐'
     },
     {
-      title: 'مدیریت دستهبندیها',
+      title: 'مدیریت دسته بندی ها',
       href: '/admin/categories',
       icon: '📂'
     },
     {
-      title: 'مدیریت ویژگیها',
+      title: 'مدیریت ویژگی ها',
       href: '/admin/attributes',
       icon: '🏷️'
     }

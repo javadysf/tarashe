@@ -48,6 +48,7 @@ export default function ProductDetailPage() {
   const [productAttributes, setProductAttributes] = useState<any[]>([])
   const [categoryInfo, setCategoryInfo] = useState<any | null>(null)
   const [parentCategoryInfo, setParentCategoryInfo] = useState<any | null>(null)
+  const [attributeNames, setAttributeNames] = useState<{[key: string]: string}>({})
 
   useEffect(() => {
     if (params.id) {
@@ -62,7 +63,8 @@ export default function ProductDetailPage() {
       fetchReviews(id)
       fetchRelatedProducts(response.category._id, id)
       if (response.category._id) {
-        fetchProductAttributes(response.category._id)
+        // Fetch product attributes after setting the product
+        await fetchProductAttributes(response.category._id, response)
         try {
           const cat = await api.getCategory(response.category._id)
           setCategoryInfo(cat)
@@ -83,10 +85,44 @@ export default function ProductDetailPage() {
     }
   }
 
-  const fetchProductAttributes = async (categoryId: string) => {
+  const fetchProductAttributes = async (categoryId: string, productData?: any) => {
     try {
       const response = await api.getCategoryAttributes(categoryId)
       setProductAttributes(response)
+      
+      // Create a mapping of attribute IDs to names
+      const nameMap: {[key: string]: string} = {}
+      response.forEach((categoryAttr: any) => {
+        if (categoryAttr.attribute && categoryAttr.attribute._id) {
+          nameMap[categoryAttr.attribute._id] = categoryAttr.attribute.name
+        }
+      })
+      
+      // If we have product attributes but some are missing from category attributes,
+      // fetch all attributes to get missing names
+      const currentProduct = productData || product
+      if (currentProduct && currentProduct.attributes) {
+        const missingIds = Object.keys(currentProduct.attributes).filter(key => 
+          /^[0-9a-fA-F]{24}$/.test(key) && !nameMap[key]
+        )
+        
+        if (missingIds.length > 0) {
+          console.log('Missing attribute IDs:', missingIds)
+          try {
+            const allAttributes = await api.getAttributes()
+            allAttributes.forEach((attr: any) => {
+              if (missingIds.includes(attr._id)) {
+                nameMap[attr._id] = attr.name
+              }
+            })
+          } catch (error) {
+            console.error('Error fetching all attributes:', error)
+          }
+        }
+      }
+      
+      console.log('Final attribute names mapping:', nameMap)
+      setAttributeNames(nameMap)
     } catch (error) {
       console.error('Error fetching product attributes:', error)
     }
@@ -94,10 +130,86 @@ export default function ProductDetailPage() {
 
   const fetchRelatedProducts = async (categoryId: string, currentProductId: string) => {
     try {
-      const response = await api.getProducts({ category: categoryId, limit: 8 })
-      const filtered = response.products.filter((p: Product) => p._id !== currentProductId)
-      setRelatedProducts(filtered.slice(0, 4))
-      console.log('Related products:', filtered.slice(0, 4))
+      let relatedProducts: Product[] = []
+      
+      // Get current category info to understand hierarchy
+      const currentCategory = await api.getCategory(categoryId)
+      if (!currentCategory) {
+        console.error('Category not found')
+        return
+      }
+      
+      // Priority 1: Same level (current category)
+      try {
+        const sameLevelResponse = await api.getProducts({ category: categoryId, limit: 8 })
+        const sameLevelFiltered = sameLevelResponse.products.filter((p: Product) => p._id !== currentProductId)
+        relatedProducts = [...relatedProducts, ...sameLevelFiltered]
+        console.log('Same level products found:', sameLevelFiltered.length)
+      } catch (error) {
+        console.error('Error fetching same level products:', error)
+      }
+      
+      // If we don't have enough products, try parent level
+      if (relatedProducts.length < 4 && currentCategory.parent) {
+        try {
+          const parentResponse = await api.getProducts({ category: currentCategory.parent, limit: 8 })
+          const parentFiltered = parentResponse.products.filter((p: Product) => 
+            p._id !== currentProductId && !relatedProducts.some(rp => rp._id === p._id)
+          )
+          relatedProducts = [...relatedProducts, ...parentFiltered]
+          console.log('Parent level products found:', parentFiltered.length)
+        } catch (error) {
+          console.error('Error fetching parent level products:', error)
+        }
+      }
+      
+      // If we still don't have enough products, try grandparent level
+      if (relatedProducts.length < 4 && currentCategory.parent) {
+        try {
+          const parentCategory = await api.getCategory(currentCategory.parent)
+          if (parentCategory && parentCategory.parent) {
+            const grandparentResponse = await api.getProducts({ category: parentCategory.parent, limit: 8 })
+            const grandparentFiltered = grandparentResponse.products.filter((p: Product) => 
+              p._id !== currentProductId && !relatedProducts.some(rp => rp._id === p._id)
+            )
+            relatedProducts = [...relatedProducts, ...grandparentFiltered]
+            console.log('Grandparent level products found:', grandparentFiltered.length)
+          }
+        } catch (error) {
+          console.error('Error fetching grandparent level products:', error)
+        }
+      }
+      
+      // If we still don't have enough products, try root level (level 1)
+      if (relatedProducts.length < 4) {
+        try {
+          // Find root category by traversing up the hierarchy
+          let rootCategory = currentCategory
+          while (rootCategory.parent) {
+            const parent = await api.getCategory(rootCategory.parent)
+            if (parent) {
+              rootCategory = parent
+            } else {
+              break
+            }
+          }
+          
+          if (rootCategory._id !== categoryId) {
+            const rootResponse = await api.getProducts({ category: rootCategory._id, limit: 8 })
+            const rootFiltered = rootResponse.products.filter((p: Product) => 
+              p._id !== currentProductId && !relatedProducts.some(rp => rp._id === p._id)
+            )
+            relatedProducts = [...relatedProducts, ...rootFiltered]
+            console.log('Root level products found:', rootFiltered.length)
+          }
+        } catch (error) {
+          console.error('Error fetching root level products:', error)
+        }
+      }
+      
+      // Set final related products (max 4)
+      setRelatedProducts(relatedProducts.slice(0, 4))
+      console.log('Final related products:', relatedProducts.slice(0, 4))
     } catch (error) {
       console.error('Error fetching related products:', error)
     }
@@ -408,24 +520,6 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* Quick Specs Grid */}
-              {productAttributes.length > 0 && product.attributes && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">مشخصات کلیدی</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {productAttributes.slice(0, 6).map(attr => {
-                      const value = (product as any).attributes?.[attr._id]
-                      if (!value) return null
-                      return (
-                        <div key={attr._id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
-                          <span className="text-gray-600 text-sm">{attr.name}</span>
-                          <span className="text-gray-900 text-sm font-medium">{value}</span>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
 
               {/* Description */}
               <div className="border-t pt-6">
@@ -434,25 +528,32 @@ export default function ProductDetailPage() {
               </div>
 
               {/* Dynamic Attributes - Table */}
-              {product.attributes && (productAttributes.length > 0 || Object.keys((product as any).attributes || {}).length > 0) && (
+              {product.attributes && Object.keys(product.attributes).length > 0 && (
                 <div className="border-t pt-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">جدول مشخصات</h3>
                   <div className="overflow-hidden rounded-xl border border-gray-200">
                     <table className="w-full text-sm">
                       <tbody>
-                        {(productAttributes.length > 0
-                          ? productAttributes.map((attr: any) => ({
-                              key: attr._id,
-                              name: attr.name,
-                              value: (product as any).attributes?.[attr._id]
-                            }))
-                          : Object.entries((product as any).attributes || {}).map(([key, value]: any) => ({ key, name: key, value }))
-                        ).map((row: any) => {
-                          if (!row.value) return null
+                        {Object.entries(product.attributes).map(([key, value]: [string, any]) => {
+                          if (!value || value === '') return null
+                          
+                          // Check if key is an ObjectId (24 character hex string)
+                          const isObjectId = /^[0-9a-fA-F]{24}$/.test(key)
+                          let attributeName = key
+                          
+                          if (isObjectId) {
+                            // Key is an ObjectId, try to get name from mapping
+                            attributeName = attributeNames[key] || key
+                          } else {
+                            // Key is already a readable name
+                            attributeName = key
+                          }
+                          
+                          console.log(`Attribute key: ${key}, isObjectId: ${isObjectId}, name: ${attributeName}, value: ${value}`)
                           return (
-                            <tr key={row.key} className="odd:bg-white even:bg-gray-50">
-                              <td className="w-1/3 text-gray-600 px-4 py-3">{row.name}</td>
-                              <td className="px-4 py-3 text-gray-900">{row.value}</td>
+                            <tr key={key} className="odd:bg-white even:bg-gray-50">
+                              <td className="w-1/3 text-gray-600 px-4 py-3 font-medium">{attributeName}</td>
+                              <td className="px-4 py-3 text-gray-900">{value}</td>
                             </tr>
                           )
                         })}

@@ -29,55 +29,46 @@ export default function AdminPage() {
 
   const fetchStats = async () => {
     try {
-      // Try to get stats from dedicated endpoint first
+      // Get products count (this works without auth)
+      let productsCount = 0
       try {
-        const statsRes = await api.getAdminStats()
-        setStats({
-          products: statsRes.products || 0,
-          orders: statsRes.orders || 0,
-          users: statsRes.users || 0,
-          reviews: statsRes.reviews || 0
-        })
-        return
+        const productsRes = await api.getProducts({ limit: 1000 })
+        productsCount = productsRes.products?.length || 0
       } catch (error) {
-        console.log('Admin stats endpoint not available, fetching individually')
+        console.log('Could not fetch products:', error)
       }
       
-      // Fallback to individual requests
-      const [productsRes, ordersRes, usersRes] = await Promise.all([
-        api.getProducts({ limit: 1000 }),
-        api.getOrders(),
-        api.getUsers()
-      ])
+      // Get orders count (requires auth)
+      let ordersCount = 0
+      try {
+        const ordersRes = await api.getOrders()
+        ordersCount = ordersRes?.orders?.length || ordersRes?.length || 0
+      } catch (error) {
+        console.log('Could not fetch orders (auth required):', error)
+      }
       
-      console.log('Orders response:', ordersRes)
-      console.log('Users response:', usersRes)
+      // Get users count (requires auth)
+      let usersCount = 0
+      try {
+        const usersRes = await api.getUsers()
+        usersCount = usersRes?.users?.length || usersRes?.length || 0
+      } catch (error) {
+        console.log('Could not fetch users (auth required):', error)
+      }
       
-      // Try to get reviews
+      // Get reviews count (requires auth)
       let reviewsCount = 0
       try {
         const reviewsRes = await api.getAllReviews()
-        console.log('Reviews response:', reviewsRes)
-        reviewsCount = reviewsRes?.length || reviewsRes?.reviews?.length || 0
+        reviewsCount = reviewsRes?.reviews?.length || 0
       } catch (error) {
-        console.log('Could not fetch reviews from /reviews endpoint')
-        // Fallback: count reviews from products
-        if (productsRes.products) {
-          for (const product of productsRes.products) {
-            try {
-              const productReviews = await api.getProductReviews(product._id)
-              reviewsCount += productReviews?.reviews?.length || 0
-            } catch (err) {
-              console.log(`Could not fetch reviews for product ${product._id}`)
-            }
-          }
-        }
+        console.log('Could not fetch reviews (auth required):', error)
       }
       
       setStats({
-        products: productsRes.products?.length || 0,
-        orders: ordersRes?.orders?.length || ordersRes?.length || 0,
-        users: usersRes?.users?.length || usersRes?.length || 0,
+        products: productsCount,
+        orders: ordersCount,
+        users: usersCount,
         reviews: reviewsCount
       })
     } catch (error) {

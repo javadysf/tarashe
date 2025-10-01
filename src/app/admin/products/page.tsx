@@ -105,7 +105,7 @@ export default function AdminProductsPage() {
             </div>
             <input
               type="text"
-              placeholder="جستجو در محصولات (نام، برند، دستهبندی)..."
+              placeholder="جستجو در محصولات (نام، برند، دسته بندی)..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
@@ -131,7 +131,7 @@ export default function AdminProductsPage() {
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">برند</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">قیمت</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">موجودی</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">دستهبندی</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">دسته بندی</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">عملیات</th>
                 </tr>
               </thead>

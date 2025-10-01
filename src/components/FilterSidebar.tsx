@@ -81,7 +81,7 @@ export default function FilterSidebar({
           <div className="space-y-3">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              دستهبندی
+              دسته بندی
             </label>
             <Select 
               value={filters.category} 
@@ -155,47 +155,60 @@ export default function FilterSidebar({
           </div>
 
           {/* Dynamic Attributes Filter */}
-          {categoryAttributes.map((attr) => (
-            <div key={attr._id} className="space-y-3">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
-                {attr.name}
-              </label>
-              <div className="space-y-2 max-h-48 overflow-y-auto">
-                {(attributeValues[attr._id] || []).map(value => (
-                  <label key={value} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={filters.attributes[attr._id]?.includes(value) || false}
-                      onChange={(e) => {
-                        const currentValues = filters.attributes[attr._id] || []
-                        if (e.target.checked) {
-                          setFilters({
-                            ...filters, 
-                            attributes: {
-                              ...filters.attributes,
-                              [attr._id]: [...currentValues, value]
-                            }
-                          })
-                        } else {
-                          const newValues = currentValues.filter(v => v !== value)
-                          const newAttributes = { ...filters.attributes }
-                          if (newValues.length === 0) {
-                            delete newAttributes[attr._id]
+          {categoryAttributes.map((attr) => {
+            const values = attributeValues[attr._id] || []
+            if (values.length === 0) return null
+            
+            return (
+              <div key={attr._id} className="space-y-3">
+                <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                  {attr.name}
+                  {attr.unit && (
+                    <span className="text-xs text-gray-500">({attr.unit})</span>
+                  )}
+                </label>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {values.map(value => (
+                    <label key={value} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={filters.attributes[attr._id]?.includes(value) || false}
+                        onChange={(e) => {
+                          const currentValues = filters.attributes[attr._id] || []
+                          if (e.target.checked) {
+                            setFilters({
+                              ...filters, 
+                              attributes: {
+                                ...filters.attributes,
+                                [attr._id]: [...currentValues, value]
+                              }
+                            })
                           } else {
-                            newAttributes[attr._id] = newValues
+                            const newValues = currentValues.filter(v => v !== value)
+                            const newAttributes = { ...filters.attributes }
+                            if (newValues.length === 0) {
+                              delete newAttributes[attr._id]
+                            } else {
+                              newAttributes[attr._id] = newValues
+                            }
+                            setFilters({...filters, attributes: newAttributes})
                           }
-                          setFilters({...filters, attributes: newAttributes})
-                        }
-                      }}
-                      className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
-                    />
-                    <span className="text-sm text-gray-700">{value}</span>
-                  </label>
-                ))}
+                        }}
+                        className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500 focus:ring-2"
+                      />
+                      <span className="text-sm text-gray-700 flex-1">{value}</span>
+                      {attr.type === 'select' && (
+                        <span className="text-xs text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                          {attr.type}
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
 
           {/* Rating Filter */}
           <div className="space-y-3">

@@ -23,13 +23,9 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <Navbar />
       
       {/* Search Bar with Categories (toggleable) */}
-      <div className="sticky top-20 z-40 bg-gradient-to-r from-blue-50/80 to-purple-50/80 backdrop-blur-sm border-b border-gray-200/50 py-4">
-        <div className="container mx-auto px-4">
-          <SearchWithCategories />
-        </div>
-      </div>
+     
       
-      <main className="flex-grow pt-16">
+      <main className="flex-grow pt-40">
         {children}
       </main>
       <Footer />

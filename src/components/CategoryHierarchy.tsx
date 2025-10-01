@@ -202,15 +202,7 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
         ))}
       </div>
 
-      {displayCategories.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Home className="w-8 h-8 text-gray-400" />
-          </div>
-          <p className="text-lg font-medium mb-2">دسته‌بندی‌ای یافت نشد</p>
-          <p className="text-sm">در این سطح دسته‌بندی‌ای موجود نیست</p>
-        </div>
-      )}
     </div>
   )
 }
+

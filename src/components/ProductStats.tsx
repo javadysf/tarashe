@@ -29,7 +29,7 @@ export default function ProductStats({
     },
     {
       icon: Tag,
-      label: 'دستهبندیها',
+      label: 'دسته بندی ها',
       value: categories.length.toLocaleString('fa-IR'),
       color: 'from-purple-500 to-pink-500',
       bgColor: 'bg-purple-50'

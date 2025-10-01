@@ -71,7 +71,7 @@ export default function CategoriesSection() {
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-primary mb-4">دستهبندی محصولات</h2>
+            <h2 className="text-4xl font-bold text-primary mb-4">دسته بندی محصولات</h2>
             <div className="animate-pulse">
               <div className="h-4 bg-gray-300 rounded w-64 mx-auto"></div>
             </div>
@@ -89,11 +89,11 @@ export default function CategoriesSection() {
   }
 
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gradient-7">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">دستهبندی محصولات</h2>
-          <p className="text-xl text-gray-600">انتخاب کنید و خرید کنید</p>
+          <h2 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">دسته بندی محصولات</h2>
+          <p className="text-xl text-white/90 drop-shadow-md">انتخاب کنید و خرید کنید</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -105,7 +105,7 @@ export default function CategoriesSection() {
                 href={`/products?category=${encodeURIComponent(category._id)}`}
                 className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105"
               >
-                <div className="h-48 relative bg-gray-100">
+                <div className="h-48 relative bg-gray-100 glass">
                   {/* Category Image */}
                   <Image
                     src={category.image?.url || '/pics/battery.jpg'}
@@ -156,9 +156,9 @@ export default function CategoriesSection() {
         <div className="text-center mt-12">
           <Link
             href="/categories"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-8 py-4 rounded-xl hover:bg-blue-700 transition-all font-medium text-lg transform hover:scale-105 shadow-lg"
+            className="inline-flex items-center gap-2 bg-gradient-3 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
           >
-            <span>مشاهده همه دستهبندیها</span>
+            <span>مشاهده همه دسته بندی ها</span>
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>

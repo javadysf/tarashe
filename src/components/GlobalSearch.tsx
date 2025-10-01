@@ -2,34 +2,59 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import Image from 'next/image'
-import { Search, X } from 'lucide-react'
+import { Search, Clock } from 'lucide-react'
 import { api } from '@/lib/api'
+import Image from 'next/image'
 
-interface SearchResult {
+interface Product {
   _id: string
   name: string
   price: number
-  images: { url: string; alt: string }[]
-  category: {
-    name: string
-  }
+  originalPrice?: number
+  images: Array<{ url: string; alt?: string }>
+  brand?: { name: string }
 }
 
 export default function GlobalSearch() {
-  const [isOpen, setIsOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [results, setResults] = useState<SearchResult[]>([])
-  const [loading, setLoading] = useState(false)
+  const [suggestions, setSuggestions] = useState<Product[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const router = useRouter()
   const searchRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
-  const router = useRouter()
 
+  // Debounced search
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setSuggestions([])
+      setShowSuggestions(false)
+      return
+    }
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        setIsLoading(true)
+        const response = await api.getSearchSuggestions(searchTerm, 3)
+        setSuggestions(response.products || [])
+        setShowSuggestions(true)
+      } catch (error) {
+        console.error('Search suggestions error:', error)
+        setSuggestions([])
+        // Don't show suggestions on error, but don't prevent user from typing
+      } finally {
+        setIsLoading(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchTerm])
+
+  // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setIsOpen(false)
+        setShowSuggestions(false)
       }
     }
 
@@ -37,159 +62,111 @@ export default function GlobalSearch() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  useEffect(() => {
-    const searchProducts = async () => {
-      if (searchTerm.length < 2) {
-        setResults([])
-        return
-      }
-
-      try {
-        setLoading(true)
-        const response = await api.getProducts({ 
-          search: searchTerm, 
-          limit: 6 
-        })
-        setResults(response.products || [])
-      } catch (error) {
-        console.error('Search error:', error)
-        setResults([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    const debounceTimer = setTimeout(searchProducts, 300)
-    return () => clearTimeout(debounceTimer)
-  }, [searchTerm])
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchTerm.trim()) {
-      router.push(`/products?search=${encodeURIComponent(searchTerm)}`)
-      setIsOpen(false)
-      setSearchTerm('')
+      router.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`)
+      setShowSuggestions(false)
     }
   }
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price)
+  const handleSuggestionClick = (product: Product) => {
+    router.push(`/products/${product._id}`)
+    setShowSuggestions(false)
+    setSearchTerm('')
+  }
+
+  const handleInputFocus = () => {
+    if (suggestions.length > 0) {
+      setShowSuggestions(true)
+    }
   }
 
   return (
-    <div ref={searchRef} className="relative flex-1 max-w-2xl">
+    <div ref={searchRef} className="relative w-full ">
       <form onSubmit={handleSearch} className="relative">
         <div className="relative">
-          <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-gray-400" />
+          </div>
           <input
             ref={inputRef}
             type="text"
-            placeholder="جستجو در محصولات..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => setIsOpen(true)}
-            className="w-full pr-12 pl-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 text-base"
+            onFocus={handleInputFocus}
+            placeholder="جستجو در محصولات..."
+            className="w-full min-h-16 pr-12 pl-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-300 bg-white/80 backdrop-blur-sm"
           />
-          {searchTerm && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearchTerm('')
-                setResults([])
-                inputRef.current?.focus()
-              }}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
+          {isLoading && (
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+            </div>
           )}
         </div>
       </form>
 
-      <AnimatePresence>
-        {isOpen && (searchTerm.length >= 2 || results.length > 0) && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 p-4 z-50 max-h-96 overflow-y-auto custom-scrollbar"
-          >
-            {loading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                <span className="mr-3 text-gray-600">در حال جستجو...</span>
-              </div>
-            ) : results.length > 0 ? (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-semibold text-gray-700">
-                    نتایج جستجو ({results.length})
-                  </h3>
-                  <button
-                    onClick={handleSearch}
-                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                  >
-                    مشاهده همه
-                  </button>
+      {/* Search Suggestions */}
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-80 overflow-y-auto">
+          <div className="p-2">
+            <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-gray-500 border-b border-gray-100">
+              <Clock className="h-3 w-3" />
+              پیشنهادات جستجو
+            </div>
+            {suggestions.map((product) => (
+              <button
+                key={product._id}
+                onClick={() => handleSuggestionClick(product)}
+                className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 rounded-lg transition-colors text-right"
+              >
+                <div className="relative w-12 h-12 flex-shrink-0">
+                  {product.images?.[0]?.url ? (
+                    <Image
+                      src={product.images[0].url}
+                      alt={product.images[0].alt || product.name}
+                      fill
+                      className="object-cover rounded-lg"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-200 rounded-lg flex items-center justify-center">
+                      <Search className="h-4 w-4 text-gray-400" />
+                    </div>
+                  )}
                 </div>
-                
-                {results.map((product) => (
-                  <motion.div
-                    key={product._id}
-                    whileHover={{ scale: 1.02 }}
-                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 transition-all duration-300 cursor-pointer"
-                    onClick={() => {
-                      router.push(`/products/${product._id}`)
-                      setIsOpen(false)
-                      setSearchTerm('')
-                    }}
-                  >
-                    <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                      <Image
-                        src={product.images[0]?.url || '/pics/battery.jpg'}
-                        alt={product.name}
-                        width={48}
-                        height={48}
-                        className="w-full h-full object-contain p-1"
-                      />
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-gray-900 truncate">
+                    {product.name}
+                  </div>
+                  {product.brand && (
+                    <div className="text-xs text-gray-500 truncate">
+                      {product.brand.name}
                     </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 line-clamp-1 mb-1">
-                        {product.name}
-                      </h4>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {product.category.name}
-                        </span>
-                        <span className="text-sm font-semibold text-blue-600">
-                          {formatPrice(product.price)} تومان
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-            ) : searchTerm.length >= 2 ? (
-              <div className="text-center py-8">
-                <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500 mb-2">محصولی یافت نشد</p>
-                <p className="text-sm text-gray-400">
-                  عبارت جستجوی دیگری امتحان کنید
-                </p>
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <Search className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">
-                  حداقل 2 کاراکتر تایپ کنید
-                </p>
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  )}
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="font-semibold text-blue-600">
+                      {product.price.toLocaleString('fa-IR')} تومان
+                    </span>
+                    {product.originalPrice && product.originalPrice > product.price && (
+                      <span className="text-xs text-gray-400 line-through">
+                        {product.originalPrice.toLocaleString('fa-IR')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            ))}
+            <div className="border-t border-gray-100 mt-2 pt-2">
+              <button
+                onClick={handleSearch}
+                className="w-full text-center py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                مشاهده همه نتایج برای "{searchTerm}"
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

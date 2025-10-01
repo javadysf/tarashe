@@ -75,11 +75,11 @@ const services: Service[] = [
 
 export default function ServicesSection() {
   return (
-    <section className="py-16 bg-white">
+    <section className="py-16 bg-gradient-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-primary mb-4">خدمات ما</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <h2 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">خدمات ما</h2>
+          <p className="text-xl text-white/90 max-w-3xl mx-auto drop-shadow-md">
             ما در تراشه طیف گسترده‌ای از خدمات فنی و فروش قطعات را ارائه می‌دهیم
           </p>
         </div>
@@ -89,7 +89,7 @@ export default function ServicesSection() {
             <Link
               key={service.id}
               href={service.href}
-              className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-primary transform hover:-translate-y-2"
+              className="group relative glass rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-white/20 hover:border-white/40 transform hover:-translate-y-2 animate-bounce-in"
             >
               {/* Image Background */}
               <div className="relative h-48 overflow-hidden">
@@ -111,15 +111,15 @@ export default function ServicesSection() {
 
               {/* Content */}
               <div className="p-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-primary transition-colors">
+                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-300 transition-colors">
                   {service.title}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
+                <p className="text-white/80 text-sm leading-relaxed">
                   {service.description}
                 </p>
                 
                 {/* Arrow Icon */}
-                <div className="mt-4 flex items-center text-primary group-hover:text-primary">
+                <div className="mt-4 flex items-center text-white group-hover:text-yellow-300">
                   <span className="text-sm font-medium ml-2">مشاهده بیشتر</span>
                   <svg 
                     className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
@@ -140,23 +140,23 @@ export default function ServicesSection() {
 
         {/* CTA Section */}
         <div className="mt-16 text-center">
-          <div className="bg-light rounded-3xl p-8 md:p-12">
-            <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">
+          <div className="glass rounded-3xl p-8 md:p-12">
+            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 drop-shadow-lg">
               نیاز به مشاوره دارید؟
             </h3>
-            <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto drop-shadow-md">
               تیم متخصص ما آماده ارائه بهترین راهکارها برای نیازهای شما است
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/contact"
-                className="bg-success text-white px-8 py-4 rounded-xl hover:bg-success-dark transition-colors font-medium text-lg"
+                className="bg-gradient-4 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105"
               >
                 تماس با ما
               </Link>
               <Link
                 href="/services"
-                className="border-2 border-primary text-primary px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors font-medium text-lg"
+                className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-gray-900 transition-all font-medium text-lg transform hover:scale-105"
               >
                 مشاهده همه خدمات
               </Link>

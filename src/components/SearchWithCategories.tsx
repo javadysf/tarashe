@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ChevronDown, Grid3X3 } from 'lucide-react'
 import { api } from '@/lib/api'
 import GlobalSearch from './GlobalSearch'
+import CartButton from './CartButton'
 
 interface Category {
   _id: string
@@ -68,7 +69,7 @@ export default function SearchWithCategories() {
       <div className="relative">
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-xl hover:border-blue-500 transition-all duration-300 font-medium text-gray-700 hover:text-blue-600 min-w-max"
+          className="flex items-center bg-yellow-200 gap-2 px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-full hover:border-blue-500 transition-all duration-300 font-medium text-gray-700 hover:text-blue-600 min-w-max"
         >
           <Grid3X3 className="w-5 h-5" />
           دسته بندی محصولات
@@ -163,7 +164,7 @@ export default function SearchWithCategories() {
           )}
         </AnimatePresence>
       </div>
-
+      <CartButton />
       {/* Search Bar */}
       <div className="flex-1">
         <GlobalSearch />

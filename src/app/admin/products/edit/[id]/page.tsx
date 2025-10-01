@@ -11,6 +11,7 @@ export default function EditProductPage() {
   const productId = params.id as string;
   
   const [categories, setCategories] = useState<any[]>([]);
+  const [brands, setBrands] = useState<any[]>([]);
   const [categoryAttributes, setCategoryAttributes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -54,16 +55,21 @@ export default function EditProductPage() {
 
   const fetchData = async () => {
     try {
-      const [productData, categoriesData] = await Promise.all([
+      const [productData, categoriesData, brandsData] = await Promise.all([
         api.getProduct(productId),
-        api.getCategories()
+        api.getCategories(),
+        api.getBrands()
       ]);
       
       console.log('Product data:', productData);
       setCategories(categoriesData);
+      setBrands(brandsData);
       
       // Handle category properly - it might be an object or string
       const categoryId = typeof productData.category === 'object' ? productData.category._id : productData.category;
+      
+      // Handle brand properly - it might be an object or string
+      const brandId = typeof productData.brand === 'object' ? productData.brand._id : productData.brand;
       
       setFormData({
         name: productData.name || '',
@@ -71,13 +77,10 @@ export default function EditProductPage() {
         price: productData.price?.toString() || '',
         originalPrice: productData.originalPrice?.toString() || productData.discountPrice?.toString() || '',
         category: categoryId || '',
-        brand: productData.brand || '',
+        brand: brandId || '',
         model: productData.model || '',
         stock: productData.stock?.toString() || '',
-        attributes: Array.isArray(productData.attributes) ? productData.attributes.reduce((acc: Record<string, string>, attr: any) => {
-          acc[attr.attribute] = attr.value;
-          return acc;
-        }, {}) : {},
+        attributes: productData.attributes || {},
         images: productData.images || []
       });
       setLoading(false);
@@ -275,10 +278,47 @@ export default function EditProductPage() {
       }
 
       await api.updateProduct(productId, submitData);
-      toast.success('✨ محصول با موفقیت بهروزرسانی شد!');
-      router.push('/admin/products');
+      
+      // Beautiful success toast
+      toast.success('🎉 محصول با موفقیت بهروزرسانی شد!', {
+        position: "top-center",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: {
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+        }
+      });
+      
+      // Navigate after a short delay to let user see the toast
+      setTimeout(() => {
+        router.push('/admin/products');
+      }, 1500);
     } catch (error: any) {
-      toast.error('❌ ' + (error.message || 'خطا در بهروزرسانی محصول'));
+      console.error('Update product error:', error);
+      toast.error('❌ ' + (error.message || 'خطا در بهروزرسانی محصول'), {
+        position: "top-center",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        style: {
+          background: 'linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%)',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 'bold',
+          borderRadius: '12px',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
+        }
+      });
     } finally {
       setSubmitting(false);
     }
@@ -388,7 +428,7 @@ export default function EditProductPage() {
                 {formData.category && (
                   <div className="mt-6 p-4 bg-white/60 rounded-lg border border-purple-200">
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-sm font-semibold text-purple-800">ویژگیهای محصول</h4>
+                      <h4 className="text-sm font-semibold text-purple-800">ویژگی های محصول</h4>
                       <button
                         type="button"
                         onClick={() => setShowNewAttribute(!showNewAttribute)}
@@ -566,13 +606,17 @@ export default function EditProductPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">برند *</label>
-                  <input
-                    type="text"
+                  <select
                     required
                     value={formData.brand}
                     onChange={(e) => setFormData({...formData, brand: e.target.value})}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/70"
-                  />
+                  >
+                    <option value="">انتخاب برند</option>
+                    {brands.map((brand) => (
+                      <option key={brand._id} value={brand._id}>{brand.name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>

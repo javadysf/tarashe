@@ -35,14 +35,14 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">دستهبندی محصولات</h1>
-          <p className="text-gray-600 text-lg">محصولات مورد نظر خود را از دستهبندی های زیر انتخاب کنید</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">دسته بندی محصولات</h1>
+          <p className="text-gray-600 text-lg">محصولات مورد نظر خود را از دسته بندی های زیر انتخاب کنید</p>
         </div>
 
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-2 border-blue-600 border-t-transparent mx-auto"></div>
-            <p className="text-gray-600 mt-4">در حال بارگذاری دستهبندی ها...</p>
+            <p className="text-gray-600 mt-4">در حال بارگذاری دسته بندی ها...</p>
           </div>
         ) : categories.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -100,8 +100,8 @@ export default function CategoriesPage() {
             <svg className="w-24 h-24 mx-auto text-gray-400 mb-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
             </svg>
-            <h3 className="text-2xl font-semibold text-gray-900 mb-4">هیچ دستهبندی یافت نشد</h3>
-            <p className="text-gray-600 mb-8">در حال حاضر دستهبندی موجود نیست</p>
+            <h3 className="text-2xl font-semibold text-gray-900 mb-4">هیچ دسته بندی یافت نشد</h3>
+            <p className="text-gray-600 mb-8">در حال حاضر دسته بندی موجود نیست</p>
             <Link 
               href="/"
               className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"

@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
 import { useState } from 'react'
+import { useCartStore } from '@/store/cartStore'
+import { toast } from 'react-toastify'
 
 interface Product {
   _id: string
@@ -25,6 +27,7 @@ interface Product {
   }
   brand: string | { _id: string; name: string; image?: string; isActive?: boolean; createdAt?: string; updatedAt?: string; __v?: number }
   stock: number
+  attributes?: { [key: string]: string }
 }
 
 interface ProductCardProps {
@@ -35,6 +38,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, index }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
+  const { addItem } = useCartStore()
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fa-IR').format(price)
@@ -54,6 +58,30 @@ export default function ProductCard({ product, index }: ProductCardProps) {
   }
 
   const brandName = typeof product.brand === 'string' ? product.brand : product.brand?.name
+
+  const handleAddToCart = () => {
+    if (product.stock === 0) {
+      toast.error('این محصول در حال حاضر موجود نیست')
+      return
+    }
+
+    addItem({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0]?.url || '/pics/battery.jpg',
+      quantity: 1
+    })
+
+    toast.success(`${product.name} به سبد خرید اضافه شد`, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    })
+  }
 
   return (
     <motion.div
@@ -145,6 +173,24 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             <div className="text-sm text-gray-500 mb-2">برند: {brandName}</div>
           )}
 
+          {/* Attributes */}
+          {product.attributes && Object.keys(product.attributes).length > 0 && (
+            <div className="mb-3">
+              <div className="flex flex-wrap gap-1">
+                {Object.entries(product.attributes).slice(0, 3).map(([key, value]) => (
+                  <Badge key={key} variant="secondary" className="text-xs">
+                    {value}
+                  </Badge>
+                ))}
+                {Object.keys(product.attributes).length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{Object.keys(product.attributes).length - 3} بیشتر
+                  </Badge>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Description */}
           <div className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
             {product.description}
@@ -175,6 +221,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             <Button
               size="sm"
               disabled={product.stock === 0}
+              onClick={handleAddToCart}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />

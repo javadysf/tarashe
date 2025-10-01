@@ -66,30 +66,45 @@ export default function ProductsPage() {
   const [currentCategoryId, setCurrentCategoryId] = useState<string | undefined>(undefined)
 
   useEffect(() => {
-    // Read category from URL on mount/URL change and fetch accordingly
+    // Read category and brand from URL on mount/URL change and fetch accordingly
     const categoryFromUrl = searchParams.get('category')
+    const brandFromUrl = searchParams.get('brand')
+    
     setCurrentCategoryId(categoryFromUrl || undefined)
-    fetchProducts(categoryFromUrl || undefined)
+    fetchProducts(categoryFromUrl || undefined, brandFromUrl || undefined)
     fetchCategories()
-    if (categoryFromUrl) {
-      setFilters(prev => ({ ...prev, category: categoryFromUrl }))
-    }
+    
+    // Update filters based on URL parameters
+    setFilters(prev => ({
+      ...prev,
+      category: categoryFromUrl || 'all',
+      brand: brandFromUrl ? [brandFromUrl] : []
+    }))
   }, [searchParams])
 
   useEffect(() => {
     if (filters.category && filters.category !== 'all') {
       fetchCategoryAttributes(filters.category)
       // Refetch products from API with deep category filter
-      fetchProducts(filters.category)
+      fetchProducts(filters.category, filters.brand[0])
     } else {
       setCategoryAttributes([])
       setAttributeValues({})
       // Load default product set when category cleared
       if (filters.category === 'all') {
-        fetchProducts()
+        fetchProducts(undefined, filters.brand[0])
       }
     }
   }, [filters.category])
+
+  useEffect(() => {
+    // Refetch products when brand filter changes
+    if (filters.brand.length > 0) {
+      fetchProducts(filters.category === 'all' ? undefined : filters.category, filters.brand[0])
+    } else {
+      fetchProducts(filters.category === 'all' ? undefined : filters.category)
+    }
+  }, [filters.brand])
 
   useEffect(() => {
     applyFiltersAndSort()
@@ -109,11 +124,12 @@ export default function ProductsPage() {
     setBrands(uniqueBrands)
   }, [products])
 
-  const fetchProducts = async (categoryId?: string) => {
+  const fetchProducts = async (categoryId?: string, brandId?: string) => {
     try {
       setError(null)
       const params: any = { limit: 100 }
       if (categoryId && categoryId !== 'all') params.category = categoryId
+      if (brandId) params.brand = brandId
       const response = await api.getProducts(params)
       setProducts(response.products || [])
       setLoading(false)
@@ -136,20 +152,33 @@ export default function ProductsPage() {
   const fetchCategoryAttributes = async (categoryId: string) => {
     try {
       const response = await api.getCategoryAttributes(categoryId)
-      setCategoryAttributes(response)
+      console.log('Category attributes response:', response)
+      
+      // Extract attributes from CategoryAttribute objects
+      const attributes = response.map((ca: any) => ca.attribute).filter(Boolean)
+      setCategoryAttributes(attributes)
       
       // Extract unique values for each attribute from products
       const values: { [key: string]: string[] } = {}
-      response.forEach((attr: any) => {
+      attributes.forEach((attr: any) => {
         const attrValues = new Set<string>()
         products.forEach(product => {
           if (product.attributes && product.attributes[attr._id]) {
             attrValues.add(product.attributes[attr._id])
           }
         })
-        values[attr._id] = Array.from(attrValues)
+        
+        // For select type attributes, also include predefined options
+        if (attr.type === 'select' && attr.options) {
+          attr.options.forEach((option: string) => {
+            attrValues.add(option)
+          })
+        }
+        
+        values[attr._id] = Array.from(attrValues).sort()
       })
       setAttributeValues(values)
+      console.log('Attribute values:', values)
     } catch (error) {
       console.error('Error fetching category attributes:', error)
     }

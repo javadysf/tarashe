@@ -42,17 +42,16 @@ class ApiClient {
       ...options,
     };
 
-    console.log('Request config:', {
-      url,
-      method: config.method || 'GET',
-      headers: config.headers,
-      bodyType: config.body?.constructor.name
-    });
-
     const response = await fetch(url, config);
     const data = await response.json();
 
     if (!response.ok) {
+      console.error('Request failed:', {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        data: data
+      });
       throw new Error(data.message || 'خطا در درخواست');
     }
 
@@ -128,6 +127,18 @@ class ApiClient {
   async getProducts(params?: any) {
     const query = params ? `?${new URLSearchParams(params)}` : '';
     return this.request(`/products${query}`);
+  }
+
+  async getSearchSuggestions(searchTerm: string, limit: number = 3) {
+    if (!searchTerm.trim()) return { products: [] };
+    try {
+      const result = await this.request(`/products?search=${encodeURIComponent(searchTerm)}&limit=${limit}`);
+      console.log('Search suggestions result:', result);
+      return result;
+    } catch (error) {
+      console.error('Search suggestions API error:', error);
+      throw error;
+    }
   }
 
   async getProduct(id: string) {
@@ -228,6 +239,49 @@ class ApiClient {
     });
   }
 
+  // Attributes Management
+  async getAttributes() {
+    return this.request('/attributes');
+  }
+
+  async createAttribute(attributeData: any) {
+    return this.request('/attributes', {
+      method: 'POST',
+      body: JSON.stringify(attributeData),
+    });
+  }
+
+  async updateAttribute(id: string, attributeData: any) {
+    return this.request(`/attributes/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(attributeData),
+    });
+  }
+
+  async deleteAttribute(id: string) {
+    return this.request(`/attributes/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getCategoryAttributes(categoryId: string) {
+    return this.request(`/attributes/category/${categoryId}`);
+  }
+
+  async assignAttributeToCategory(categoryId: string, attributeId: string) {
+    return this.request('/attributes/assign', {
+      method: 'POST',
+      body: JSON.stringify({ categoryId, attributeId }),
+    });
+  }
+
+  async removeAttributeFromCategory(categoryId: string, attributeId: string) {
+    return this.request('/attributes/remove', {
+      method: 'POST',
+      body: JSON.stringify({ categoryId, attributeId }),
+    });
+  }
+
   // Reviews
   async getProductReviews(productId: string) {
     return this.request(`/products/${productId}/reviews`);
@@ -241,7 +295,7 @@ class ApiClient {
   }
 
   async getAllReviews() {
-    return this.request('/reviews');
+    return this.request('/products/reviews/all');
   }
 
   async deleteReview(reviewId: string) {

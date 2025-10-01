@@ -93,13 +93,13 @@ export default function AddProductPage() {
   }, [user])
 
   useEffect(() => {
-    if (formData.category) {
-      fetchCategoryAttributes(formData.category)
+    if (formData.category || secondLevelCategoryId || parentCategoryId) {
+      fetchAllCategoryAttributes()
     } else {
       setCategoryAttributes([])
       setFormData(prev => ({ ...prev, attributes: {} }))
     }
-  }, [formData.category])
+  }, [formData.category, secondLevelCategoryId, parentCategoryId])
 
   useEffect(() => {
     // When parent changes, reset chosen subcategory and attributes
@@ -111,9 +111,6 @@ export default function AddProductPage() {
   useEffect(() => {
     // When second-level changes, reset deepest selection
     setFormData(prev => ({ ...prev, category: '' }))
-    if (secondLevelCategoryId) {
-      // Optionally could load attributes for preview, but we bind to final level
-    }
   }, [secondLevelCategoryId])
 
   const fetchCategories = async () => {
@@ -137,9 +134,54 @@ export default function AddProductPage() {
   const fetchCategoryAttributes = async (categoryId: string) => {
     try {
       const response = await api.getCategoryAttributes(categoryId)
-      setCategoryAttributes(response)
+      console.log('Category attributes response:', response)
+      
+      // Extract attributes from CategoryAttribute objects
+      const attributes = response.map((ca: any) => ca.attribute).filter(Boolean)
+      setCategoryAttributes(attributes)
     } catch (error) {
       console.error('Error fetching category attributes:', error)
+    }
+  }
+
+  const fetchAllCategoryAttributes = async () => {
+    try {
+      const allAttributes = new Map()
+      
+      // Fetch attributes for parent category
+      if (parentCategoryId) {
+        const parentResponse = await api.getCategoryAttributes(parentCategoryId)
+        const parentAttributes = parentResponse.map((ca: any) => ca.attribute).filter(Boolean)
+        parentAttributes.forEach((attr: any) => {
+          allAttributes.set(attr._id, { ...attr, level: 'parent' })
+        })
+      }
+      
+      // Fetch attributes for second level category
+      if (secondLevelCategoryId) {
+        const secondResponse = await api.getCategoryAttributes(secondLevelCategoryId)
+        const secondAttributes = secondResponse.map((ca: any) => ca.attribute).filter(Boolean)
+        secondAttributes.forEach((attr: any) => {
+          allAttributes.set(attr._id, { ...attr, level: 'second' })
+        })
+      }
+      
+      // Fetch attributes for third level category
+      if (formData.category) {
+        const thirdResponse = await api.getCategoryAttributes(formData.category)
+        const thirdAttributes = thirdResponse.map((ca: any) => ca.attribute).filter(Boolean)
+        thirdAttributes.forEach((attr: any) => {
+          allAttributes.set(attr._id, { ...attr, level: 'third' })
+        })
+      }
+      
+      // Convert map to array
+      const combinedAttributes = Array.from(allAttributes.values())
+      setCategoryAttributes(combinedAttributes)
+      
+      console.log('Combined attributes:', combinedAttributes)
+    } catch (error) {
+      console.error('Error fetching all category attributes:', error)
     }
   }
 
@@ -431,10 +473,11 @@ export default function AddProductPage() {
       setShowNewAttribute(false)
       
       // Auto-assign to current category if selected
-      if (formData.category) {
+      const currentCategoryId = formData.category || secondLevelCategoryId || parentCategoryId
+      if (currentCategoryId) {
         try {
-          await api.assignAttributeToCategory(formData.category, response.attribute._id)
-          fetchCategoryAttributes(formData.category)
+          await api.assignAttributeToCategory(currentCategoryId, response.attribute._id)
+          fetchAllCategoryAttributes()
           toast.success('✅ ویژگی جدید ایجاد و به دسته اضافه شد!')
         } catch (assignError) {
           toast.success('✅ ویژگی جدید ایجاد شد!')
@@ -809,15 +852,22 @@ export default function AddProductPage() {
               </div>
             )}
 
-            {/* Step 3: Attributes (after subcategory picked) */}
-            {formData.category ? (
-              <div className="mt-6 p-4 bg-white/70 rounded-lg border border-purple-200">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-semibold text-purple-800">ویژگیهای محصول</h4>
+            {/* Step 3: Attributes (after any category picked) */}
+            {(formData.category || parentCategoryId || secondLevelCategoryId) ? (
+              <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 shadow-lg">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                      <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                      </svg>
+                    </div>
+                    <h4 className="text-lg font-bold text-purple-800">ویژگی‌های محصول</h4>
+                  </div>
                   <button
                     type="button"
                     onClick={() => setShowNewAttribute(!showNewAttribute)}
-                    className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -826,10 +876,15 @@ export default function AddProductPage() {
                   </button>
                 </div>
 
-                  {/* Create New Attribute */}
-                  {showNewAttribute && (
-                    <div className="mb-4 p-4 bg-white/80 rounded-lg border border-purple-300">
-                      <h5 className="text-sm font-semibold text-purple-800 mb-3">ایجاد ویژگی جدید برای {categories.find(c => c._id === formData.category)?.name}</h5>
+                {/* Create New Attribute */}
+                {showNewAttribute && (
+                  <div className="mb-6 p-6 bg-white rounded-xl border-2 border-purple-300 shadow-md">
+                    <h5 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      ایجاد ویژگی جدید برای {categories.find(c => c._id === (formData.category || secondLevelCategoryId || parentCategoryId))?.name}
+                    </h5>
                       
                       <div className="space-y-3">
                         <div>
@@ -918,87 +973,127 @@ export default function AddProductPage() {
                     </div>
                   )}
 
-                  {/* Category-specific Attributes */}
-                  {formData.category ? (
-                    <div className="space-y-4">
-                      <h5 className="text-sm font-semibold text-gray-700 mb-4">ویژگیهای {categories.find(c => c._id === formData.category)?.name}</h5>
-                      
-                      {categoryAttributes.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {categoryAttributes.map((attr) => (
-                            <div key={attr._id} className="relative">
-                              <div className="flex items-center justify-between mb-2">
-                                <label className="block text-sm font-medium text-gray-700">
-                                  {attr.name}
-                                </label>
-                                <button
-                                  type="button"
-                                  onClick={async () => {
-                                    try {
-                                      await api.removeAttributeFromCategory(formData.category, attr._id)
-                                      toast.success('ویژگی از دسته حذف شد')
-                                      fetchCategoryAttributes(formData.category)
-                                      // Remove from form data
-                                      const newAttributes = { ...formData.attributes }
-                                      delete newAttributes[attr._id]
-                                      setFormData({ ...formData, attributes: newAttributes })
-                                    } catch (error: any) {
-                                      toast.error(error.message)
-                                    }
-                                  }}
-                                  className="text-red-500 hover:text-red-700 text-xs"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                              {attr.type === 'select' ? (
-                                <select
-                                  value={formData.attributes[attr._id] || ''}
-                                  onChange={(e) => setFormData({
-                                    ...formData,
-                                    attributes: {
-                                      ...formData.attributes,
-                                      [attr._id]: e.target.value
-                                    }
-                                  })}
-                                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                                >
-                                  <option value="">انتخاب کنید</option>
-                                  {attr.options?.map((option: string) => (
-                                    <option key={option} value={option}>{option}</option>
-                                  ))}
-                                </select>
-                              ) : (
-                                <input
-                                  type={attr.type === 'number' ? 'number' : 'text'}
-                                  value={formData.attributes[attr._id] || ''}
-                                  onChange={(e) => setFormData({
-                                    ...formData,
-                                    attributes: {
-                                      ...formData.attributes,
-                                      [attr._id]: e.target.value
-                                    }
-                                  })}
-                                  className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                                  placeholder={`وارد کردن ${attr.name}`}
-                                />
+                {/* Category-specific Attributes */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <h5 className="text-lg font-bold text-gray-800">
+                      ویژگی‌های ترکیبی 
+                      {parentCategoryId && (
+                        <span className="text-sm text-blue-600"> (سطح اول: {categories.find(c => c._id === parentCategoryId)?.name})</span>
+                      )}
+                      {secondLevelCategoryId && (
+                        <span className="text-sm text-green-600"> + سطح دوم: {categories.find(c => c._id === secondLevelCategoryId)?.name}</span>
+                      )}
+                      {formData.category && (
+                        <span className="text-sm text-purple-600"> + سطح سوم: {categories.find(c => c._id === formData.category)?.name}</span>
+                      )}
+                    </h5>
+                  </div>
+                  
+                  {categoryAttributes.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {categoryAttributes.map((attr) => (
+                        <div key={attr._id} className="bg-white rounded-xl border-2 border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-200">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <label className="block text-sm font-bold text-gray-800">
+                                {attr.name}
+                              </label>
+                              {attr.unit && (
+                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                                  {attr.unit}
+                                </span>
                               )}
+                              {attr.level && (
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  attr.level === 'parent' ? 'bg-blue-100 text-blue-600' :
+                                  attr.level === 'second' ? 'bg-green-100 text-green-600' :
+                                  'bg-purple-100 text-purple-600'
+                                }`}>
+                                  {attr.level === 'parent' ? 'سطح اول' :
+                                   attr.level === 'second' ? 'سطح دوم' : 'سطح سوم'}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  const currentCategoryId = formData.category || secondLevelCategoryId || parentCategoryId
+                                  await api.removeAttributeFromCategory(currentCategoryId, attr._id)
+                                  toast.success('ویژگی از دسته حذف شد')
+                                  fetchAllCategoryAttributes()
+                                  // Remove from form data
+                                  const newAttributes = { ...formData.attributes }
+                                  delete newAttributes[attr._id]
+                                  setFormData({ ...formData, attributes: newAttributes })
+                                } catch (error: any) {
+                                  toast.error(error.message)
+                                }
+                              }}
+                              className="text-red-500 hover:text-red-700 text-sm p-1 hover:bg-red-50 rounded"
+                            >
+                              ×
+                            </button>
+                          </div>
+                          {attr.type === 'select' ? (
+                            <select
+                              value={formData.attributes[attr._id] || ''}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                attributes: {
+                                  ...formData.attributes,
+                                  [attr._id]: e.target.value
+                                }
+                              })}
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                            >
+                              <option value="">انتخاب کنید</option>
+                              {attr.options?.map((option: string) => (
+                                <option key={option} value={option}>{option}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type={attr.type === 'number' ? 'number' : 'text'}
+                              value={formData.attributes[attr._id] || ''}
+                              onChange={(e) => setFormData({
+                                ...formData,
+                                attributes: {
+                                  ...formData.attributes,
+                                  [attr._id]: e.target.value
+                                }
+                              })}
+                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                              placeholder={`مقدار ${attr.name} را وارد کنید`}
+                            />
+                          )}
                             </div>
                           ))}
                         </div>
-                      ) : (
-                        <p className="text-sm text-gray-500">این دسته هنوز ویژگی ندارد. برای ایجاد ویژگی جدید روی دکمه "ویژگی جدید" کلیک کنید.</p>
-                      )}
-                    </div>
                   ) : (
-                    <p className="text-sm text-gray-500">ابتدا دسته بندی را انتخاب کنید</p>
+                    <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-600 text-lg font-medium mb-2">هیچ ویژگی‌ای برای این دسته تعریف نشده است</p>
+                      <p className="text-gray-400 text-sm">می‌توانید ویژگی جدید ایجاد کنید</p>
+                    </div>
                   )}
-                  </div>
-                ):""}
+                </div>
               </div>
+            ) : null}
+          </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="block text-sm font-semibold text-gray-700">برند *</label>
                     <button

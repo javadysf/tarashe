@@ -1,97 +1,86 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-
-interface Product {
-  id: number
-  title: string
-  price: number
-  image: string
-  category: string
-}
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Search, Filter } from 'lucide-react'
 
 export default function SearchSection() {
-  const [query, setQuery] = useState('')
-  const [results, setResults] = useState<Product[]>([])
-  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('')
+  const router = useRouter()
 
-  useEffect(() => {
-    if (query.length > 2) {
-      setLoading(true)
-      fetch('https://fakestoreapi.com/products')
-        .then(res => res.json())
-        .then(data => {
-          const filtered = data.filter((product: Product) =>
-            product.title.toLowerCase().includes(query.toLowerCase())
-          ).slice(0, 8)
-          setResults(filtered)
-          setLoading(false)
-        })
-    } else {
-      setResults([])
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (searchTerm.trim()) {
+      router.push(`/products?search=${encodeURIComponent(searchTerm.trim())}`)
     }
-  }, [query])
+  }
 
   return (
-    <section className="bg-gradient-to-br from-primary to-blue-800 py-16">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-8">
-          <h2 className="text-3xl font-bold text-white mb-4">جستجوی محصولات</h2>
-          <p className="text-blue-100">محصول مورد نظر خود را پیدا کنید</p>
+    <section className="py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
+            پیدا کردن محصول مورد نظرتان
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            با جستجوی هوشمند ما، محصولات باکیفیت و مناسب را پیدا کنید
+          </p>
         </div>
 
-        <div className="max-w-2xl mx-auto mb-8">
+        <form onSubmit={handleSearch} className="relative">
           <div className="relative">
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <Search className="h-6 w-6 text-gray-400" />
+            </div>
             <input
               type="text"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="نام محصول را وارد کنید..."
-              className="w-full px-6 py-4 pr-14 text-lg bg-white/90 backdrop-blur-sm border-0 rounded-2xl focus:outline-none focus:ring-4 focus:ring-white/30 text-right shadow-xl"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="نام محصول، برند یا کد محصول را جستجو کنید..."
+              className="w-full pr-12 pl-4 py-4 text-lg border-2 border-gray-200 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg transition-all duration-300"
             />
-            <MagnifyingGlassIcon className="absolute right-5 top-1/2 transform -translate-y-1/2 h-6 w-6 text-gray-500" />
           </div>
-        </div>
-
-        {loading && (
-          <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-            <p className="text-white mt-2">در حال جستجو...</p>
+          
+          <div className="flex gap-4 mt-6">
+            <button
+              type="submit"
+              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold text-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              جستجو
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => router.push('/products')}
+              className="flex items-center gap-2 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-2xl font-semibold hover:border-blue-500 hover:text-blue-600 transition-all duration-300"
+            >
+              <Filter className="h-5 w-5" />
+              فیلتر پیشرفته
+            </button>
           </div>
-        )}
+        </form>
 
-        {results.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
-            {results.map((product) => (
-              <Link
-                key={product.id}
-                href={`/products/${product.id}`}
-                className="bg-white/10 backdrop-blur-sm rounded-xl p-4 hover:bg-white/20 transition-all duration-300 hover:scale-105 border border-white/20"
+        {/* Popular Searches */}
+        <div className="mt-12">
+          <h3 className="text-lg font-semibold text-gray-700 mb-4 text-center">جستجوهای محبوب</h3>
+          <div className="flex flex-wrap justify-center gap-3">
+            {['باتری لپ تاپ', 'شارژر', 'کیبورد', 'ماوس', 'هارد دیسک'].map((term) => (
+              <button
+                key={term}
+                onClick={() => {
+                  setSearchTerm(term)
+                  router.push(`/products?search=${encodeURIComponent(term)}`)
+                }}
+                className="px-4 py-2 bg-white text-gray-700 rounded-full border border-gray-200 hover:border-blue-300 hover:text-blue-600 transition-all duration-300 shadow-sm hover:shadow-md"
               >
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-32 object-cover rounded-lg mb-3"
-                />
-                <h3 className="text-white font-medium text-sm line-clamp-2 mb-2">
-                  {product.title}
-                </h3>
-                <p className="text-blue-200 text-xs mb-2">{product.category}</p>
-                <p className="text-yellow-300 font-bold">${product.price}</p>
-              </Link>
+                {term}
+              </button>
             ))}
           </div>
-        )}
-
-        {query.length > 2 && !loading && results.length === 0 && (
-          <div className="text-center">
-            <p className="text-white text-lg">محصولی یافت نشد</p>
-            <p className="text-blue-200">لطفاً کلمات دیگری امتحان کنید</p>
-          </div>
-        )}
+        </div>
       </div>
     </section>
   )
 }
+
+

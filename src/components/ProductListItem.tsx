@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
 import { useState } from 'react'
+import { useCartStore } from '@/store/cartStore'
+import { toast } from 'react-toastify'
 
 interface Product {
   _id: string
@@ -34,6 +36,7 @@ interface ProductListItemProps {
 
 export default function ProductListItem({ product, index }: ProductListItemProps) {
   const [isFavorite, setIsFavorite] = useState(false)
+  const { addItem } = useCartStore()
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fa-IR').format(price)
@@ -53,6 +56,30 @@ export default function ProductListItem({ product, index }: ProductListItemProps
   }
 
   const brandName = typeof product.brand === 'string' ? product.brand : product.brand?.name
+
+  const handleAddToCart = () => {
+    if (product.stock === 0) {
+      toast.error('این محصول در حال حاضر موجود نیست')
+      return
+    }
+
+    addItem({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0]?.url || '/pics/battery.jpg',
+      quantity: 1
+    })
+
+    toast.success(`${product.name} به سبد خرید اضافه شد`, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    })
+  }
 
   return (
     <motion.div
@@ -166,6 +193,7 @@ export default function ProductListItem({ product, index }: ProductListItemProps
                   <Button
                     size="sm"
                     disabled={product.stock === 0}
+                    onClick={handleAddToCart}
                     className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300"
                   >
                     <ShoppingCart className="w-4 h-4 mr-2" />
