@@ -9,6 +9,7 @@ import logo from "../../public/pics/logo.jpg"
 import CartButton from './CartButton'
 import { useAuthStore } from '@/store/authStore'
 import SearchWithCategories from './SearchWithCategories'
+import ThemeToggle from './ThemeToggle'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -17,7 +18,10 @@ export default function Navbar() {
   const { user, logout, checkAuth } = useAuthStore()
 
   useEffect(() => {
-    checkAuth()
+    // Only check auth if no user is already logged in
+    if (!user) {
+      checkAuth()
+    }
   }, [])
 
   useEffect(() => {
@@ -72,21 +76,21 @@ export default function Navbar() {
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
       scrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-xl border-b border-gray-200/50' 
-        : 'bg-white shadow-lg'
+        ? 'bg-white/95 dark:bg-gray-900/95 backdrop-blur-md shadow-xl border-b border-gray-200/50 dark:border-gray-700/50' 
+        : 'bg-white dark:bg-gray-900 shadow-lg'
     }`}>
       <div className="mx-auto py-3 sm:px-6">
         <div className="flex gap-3 items-center">
             {user ? (
               <div className="flex items-center text-sm space-x-3 space-x-reverse">
-                <div className="flex items-center space-x-2 space-x-reverse bg-gradient-to-r from-green-50 to-emerald-50 px-3 py-2 rounded-lg border border-green-200/50">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="text-sm font-medium text-green-700">سلام {user.name}</span>
+                <div className="flex items-center space-x-2 space-x-reverse bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 px-3 py-2 rounded-lg border border-green-200/50 dark:border-green-700/50">
+                  <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="text-sm font-medium text-green-700 dark:text-green-300">سلام {user.name}</span>
                 </div>
                 
                 <Link 
                   href="/profile" 
-                  className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-300"
+                  className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all duration-300"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -97,7 +101,7 @@ export default function Navbar() {
                 {user.role === 'admin' && (
                   <Link 
                     href="/admin" 
-                    className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-purple-700 hover:text-purple-800 hover:bg-purple-50 rounded-lg transition-all duration-300"
+                    className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-purple-700 dark:text-purple-300 hover:text-purple-800 dark:hover:text-purple-200 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-all duration-300"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -109,7 +113,7 @@ export default function Navbar() {
                 
                 <button 
                   onClick={logout}
-                  className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-300"
+                  className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300"
                 >
              <User/>
                   <span>خروج</span>
@@ -118,13 +122,13 @@ export default function Navbar() {
             ) : (
               <Link
                 href="/auth/login"
-                className="flex items-center space-x-2 space-x-reverse text-black px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="flex items-center space-x-2 space-x-reverse text-black dark:text-white px-4 py-2 rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:scale-105"
               >
              <User/>
                 <span>ورود</span>
               </Link>
             )}
-            <div className='w-[1px] h-3 bg-gray-300 ' ></div>
+            <div className='w-[1px] h-3 bg-gray-300 dark:bg-gray-600'></div>
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8 space-x-reverse">
             {navItems.map((item) => (
@@ -133,8 +137,8 @@ export default function Navbar() {
                 href={item.href}
                 className={`flex items-center space-x-2 text-sm space-x-reverse px-3 py-2 rounded-lg font-medium transition-all duration-300 group ${
                   isActive(item.href)
-                    ? 'text-blue-600 bg-blue-50 shadow-sm'
-                    : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50/50'
+                    ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
+                    : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
                 }`}
               >
                 <span className={`transition-transform duration-300 ${isActive(item.href) ? 'scale-110' : 'group-hover:scale-110'}`}>
@@ -147,7 +151,7 @@ export default function Navbar() {
 
           {/* Right Side */}
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
-        
+            <ThemeToggle />
             
           {/* Logo */}
           <Link href="/" className="flex gap-4 items-center space-x-2 group">
@@ -157,7 +161,8 @@ export default function Navbar() {
                 width={65} 
                 height={65}
                 className='rounded-full ring-2 ring-blue-500/20 group-hover:ring-blue-500/40 transition-all duration-300 group-hover:scale-105' 
-                src={logo} 
+                src={logo}
+                priority={true}
               />
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
             </div>
@@ -170,9 +175,10 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center space-x-2 space-x-reverse">
             <CartButton />
+            <ThemeToggle />
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-lg text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-all duration-300"
+              className="p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-300"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isOpen ? (
@@ -187,7 +193,7 @@ export default function Navbar() {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden bg-white border-t border-gray-200">
+          <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
             <div className="px-4 py-4">
               {/* Mobile Search */}
               <div className="mb-4">
@@ -203,8 +209,8 @@ export default function Navbar() {
                     onClick={() => setIsOpen(false)}
                     className={`flex items-center space-x-2 space-x-reverse px-3 py-2 rounded-lg font-medium transition-all duration-300 ${
                       isActive(item.href)
-                        ? 'text-blue-600 bg-blue-50'
-                        : 'text-gray-700 hover:text-blue-600 hover:bg-blue-50/50'
+                        ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
+                        : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10'
                     }`}
                   >
                     <span>{item.icon}</span>

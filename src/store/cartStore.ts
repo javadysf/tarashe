@@ -1,18 +1,28 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+export interface CartAccessory {
+  accessoryId: string
+  name: string
+  price: number
+  quantity: number
+  originalPrice: number
+  discountedPrice: number
+}
+
 export interface CartItem {
   id: string
   name: string
   price: number
   image: string
   quantity: number
+  accessories?: CartAccessory[]
 }
 
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
-  addItem: (product: Omit<CartItem, 'quantity'> & { quantity: number }) => void
+  addItem: (product: Omit<CartItem, 'quantity'> & { quantity: number, accessories?: CartAccessory[] }) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
@@ -78,7 +88,12 @@ export const useCartStore = create<CartStore>()(
       },
       
       getTotalPrice: () => {
-        return get().items.reduce((total, item) => total + (item.price * item.quantity), 0)
+        return get().items.reduce((total, item) => {
+          const itemTotal = item.price * item.quantity
+          const accessoriesTotal = item.accessories?.reduce((accTotal, accessory) => 
+            accTotal + (accessory.discountedPrice * accessory.quantity), 0) || 0
+          return total + itemTotal + accessoriesTotal
+        }, 0)
       }
     }),
     {

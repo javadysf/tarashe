@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
+import ThemeToggle from './ThemeToggle'
 
 export default function AdminSidebar() {
   const pathname = usePathname()
@@ -36,21 +37,22 @@ export default function AdminSidebar() {
       icon: '⭐'
     },
     {
-      title: 'مدیریت دسته بندی ها',
-      href: '/admin/categories',
-      icon: '📂'
+      title: 'مدیریت محتوا',
+      href: '/admin/content',
+      icon: '📝'
     },
     {
-      title: 'مدیریت ویژگی ها',
-      href: '/admin/attributes',
-      icon: '🏷️'
+      title: 'مشاهده وبسایت',
+      href: '/',
+      icon: '🌐',
+      external: true
     }
   ]
 
   return (
-    <div className="w-64 bg-white shadow-lg h-screen fixed right-0 top-0 z-40">
+    <div className="w-64 bg-white dark:bg-gray-800 shadow-lg h-screen fixed right-0 top-0 z-40">
       <div className="p-6">
-        <h2 className="text-xl font-bold text-gray-800 mb-8">پنل مدیریت</h2>
+        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-8">پنل مدیریت</h2>
         
         <nav className="space-y-2">
           {menuItems.map((item) => (
@@ -59,14 +61,24 @@ export default function AdminSidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                 pathname === item.href
-                  ? 'bg-blue-100 text-blue-700 font-medium'
-                  : 'text-gray-600 hover:bg-gray-100'
+                  ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-medium'
+                  : item.external
+                  ? 'text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 border border-green-200 dark:border-green-700'
+                  : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
               <span className="text-lg">{item.icon}</span>
               <span>{item.title}</span>
+              {item.external && (
+                <span className="text-xs text-green-500 ml-auto">↗</span>
+              )}
             </Link>
           ))}
+          
+          {/* Theme Toggle */}
+          <div className="flex justify-center mt-4">
+            <ThemeToggle />
+          </div>
           
           {/* Logout Button */}
           <button
@@ -74,7 +86,7 @@ export default function AdminSidebar() {
               logout()
               router.push('/')
             }}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-red-600 hover:bg-red-50 mt-4"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 mt-4"
           >
             <span className="text-lg">🚪</span>
             <span>خروج</span>

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { api } from '@/lib/api';
+import AdminAccessorySelector from '@/components/AdminAccessorySelector';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function EditProductPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [selectedAccessories, setSelectedAccessories] = useState<string[]>([]);
   const [showNewAttribute, setShowNewAttribute] = useState(false);
   const [newAttribute, setNewAttribute] = useState({
     name: '',
@@ -83,6 +85,19 @@ export default function EditProductPage() {
         attributes: productData.attributes || {},
         images: productData.images || []
       });
+
+      // Load category attributes after setting form data
+      if (categoryId) {
+        await fetchCategoryAttributes(categoryId);
+      }
+
+      // Load existing accessories
+      if (productData.accessories && productData.accessories.length > 0) {
+        const accessoryIds = productData.accessories.map((acc: any) => 
+          typeof acc.accessory === 'object' ? acc.accessory._id : acc.accessory
+        );
+        setSelectedAccessories(accessoryIds);
+      }
       setLoading(false);
     } catch (error) {
       console.error('Error loading data:', error);
@@ -94,7 +109,9 @@ export default function EditProductPage() {
   const fetchCategoryAttributes = async (categoryId: string) => {
     try {
       const response = await api.getCategoryAttributes(categoryId);
-      setCategoryAttributes(response);
+      // Extract the actual attribute objects from CategoryAttribute
+      const attributes = response.map((ca: any) => ca.attribute);
+      setCategoryAttributes(attributes);
     } catch (error) {
       console.error('Error fetching category attributes:', error);
     }
@@ -275,6 +292,11 @@ export default function EditProductPage() {
         const attributesArray = Object.entries(filteredAttributes)
           .map(([attribute, value]) => ({ attribute, value }));
         submitData.append('attributes', JSON.stringify(attributesArray));
+      }
+
+      // Add accessories
+      if (selectedAccessories.length > 0) {
+        submitData.append('accessories', JSON.stringify(selectedAccessories));
       }
 
       await api.updateProduct(productId, submitData);
@@ -717,6 +739,12 @@ export default function EditProductPage() {
               </div>
             )}
           </div>
+
+          {/* Accessories Section */}
+          <AdminAccessorySelector
+            selectedAccessories={selectedAccessories}
+            onAccessoriesChange={setSelectedAccessories}
+          />
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">

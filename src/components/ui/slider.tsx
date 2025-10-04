@@ -29,8 +29,8 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
           <div
             className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500"
             style={{
-              left: `${getPercentage(value[0])}%`,
-              width: `${getPercentage(value[1]) - getPercentage(value[0])}%`,
+              left: `${getPercentage(Math.min(value[0], value[1]))}%`,
+              width: `${Math.abs(getPercentage(value[1]) - getPercentage(value[0]))}%`,
             }}
           />
         </div>

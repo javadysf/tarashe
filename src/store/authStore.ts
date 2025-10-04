@@ -12,8 +12,8 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  login: (email: string, password: string) => Promise<{ user: User; token: string }>;
+  register: (userData: any) => Promise<{ user: User; token: string }>;
   logout: () => void;
   checkAuth: () => Promise<void>;
 }
@@ -33,6 +33,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         localStorage.setItem('token', token);
       }
       set({ user, token, isLoading: false });
+      
+      return { user, token };
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -49,6 +51,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
         localStorage.setItem('token', token);
       }
       set({ user, token, isLoading: false });
+      
+      return { user, token };
     } catch (error) {
       set({ isLoading: false });
       throw error;
@@ -72,8 +76,11 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       const response = await api.getProfile();
       set({ user: response.user, token });
     } catch (error) {
-      localStorage.removeItem('token');
-      set({ user: null, token: null });
+      // Only clear auth if token is invalid, not on network errors
+      if (error instanceof Error && error.message.includes('401')) {
+        localStorage.removeItem('token');
+        set({ user: null, token: null });
+      }
     }
   },
 }));

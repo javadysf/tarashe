@@ -1,14 +1,17 @@
 'use client'
 
-import type { Metadata } from 'next'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
-const metadata: Metadata = {
-  title: 'تماس با ما',
-  description: 'با تیم تراشه در تماس باشید - پشتیبانی 24/7، مشاوره رایگان و پاسخگویی سریع',
-  openGraph: {
-    title: 'تماس با ما | تراشه',
-    description: 'با تیم تراشه در تماس باشید - پشتیبانی 24/7، مشاوره رایگان و پاسخگویی سریع'
+interface ContactContent {
+  heroTitle: string
+  heroSubtitle: string
+  contactInfo: {
+    phone: string
+    email: string
+    address: string
+    workingHours: string
+    mapAddress: string
+    mapEmbedCode: string
   }
 }
 
@@ -22,6 +25,26 @@ export default function Contact() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [content, setContent] = useState<ContactContent | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchContent()
+  }, [])
+
+  const fetchContent = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/content/contact')
+      if (response.ok) {
+        const data = await response.json()
+        setContent(data.content)
+      }
+    } catch (error) {
+      console.error('Error fetching contact content:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -42,6 +65,23 @@ export default function Contact() {
     setFormData({ name: '', email: '', phone: '', subject: '', message: '' })
   }
 
+  if (loading) {
+    return (
+      <div className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-200 rounded w-1/3 mx-auto mb-6"></div>
+            <div className="h-6 bg-gray-200 rounded w-2/3 mx-auto mb-16"></div>
+            <div className="grid lg:grid-cols-2 gap-12">
+              <div className="h-96 bg-gray-200 rounded"></div>
+              <div className="h-96 bg-gray-200 rounded"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   const contactInfo = [
     {
       icon: (
@@ -50,8 +90,8 @@ export default function Contact() {
         </svg>
       ),
       title: 'تلفن',
-      info: '021-1234-5678',
-      link: 'tel:+982112345678'
+      info: content?.contactInfo?.phone || '021-1234-5678',
+      link: `tel:+98${content?.contactInfo?.phone?.replace(/\D/g, '') || '2112345678'}`
     },
     {
       icon: (
@@ -60,8 +100,8 @@ export default function Contact() {
         </svg>
       ),
       title: 'ایمیل',
-      info: 'info@tarashe.com',
-      link: 'mailto:info@tarashe.com'
+      info: content?.contactInfo?.email || 'info@tarashe.com',
+      link: `mailto:${content?.contactInfo?.email || 'info@tarashe.com'}`
     },
     {
       icon: (
@@ -71,7 +111,7 @@ export default function Contact() {
         </svg>
       ),
       title: 'آدرس',
-      info: 'تهران، خیابان ولیعصر، پلاک 123',
+      info: content?.contactInfo?.address || 'تهران، خیابان ولیعصر، پلاک 123',
       link: '#'
     },
     {
@@ -81,7 +121,7 @@ export default function Contact() {
         </svg>
       ),
       title: 'ساعات کاری',
-      info: 'شنبه تا پنجشنبه: 9-18',
+      info: content?.contactInfo?.workingHours || 'شنبه تا پنجشنبه: 9-18',
       link: '#'
     }
   ]
@@ -91,10 +131,10 @@ export default function Contact() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-          تماس با ما
+          {content?.heroTitle || 'تماس با ما'}
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          ما همیشه آماده پاسخگویی به سوالات شما هستیم. با ما در تماس باشید.
+          {content?.heroSubtitle || 'ما همیشه آماده پاسخگویی به سوالات شما هستیم. با ما در تماس باشید.'}
         </p>
       </section>
 
@@ -229,9 +269,25 @@ export default function Contact() {
               ))}
             </div>
 
-            {/* Map Placeholder */}
-            <div className="mt-8 bg-gray-200 h-64 rounded-lg flex items-center justify-center">
-              <p className="text-gray-500">نقشه محل شرکت</p>
+            {/* Map Section */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">موقعیت ما</h3>
+              {content?.contactInfo?.mapEmbedCode ? (
+                <div 
+                  className="w-full h-64 rounded-lg overflow-hidden"
+                  dangerouslySetInnerHTML={{ __html: content.contactInfo.mapEmbedCode }}
+                />
+              ) : (
+                <div className="bg-gray-200 h-64 rounded-lg flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-4xl mb-2">🗺️</div>
+                    <p className="text-gray-500 mb-2">نقشه محل شرکت</p>
+                    <p className="text-sm text-gray-400">
+                      {content?.contactInfo?.mapAddress || 'آدرس: تهران، خیابان ولیعصر، پلاک 123'}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

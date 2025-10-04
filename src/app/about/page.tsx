@@ -1,24 +1,78 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
+'use client'
 
-export const metadata: Metadata = {
-  title: 'درباره ما',
-  description: 'آشنایی با تیم و ماموریت شرکت تراشه - پیشرو در ارائه بهترین محصولات و خدمات',
-  openGraph: {
-    title: 'درباره ما | تراشه',
-    description: 'آشنایی با تیم و ماموریت شرکت تراشه - پیشرو در ارائه بهترین محصولات و خدمات'
+import Link from 'next/link'
+import { useState, useEffect } from 'react'
+
+interface AboutContent {
+  heroTitle: string
+  heroSubtitle: string
+  aboutInfo: {
+    title: string
+    subtitle: string
+    mission: string
+    vision: string
+    stats: Array<{ number: string; label: string }>
+    team: Array<{ name: string; role: string; description: string }>
   }
 }
 
 export default function About() {
-  const stats = [
+  const [content, setContent] = useState<AboutContent | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchContent()
+  }, [])
+
+  const fetchContent = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/content/about')
+      if (response.ok) {
+        const data = await response.json()
+        setContent(data.content)
+      }
+    } catch (error) {
+      console.error('Error fetching about content:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="animate-pulse">
+            <div className="h-12 bg-gray-200 rounded w-1/3 mx-auto mb-6"></div>
+            <div className="h-6 bg-gray-200 rounded w-2/3 mx-auto mb-16"></div>
+            <div className="grid md:grid-cols-4 gap-8 mb-16">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+            <div className="grid md:grid-cols-2 gap-12 mb-16">
+              <div className="h-48 bg-gray-200 rounded"></div>
+              <div className="h-48 bg-gray-200 rounded"></div>
+            </div>
+            <div className="grid md:grid-cols-3 gap-8">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="h-64 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const stats = content?.aboutInfo?.stats || [
     { number: '10+', label: 'سال تجربه' },
     { number: '500+', label: 'پروژه موفق' },
     { number: '100+', label: 'مشتری راضی' },
     { number: '24/7', label: 'پشتیبانی' }
   ]
 
-  const team = [
+  const team = content?.aboutInfo?.team || [
     { name: 'علی احمدی', role: 'مدیر عامل', description: 'بیش از 15 سال تجربه در صنعت فناوری' },
     { name: 'سارا محمدی', role: 'مدیر فنی', description: 'متخصص توسعه نرم‌افزار و معماری سیستم' },
     { name: 'حسن رضایی', role: 'مدیر فروش', description: 'خبره در روابط مشتریان و توسعه بازار' }
@@ -29,11 +83,10 @@ export default function About() {
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-          درباره تراشه
+          {content?.heroTitle || 'درباره تراشه'}
         </h1>
         <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-          ما در تراشه با بیش از یک دهه تجربه، به ارائه بهترین محصولات و خدمات فناوری 
-          برای کسب‌وکارها و سازمان‌ها متعهد هستیم.
+          {content?.heroSubtitle || 'ما در تراشه با بیش از یک دهه تجربه، به ارائه بهترین محصولات و خدمات فناوری برای کسب‌وکارها و سازمان‌ها متعهد هستیم.'}
         </p>
       </section>
 
@@ -61,15 +114,13 @@ export default function About() {
           <div className="bg-white p-8 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">ماموریت ما</h2>
             <p className="text-gray-600 leading-relaxed">
-              ارائه راه‌حل‌های نوآورانه و با کیفیت که به کسب‌وکارها کمک می‌کند تا در عصر دیجیتال 
-              پیشرو باشند و اهداف خود را محقق کنند.
+              {content?.aboutInfo?.mission || 'ارائه راه‌حل‌های نوآورانه و با کیفیت که به کسب‌وکارها کمک می‌کند تا در عصر دیجیتال پیشرو باشند و اهداف خود را محقق کنند.'}
             </p>
           </div>
           <div className="bg-white p-8 rounded-lg shadow-lg">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">چشم‌انداز ما</h2>
             <p className="text-gray-600 leading-relaxed">
-              تبدیل شدن به پیشروترین شرکت فناوری در منطقه و ایجاد تحول مثبت در زندگی 
-              میلیون‌ها نفر از طریق فناوری‌های پیشرفته.
+              {content?.aboutInfo?.vision || 'تبدیل شدن به پیشروترین شرکت فناوری در منطقه و ایجاد تحول مثبت در زندگی میلیون‌ها نفر از طریق فناوری‌های پیشرفته.'}
             </p>
           </div>
         </div>

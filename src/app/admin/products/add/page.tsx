@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { toast } from 'react-toastify'
+import AccessorySelector from '@/components/AdminAccessorySelector'
 
 export default function AddProductPage() {
   const { user, token, checkAuth } = useAuthStore()
@@ -28,6 +29,7 @@ export default function AddProductPage() {
   const [brands, setBrands] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [uploadingImages, setUploadingImages] = useState(false)
+  const [selectedAccessories, setSelectedAccessories] = useState<string[]>([])
 
   // Category creation states
   const [showNewCategory, setShowNewCategory] = useState(false)
@@ -197,12 +199,22 @@ export default function AddProductPage() {
         Object.entries(formData.attributes).filter(([_, value]) => value && value.trim())
       )
       
+      // Determine the final category (use the deepest selected level)
+      const finalCategory = formData.category || secondLevelCategoryId || parentCategoryId
+      
+      if (!finalCategory) {
+        toast.error('❌ لطفاً دسته‌بندی محصول را انتخاب کنید')
+        return
+      }
+
       const productData = {
         ...formData,
+        category: finalCategory,
         price: Number(formData.price),
         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
         stock: Number(formData.stock),
-        attributes: Object.keys(filteredAttributes).length > 0 ? filteredAttributes : undefined
+        attributes: Object.keys(filteredAttributes).length > 0 ? filteredAttributes : undefined,
+        accessories: selectedAccessories.length > 0 ? selectedAccessories : undefined
       }
 
       await api.createProduct(productData)
@@ -1353,6 +1365,12 @@ export default function AddProductPage() {
               )}
             </div>
           </div>
+
+          {/* Accessories Section */}
+          <AccessorySelector
+            selectedAccessories={selectedAccessories}
+            onAccessoriesChange={setSelectedAccessories}
+          />
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">

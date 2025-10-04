@@ -76,10 +76,11 @@ export default function CategoriesSection() {
               <div className="h-4 bg-gray-300 rounded w-64 mx-auto"></div>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, index) => (
-              <div key={index} className="animate-pulse">
-                <div className="h-48 bg-gray-300 rounded-3xl"></div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-8">
+            {[...Array(8)].map((_, index) => (
+              <div key={index} className="animate-pulse flex flex-col items-center">
+                <div className="w-32 h-32 bg-gray-300 rounded-full"></div>
+                <div className="mt-4 h-4 bg-gray-300 rounded w-16"></div>
               </div>
             ))}
           </div>
@@ -96,56 +97,46 @@ export default function CategoriesSection() {
           <p className="text-xl text-white/90 drop-shadow-md">انتخاب کنید و خرید کنید</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-8">
           {categories.map((category) => {
             const categoryInfo = getCategoryInfo(category)
             return (
               <Link
                 key={category._id}
                 href={`/products?category=${encodeURIComponent(category._id)}`}
-                className="group relative overflow-hidden rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105"
+                className="group flex flex-col items-center transition-all duration-300 transform hover:scale-110"
               >
-                <div className="h-48 relative bg-gray-100 glass">
+                <div className="relative w-32 h-32 rounded-full overflow-hidden shadow-xl group-hover:shadow-2xl transition-all duration-300">
                   {/* Category Image */}
                   <Image
                     src={category.image?.url || '/pics/battery.jpg'}
                     alt={category.image?.alt || category.name}
                     fill
-                    className="object-cover"
+                    className="object-cover group-hover:scale-110 transition-transform duration-300"
                     onError={(e) => {
                       e.currentTarget.src = '/pics/battery.jpg'
                     }}
                   />
                   
-                  {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent"></div>
+                  {/* Circular Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-black/20 via-transparent to-black/30 rounded-full group-hover:from-black/30 group-hover:to-black/40 transition-all duration-300"></div>
 
-                  {/* Content */}
-                  <div className="relative z-10 h-full flex flex-col justify-end p-6">
-                    <h3 className="text-xl font-bold text-white mb-2 group-hover:scale-105 transition-transform duration-300">
-                      {category.name}
-                    </h3>
-                    
-                    {category.description && (
-                      <p className="text-white/80 text-sm mb-3 line-clamp-2">
-                        {category.description}
-                      </p>
-                    )}
-                    
-                    {/* Arrow Icon */}
-                    <div className="flex items-center text-white/90 group-hover:text-white transition-colors">
-                      <span className="text-sm font-medium ml-2">مشاهده محصولات</span>
-                      <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
+                  {/* Icon Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-2xl opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all duration-300">
+                      {categoryInfo.icon}
                     </div>
                   </div>
-
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300"></div>
                   
                   {/* Shine Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 rounded-full"></div>
+                </div>
+                
+                {/* Category Name */}
+                <div className="mt-4 text-center">
+                  <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors duration-300 drop-shadow-lg">
+                    {category.name}
+                  </h3>
                 </div>
               </Link>
             )

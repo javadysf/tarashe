@@ -51,43 +51,69 @@ export default function CartSidebar() {
             ) : (
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-16 h-16 object-cover rounded-lg"
-                    />
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 line-clamp-2 text-sm mb-2">
-                        {item.name}
-                      </h3>
-                      <p className="text-primary font-bold text-sm">
-                        {formatPrice(item.price)} تومان
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-center gap-2">
-                      <div className="flex items-center gap-2">
+                  <div key={item.id} className="space-y-3">
+                    {/* Main Product */}
+                    <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 line-clamp-2 text-sm mb-2">
+                          {item.name}
+                        </h3>
+                        <p className="text-primary font-bold text-sm">
+                          {formatPrice(item.price)} تومان
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-center gap-2">
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            <MinusIcon className="h-4 w-4" />
+                          </button>
+                          <span className="w-8 text-center font-medium">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            className="p-1 hover:bg-gray-200 rounded"
+                          >
+                            <PlusIcon className="h-4 w-4" />
+                          </button>
+                        </div>
                         <button
-                          onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                          className="p-1 hover:bg-gray-200 rounded"
+                          onClick={() => removeItem(item.id)}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded"
                         >
-                          <MinusIcon className="h-4 w-4" />
-                        </button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
-                        <button
-                          onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                          className="p-1 hover:bg-gray-200 rounded"
-                        >
-                          <PlusIcon className="h-4 w-4" />
+                          <TrashIcon className="h-4 w-4" />
                         </button>
                       </div>
-                      <button
-                        onClick={() => removeItem(item.id)}
-                        className="p-1 text-red-500 hover:bg-red-50 rounded"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
                     </div>
+
+                    {/* Accessories */}
+                    {item.accessories && item.accessories.length > 0 && (
+                      <div className="mr-4 space-y-2">
+                        <div className="text-xs text-gray-500 font-medium">متعلقات:</div>
+                        {item.accessories.map((accessory, index) => (
+                          <div key={index} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-gray-900">
+                                {accessory.name}
+                              </div>
+                              <div className="text-xs text-gray-600">
+                                تعداد: {accessory.quantity}
+                              </div>
+                            </div>
+                            <div className="text-sm font-bold text-blue-600">
+                              {formatPrice(accessory.price * accessory.quantity)} تومان
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

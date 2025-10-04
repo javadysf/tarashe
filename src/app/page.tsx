@@ -10,7 +10,7 @@ import CategorySidebar from '@/components/CategorySidebar'
 
 export default function Home() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-gray-900">
 
       {/* Product Slider */}
       <motion.div

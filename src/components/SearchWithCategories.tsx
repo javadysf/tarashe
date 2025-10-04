@@ -23,12 +23,35 @@ export default function SearchWithCategories() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [activeParentId, setActiveParentId] = useState<string | null>(null)
+  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
     if (isOpen && categories.length === 0) {
       fetchCategories()
     }
   }, [isOpen])
+
+  const handleMouseEnter = () => {
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout)
+      setHoverTimeout(null)
+    }
+    setIsOpen(true)
+  }
+
+  const handleLinkClick = () => {
+    // Don't close immediately when clicking links, let the navigation handle it
+    setTimeout(() => {
+      setIsOpen(false)
+    }, 100)
+  }
+
+  const handleMouseLeave = () => {
+    const timeout = setTimeout(() => {
+      setIsOpen(false)
+    }, 800) // Increased to 800ms for better UX
+    setHoverTimeout(timeout)
+  }
 
   const fetchCategories = async () => {
     try {
@@ -63,12 +86,22 @@ export default function SearchWithCategories() {
     if (!activeParentId && parents.length) setActiveParentId(parents[0]._id)
   }, [parents, activeParentId])
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeout) {
+        clearTimeout(hoverTimeout)
+      }
+    }
+  }, [hoverTimeout])
+
   return (
     <div className="flex items-center gap-4 w-full max-w-6xl">
       {/* Categories Menu - Right Side */}
       <div className="relative">
         <button
-          onClick={() => setIsOpen(!isOpen)}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
           className="flex items-center bg-yellow-200 gap-2 px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-full hover:border-blue-500 transition-all duration-300 font-medium text-gray-700 hover:text-blue-600 min-w-max"
         >
           <Grid3X3 className="w-5 h-5" />
@@ -83,7 +116,9 @@ export default function SearchWithCategories() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.2 }}
-              className="absolute top-full right-0 mt-2 w-screen bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 p-0 z-[9999]"
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              className="absolute top-full right-0 mt-2 w-screen bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 p-0 z-[9999] pb-8"
             >
               {loading ? (
                 <div className="flex items-center justify-center py-8">
@@ -117,16 +152,16 @@ export default function SearchWithCategories() {
                   </div>
 
                   {/* Children */}
-                  <div className="col-span-12 md:col-span-8 p-6 max-h-[70vh] overflow-auto">
+                  <div className="col-span-12 md:col-span-8 p-6 pb-12 max-h-[70vh] overflow-auto">
                     {activeParentId ? (
-                      <div className="space-y-4">
+                      <div className="space-y-4 pb-8">
                         {(childrenByParent[activeParentId] || []).map((sub: any) => (
                           <div key={sub._id} className="rounded-xl border border-gray-200">
                             <div className="flex items-center justify-between p-3 bg-gray-50 rounded-t-xl">
                               <Link
                                 href={`/products?category=${encodeURIComponent(sub._id)}`}
                                 className="font-semibold text-gray-900 hover:text-blue-700 truncate"
-                                onClick={() => setIsOpen(false)}
+                                onClick={handleLinkClick}
                               >
                                 {sub.name}
                               </Link>
@@ -140,7 +175,7 @@ export default function SearchWithCategories() {
                                       <Link
                                         href={`/products?category=${encodeURIComponent(g._id)}`}
                                         className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50 text-gray-700 hover:text-blue-700"
-                                        onClick={() => setIsOpen(false)}
+                                        onClick={handleLinkClick}
                                       >
                                         <span className="truncate">{g.name}</span>
                                         <span className="text-gray-300">›</span>
@@ -160,6 +195,8 @@ export default function SearchWithCategories() {
                   </div>
                 </div>
               )}
+              {/* Invisible hover area at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 h-12 bg-transparent"></div>
             </motion.div>
           )}
         </AnimatePresence>

@@ -10,6 +10,24 @@ import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { toast } from 'react-toastify'
+import AccessorySelector from './AccessorySelector'
+
+interface Accessory {
+  _id: string
+  accessory: {
+    _id: string
+    name: string
+    price: number
+    images: Array<{
+      url: string
+      alt: string
+    }>
+    description?: string
+  }
+  isSuggested: boolean
+  bundleDiscount: number
+  displayOrder: number
+}
 
 interface Product {
   _id: string
@@ -28,6 +46,7 @@ interface Product {
   brand: string | { _id: string; name: string; image?: string; isActive?: boolean; createdAt?: string; updatedAt?: string; __v?: number }
   stock: number
   attributes?: { [key: string]: string }
+  accessories?: Accessory[]
 }
 
 interface ProductCardProps {
@@ -38,6 +57,7 @@ interface ProductCardProps {
 export default function ProductCard({ product, index }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
+  const [showAccessorySelector, setShowAccessorySelector] = useState(false)
   const { addItem } = useCartStore()
 
   const formatPrice = (price: number) => {
@@ -65,6 +85,13 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       return
     }
 
+    // اگر متعلقات دارد، نمایش انتخابگر متعلقات
+    if (product.accessories && product.accessories.length > 0) {
+      setShowAccessorySelector(true)
+      return
+    }
+
+    // اگر متعلقات ندارد، مستقیماً اضافه کن
     addItem({
       id: product._id,
       name: product.name,
@@ -81,6 +108,37 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       pauseOnHover: true,
       draggable: true,
     })
+  }
+
+  const handleAddWithAccessories = (selectedAccessories: any[]) => {
+    const cartAccessories = selectedAccessories.map(acc => ({
+      accessoryId: acc.accessoryId,
+      name: product.accessories?.find(a => a.accessory._id === acc.accessoryId)?.accessory.name || '',
+      price: acc.discountedPrice,
+      quantity: acc.quantity,
+      originalPrice: acc.originalPrice,
+      discountedPrice: acc.discountedPrice
+    }))
+
+    addItem({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.images[0]?.url || '/pics/battery.jpg',
+      quantity: 1,
+      accessories: cartAccessories
+    })
+
+    toast.success(`${product.name} و متعلقات انتخاب شده به سبد خرید اضافه شد`, {
+      position: "top-right",
+      autoClose: 2000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    })
+
+    setShowAccessorySelector(false)
   }
 
   return (
@@ -230,6 +288,17 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Accessory Selector Modal */}
+      {product.accessories && product.accessories.length > 0 && (
+        <AccessorySelector
+          accessories={product.accessories}
+          isOpen={showAccessorySelector}
+          onClose={() => setShowAccessorySelector(false)}
+          onAddToCart={handleAddWithAccessories}
+          productName={product.name}
+        />
+      )}
     </motion.div>
   )
 }

@@ -1,5 +1,18 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+// Helper function to check if error is a normal validation error
+const isNormalValidationError = (errorMessage: string): boolean => {
+  const normalErrors = [
+    'ایمیل یا رمز عبور اشتباه است',
+    'حساب کاربری غیرفعال است',
+    'اطلاعات وارد شده صحیح نیست',
+    'کاربری با این ایمیل قبلاً ثبت شده است'
+  ];
+  
+  return normalErrors.some(normalError => errorMessage.includes(normalError));
+};
+
+
 class ApiClient {
   private getAuthHeader() {
     if (typeof window === 'undefined') return {};
@@ -13,11 +26,10 @@ class ApiClient {
         const { useAuthStore } = require('@/store/authStore');
         token = useAuthStore.getState().token;
       } catch (error) {
-        console.log('Could not get token from store');
+        // Silently handle error
       }
     }
     
-    console.log('Auth token:', token ? 'Present' : 'Missing');
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
@@ -42,20 +54,71 @@ class ApiClient {
       ...options,
     };
 
-    const response = await fetch(url, config);
-    const data = await response.json();
+    try {
+      const response = await fetch(url, config);
+      
+      // Check if response has content
+      const contentType = response.headers.get('content-type');
+      let data;
+      
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          data = await response.json();
+        } catch (jsonError) {
+          console.error('Failed to parse JSON response:', jsonError);
+          data = { message: 'خطا در پردازش پاسخ سرور' };
+        }
+      } else {
+        // If not JSON, try to get text
+        try {
+          const text = await response.text();
+          data = { message: text || 'خطا در درخواست' };
+        } catch (textError) {
+          console.error('Failed to parse text response:', textError);
+          data = { message: 'خطا در درخواست' };
+        }
+      }
 
-    if (!response.ok) {
-      console.error('Request failed:', {
-        url,
-        status: response.status,
-        statusText: response.statusText,
-        data: data
-      });
-      throw new Error(data.message || 'خطا در درخواست');
+      if (!response.ok) {
+        // Only log unexpected errors, not normal validation errors
+        const isNormalError = data.message && isNormalValidationError(data.message);
+        
+        if (!isNormalError) {
+          console.error('Request failed:', {
+            url,
+            status: response.status,
+            statusText: response.statusText,
+            data: data
+          });
+        }
+        
+        // Handle specific error cases
+        if (response.status === 401) {
+          throw new Error('ایمیل یا رمز عبور اشتباه است');
+        } else if (response.status === 403) {
+          throw new Error('دسترسی غیرمجاز');
+        } else if (response.status === 404) {
+          throw new Error('منبع یافت نشد');
+        } else if (response.status === 409) {
+          throw new Error('کاربری با این ایمیل قبلاً ثبت شده است');
+        } else if (response.status === 500) {
+          throw new Error('خطا در سرور. لطفاً دوباره تلاش کنید');
+        } else {
+          throw new Error(data.message || `خطا در درخواست (${response.status})`);
+        }
+      }
+
+      return data;
+    } catch (error) {
+      // Handle network errors
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        console.error('Network error:', error);
+        throw new Error('خطا در اتصال به اینترنت. لطفاً اتصال خود را بررسی کنید');
+      }
+      
+      // Re-throw other errors
+      throw error;
     }
-
-    return data;
   }
 
   // Auth
@@ -374,6 +437,25 @@ class ApiClient {
     return this.request('/attributes/remove', {
       method: 'POST',
       body: JSON.stringify({ categoryId, attributeId }),
+    });
+  }
+
+
+  async addAccessoryToProduct(productId: string, accessoryData: {
+    accessoryId: string;
+    isSuggested?: boolean;
+    bundleDiscount?: number;
+    displayOrder?: number;
+  }) {
+    return this.request(`/products/${productId}/accessories`, {
+      method: 'POST',
+      body: JSON.stringify(accessoryData),
+    });
+  }
+
+  async removeAccessoryFromProduct(productId: string, accessoryId: string) {
+    return this.request(`/products/${productId}/accessories/${accessoryId}`, {
+      method: 'DELETE',
     });
   }
 }

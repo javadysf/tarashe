@@ -175,29 +175,26 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
       )}
 
       {/* Categories Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
         {displayCategories.map((category) => (
           <button
             key={category._id}
             onClick={() => onCategorySelect(category._id)}
-            className="group flex flex-col items-center p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all duration-200"
+            className="group flex flex-col items-center p-2 transition-all duration-200"
           >
-            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 mb-3">
+            <div className="relative w-28 h-28 rounded-full overflow-hidden bg-gray-100 mb-3 shadow-lg group-hover:shadow-xl transition-all duration-200">
               <Image
                 src={category.image?.url || '/pics/battery.jpg'}
                 alt={category.image?.alt || category.name}
                 fill
-                className="object-cover group-hover:scale-105 transition-transform duration-200"
+                className="object-cover group-hover:scale-110 transition-transform duration-200"
               />
+              {/* Circular overlay for better text visibility */}
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-200 rounded-full" />
             </div>
-            <span className="text-sm font-medium text-gray-900 text-center group-hover:text-blue-600 transition-colors">
+            <span className="text-md font-black text-gray-900 text-center group-hover:text-blue-600 transition-colors leading-tight">
               {category.name}
             </span>
-            {category.description && (
-              <span className="text-xs text-gray-500 text-center mt-1 line-clamp-2">
-                {category.description}
-              </span>
-            )}
           </button>
         ))}
       </div>

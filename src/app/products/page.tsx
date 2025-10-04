@@ -71,7 +71,7 @@ export default function ProductsPage() {
     const brandFromUrl = searchParams.get('brand')
     
     setCurrentCategoryId(categoryFromUrl || undefined)
-    fetchProducts(categoryFromUrl || undefined, brandFromUrl || undefined)
+    fetchProducts(categoryFromUrl || undefined)
     fetchCategories()
     
     // Update filters based on URL parameters
@@ -98,11 +98,12 @@ export default function ProductsPage() {
   }, [filters.category])
 
   useEffect(() => {
-    // Refetch products when brand filter changes
-    if (filters.brand.length > 0) {
-      fetchProducts(filters.category === 'all' ? undefined : filters.category, filters.brand[0])
+    // Refetch products when brand filter changes - but don't filter on server side
+    // Let client-side filtering handle the brand filtering
+    if (filters.category !== 'all') {
+      fetchProducts(filters.category)
     } else {
-      fetchProducts(filters.category === 'all' ? undefined : filters.category)
+      fetchProducts()
     }
   }, [filters.brand])
 
@@ -129,7 +130,8 @@ export default function ProductsPage() {
       setError(null)
       const params: any = { limit: 100 }
       if (categoryId && categoryId !== 'all') params.category = categoryId
-      if (brandId) params.brand = brandId
+      // Remove brand filtering from server-side to keep all brands visible
+      // Brand filtering will be handled client-side
       const response = await api.getProducts(params)
       setProducts(response.products || [])
       setLoading(false)

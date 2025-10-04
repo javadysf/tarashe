@@ -91,7 +91,7 @@ export default function FilterSidebar({
                 <SelectValue placeholder="انتخاب دسته" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">همه دستهها</SelectItem>
+                <SelectItem value="all">همه دسته ها</SelectItem>
                 {categories.map(category => (
                   <SelectItem key={category._id} value={category._id}>
                     {category.name}
@@ -112,7 +112,7 @@ export default function FilterSidebar({
                 const brandName = typeof brand === 'string' ? brand : brand.name
                 const brandId = typeof brand === 'string' ? brand : brand._id
                 return (
-                  <label key={brandId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <label key={brandId} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors w-full">
                     <input
                       type="checkbox"
                       checked={filters.brand.includes(brandId)}
@@ -123,9 +123,9 @@ export default function FilterSidebar({
                           setFilters({...filters, brand: filters.brand.filter(b => b !== brandId)})
                         }
                       }}
-                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500 cursor-pointer"
                     />
-                    <span className="text-sm text-gray-700">{brandName}</span>
+                    <span className="text-sm text-gray-700 cursor-pointer flex-1">{brandName}</span>
                   </label>
                 )
               })}
@@ -140,7 +140,8 @@ export default function FilterSidebar({
             </label>
             <div className="px-2">
               <Slider
-                value={[filters.minPrice, filters.maxPrice]}
+              dir='ltr'
+                value={[Math.min(filters.minPrice, filters.maxPrice), Math.max(filters.minPrice, filters.maxPrice)]}
                 onValueChange={([min, max]) => setFilters({...filters, minPrice: min, maxPrice: max})}
                 max={10000000}
                 min={0}
@@ -148,8 +149,8 @@ export default function FilterSidebar({
                 className="w-full"
               />
               <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>{new Intl.NumberFormat('fa-IR').format(filters.minPrice)} تومان</span>
-                <span>{new Intl.NumberFormat('fa-IR').format(filters.maxPrice)} تومان</span>
+                <span>{new Intl.NumberFormat('fa-IR').format(Math.max(filters.minPrice, filters.maxPrice))} تومان</span>
+                <span>{new Intl.NumberFormat('fa-IR').format(Math.min(filters.minPrice, filters.maxPrice))} تومان</span>
               </div>
             </div>
           </div>
