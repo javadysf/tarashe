@@ -22,6 +22,7 @@ export interface CartItem {
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
+  isValidating: boolean
   addItem: (product: Omit<CartItem, 'quantity'> & { quantity: number, accessories?: CartAccessory[] }) => void
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
@@ -29,6 +30,7 @@ interface CartStore {
   toggleCart: () => void
   getTotalItems: () => number
   getTotalPrice: () => number
+  validateCart: () => Promise<{ isValid: boolean; validatedItems?: CartItem[]; totalPrice?: number; error?: string }>
 }
 
 export const useCartStore = create<CartStore>()(
@@ -36,6 +38,7 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
       isOpen: false,
+      isValidating: false,
       
       addItem: (product) => {
         const items = get().items
@@ -94,6 +97,36 @@ export const useCartStore = create<CartStore>()(
             accTotal + (accessory.discountedPrice * accessory.quantity), 0) || 0
           return total + itemTotal + accessoriesTotal
         }, 0)
+      },
+      
+      validateCart: async () => {
+        const items = get().items
+        
+        if (items.length === 0) {
+          return { isValid: true, validatedItems: [], totalPrice: 0 }
+        }
+        
+        set({ isValidating: true })
+        
+        try {
+          const { api } = await import('@/lib/api')
+          const result = await api.validateCart(items)
+          
+          set({ isValidating: false })
+          
+          return {
+            isValid: result.isValid,
+            validatedItems: result.items,
+            totalPrice: result.totalPrice
+          }
+        } catch (error: any) {
+          set({ isValidating: false })
+          
+          return {
+            isValid: false,
+            error: error.message || 'خطا در اعتبارسنجی سبد خرید'
+          }
+        }
       }
     }),
     {

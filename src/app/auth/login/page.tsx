@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import ErrorMessage from '@/components/ErrorMessage'
@@ -15,8 +15,17 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [redirectPath, setRedirectPath] = useState<string | null>(null)
   const { login, isLoading } = useAuthStore()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const redirect = searchParams.get('redirect')
+    if (redirect) {
+      setRedirectPath(redirect)
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,8 +57,10 @@ export default function LoginPage() {
       
       setSuccess('با موفقیت وارد شدید! در حال انتقال...')
       
-      // Redirect immediately after successful login
-      if (result.user.role === 'admin') {
+      // Redirect to intended page or default based on role
+      if (redirectPath) {
+        window.location.href = redirectPath
+      } else if (result.user.role === 'admin') {
         window.location.href = '/admin'
       } else {
         window.location.href = '/'

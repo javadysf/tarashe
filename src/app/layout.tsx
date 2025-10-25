@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import ConditionalLayout from '@/components/ConditionalLayout'
-import { ThemeProvider } from '@/contexts/ThemeContext'
+import ClientLayout from '@/components/ClientLayout'
 
 export const metadata: Metadata = {
   title: {
@@ -50,9 +49,7 @@ export default function RootLayout({
   return (
     <html lang="fa" dir="rtl" className="scroll-smooth">
       <body className="antialiased flex flex-col min-h-screen">
-        <ThemeProvider>
-          <ConditionalLayout>{children}</ConditionalLayout>
-        </ThemeProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   )

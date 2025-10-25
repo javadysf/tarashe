@@ -111,9 +111,9 @@ export default function ProductSlider() {
 
   if (loading) {
     return (
-      <section className="min-h-screen flex items-center bg-gradient-6">
+      <section className="h-64 flex items-center bg-gradient-6">
         <div className="w-full">
-          <div className="animate-pulse bg-gray-300 min-h-screen"></div>
+          <div className="animate-pulse bg-gray-300 h-64"></div>
         </div>
       </section>
     )
@@ -124,8 +124,8 @@ export default function ProductSlider() {
   }
 
   return (
-    <section className="min-h-screen flex items-center bg-gradient-6 relative">
-      <div className="w-full">
+    <section className="h-96 flex items-center bg-gradient-6 relative">
+      <div className="w-full mx-auto">
         <div 
           className="relative overflow-hidden shadow-2xl"
           onMouseEnter={() => setIsAutoPlaying(false)}
@@ -137,7 +137,7 @@ export default function ProductSlider() {
           >
             {products.map((product) => (
               <div key={product._id} className="w-full flex-shrink-0">
-                <div className="relative min-h-screen bg-gradient-1">
+                <div className="relative h-[480px] bg-gradient-1">
                   <div className="absolute inset-0 bg-black/20"></div>
                   <Image
                     src={product.images[0]?.url || '/pics/battery.jpg'}
@@ -147,19 +147,19 @@ export default function ProductSlider() {
                     priority={products.indexOf(product) === currentSlide}
                   />
                   
-                  <div className="relative z-10 min-h-screen flex items-center">
+                  <div className="relative z-10 h-64 flex items-center">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                      <div className="grid md:grid-cols-2 gap-12 items-center min-h-screen py-20">
+                      <div className="grid md:grid-cols-2 gap-6 items-center h-64 py-4">
                         <div className="text-white">
                           <div className="inline-flex items-center bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
                             <span className="text-sm font-medium">{brandToText(product.brand)}</span>
                           </div>
                           
-                          <h3 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+                          <h3 className="text-2xl md:text-4xl lg:text-4xl font-bold mb-6 leading-tight">
                             {product.name}
                           </h3>
                           
-                          <p className="text-xl md:text-2xl mb-8 opacity-90 max-w-2xl">
+                          <p className="text-lg md:text-xl mb-8 opacity-90 max-w-2xl">
                             مدل {product.model} - کیفیت اصل و گارانتی معتبر
                           </p>
 
@@ -190,7 +190,7 @@ export default function ProductSlider() {
                           </div>
 
                           <div className="flex items-center gap-6 mb-10">
-                            <div className="text-4xl md:text-5xl font-bold">
+                            <div className="text-2xl md:text-3xl font-bold">
                               {formatPrice(product.price)} تومان
                             </div>
                             {product.originalPrice && (
@@ -219,14 +219,14 @@ export default function ProductSlider() {
 
                         <div className="hidden md:block">
                           <div className="relative">
-                            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-3xl transform rotate-6 scale-105"></div>
-                            <div className="relative bg-white/20 backdrop-blur-sm rounded-3xl p-8">
+                            <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-2xl transform rotate-3 scale-105"></div>
+                            <div className="relative bg-white/20 backdrop-blur-sm rounded-2xl p-4">
                               <Image
                                 src={product.images[0]?.url || '/pics/battery.jpg'}
                                 alt={product.images[0]?.alt || product.name}
-                                width={500}
-                                height={400}
-                                className="w-full h-80 object-cover rounded-2xl"
+                                width={300}
+                                height={200}
+                                className="w-full h-48 object-cover rounded-xl"
                               />
                             </div>
                           </div>

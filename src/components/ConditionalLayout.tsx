@@ -7,6 +7,7 @@ import SearchWithCategories from '@/components/SearchWithCategories'
 import CartSidebar from '@/components/CartSidebar'
 import SupportWidget from '@/components/SupportWidget'
 import ClientOnly from '@/components/ClientOnly'
+import ErrorBoundary from '@/components/ErrorBoundary'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -15,11 +16,11 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
   const isAdminRoute = pathname?.startsWith('/admin')
 
   if (isAdminRoute) {
-    return <>{children}</>
+    return <ErrorBoundary>{children}</ErrorBoundary>
   }
 
   return (
-    <>
+    <ErrorBoundary>
       <Navbar />
       
       {/* Search Bar with Categories (toggleable) */}
@@ -46,6 +47,6 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
         theme="colored"
         toastClassName="!font-sans"
       />
-    </>
+    </ErrorBoundary>
   )
 }

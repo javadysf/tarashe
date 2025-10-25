@@ -59,7 +59,7 @@ export default function ContactContentManagement() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/content/admin/contact', {
+      const response = await fetch('http://localhost:3002/api/content/admin/contact', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -119,7 +119,7 @@ export default function ContactContentManagement() {
         }
       }
 
-      const response = await fetch('http://localhost:5000/api/content/admin/contact', {
+      const response = await fetch('http://localhost:3002/api/content/admin/contact', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

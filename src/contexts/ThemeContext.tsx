@@ -16,6 +16,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return
+    
     // Check for saved theme preference or default to 'light'
     const savedTheme = localStorage.getItem('theme') as Theme
     if (savedTheme) {
@@ -29,7 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   useEffect(() => {
-    if (mounted) {
+    if (mounted && typeof window !== 'undefined') {
       localStorage.setItem('theme', theme)
       document.documentElement.classList.remove('light', 'dark')
       document.documentElement.classList.add(theme)
@@ -40,10 +43,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light')
   }
 
-  if (!mounted) {
-    return null
-  }
-
+  // Always render children, but with default theme until mounted
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}

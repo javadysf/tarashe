@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import Link from 'next/link'
@@ -20,21 +20,41 @@ interface Product {
 export default function AdminProductsPage() {
   const { user } = useAuthStore()
   const [products, setProducts] = useState<Product[]>([])
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalProducts, setTotalProducts] = useState(0)
+  const limit = 10
+
+  // Compute visible page numbers (stable hook order)
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = []
+    const maxToShow = 5
+    const half = Math.floor(maxToShow / 2)
+    let start = Math.max(1, page - half)
+    let end = Math.min(totalPages, start + maxToShow - 1)
+    if (end - start + 1 < maxToShow) {
+      start = Math.max(1, end - maxToShow + 1)
+    }
+    for (let i = start; i <= end; i++) pages.push(i)
+    return pages
+  }, [page, totalPages])
 
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchProducts()
     }
-  }, [user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, page])
 
   const fetchProducts = async () => {
+    setLoading(true)
     try {
-      const response = await api.getProducts({ limit: 50 })
-      setProducts(response.products)
-      setFilteredProducts(response.products)
+      const response = await api.getProducts({ page: String(page), limit: String(limit), search: searchTerm || '' })
+      setProducts(response.products || [])
+      setTotalPages(response.pagination?.totalPages || 1)
+      setTotalProducts(response.pagination?.totalProducts || 0)
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
@@ -44,17 +64,18 @@ export default function AdminProductsPage() {
 
   const handleSearch = (term: string) => {
     setSearchTerm(term)
-    if (!term.trim()) {
-      setFilteredProducts(products)
-    } else {
-      const filtered = products.filter(product => 
-        product.name.toLowerCase().includes(term.toLowerCase()) ||
-        product.brand.toLowerCase().includes(term.toLowerCase()) ||
-        product.category.name.toLowerCase().includes(term.toLowerCase())
-      )
-      setFilteredProducts(filtered)
-    }
+    setPage(1)
   }
+
+  // Debounce search
+  useEffect(() => {
+    if (user?.role !== 'admin') return
+    const t = setTimeout(() => {
+      fetchProducts()
+    }, 400)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm])
 
   const deleteProduct = async (id: string) => {
     if (!confirm('آیا مطمئن هستید؟')) return
@@ -66,13 +87,8 @@ export default function AdminProductsPage() {
     
     try {
       await api.deleteProduct(id)
-      const updatedProducts = products.filter(p => p._id !== id)
-      setProducts(updatedProducts)
-      setFilteredProducts(updatedProducts.filter(product => 
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.name.toLowerCase().includes(searchTerm.toLowerCase())
-      ))
+      // Refetch current page after deletion
+      fetchProducts()
     } catch (error) {
       toast.error('❌ خطا در حذف محصول', {
         position: 'top-right',
@@ -111,11 +127,9 @@ export default function AdminProductsPage() {
               className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
             />
           </div>
-          {searchTerm && (
-            <div className="mt-2 text-sm text-gray-600">
-              {filteredProducts.length} محصول از {products.length} محصول یافت شد
-            </div>
-          )}
+          <div className="mt-2 text-sm text-gray-600">
+            {totalProducts > 0 ? `${totalProducts} محصول` : 'محصولی یافت نشد'}
+          </div>
         </div>
 
         {loading ? (
@@ -136,8 +150,8 @@ export default function AdminProductsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map((product) => (
+                {products.length > 0 ? (
+                  products.map((product) => (
                     <tr key={product._id}>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {product.name}
@@ -202,6 +216,37 @@ export default function AdminProductsPage() {
                 )}
               </tbody>
             </table>
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-6 py-4 bg-white border-t">
+              <div className="text-sm text-gray-600">
+                صفحه {page} از {totalPages}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  className={`px-3 py-1 rounded-lg border text-sm ${page <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                >
+                  قبلی
+                </button>
+                {pageNumbers.map((p) => (
+                  <button
+                    key={p}
+                    onClick={() => setPage(p)}
+                    className={`px-3 py-1 rounded-lg text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  >
+                    {p}
+                  </button>
+                ))}
+                <button
+                  disabled={page >= totalPages}
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  className={`px-3 py-1 rounded-lg border text-sm ${page >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                >
+                  بعدی
+                </button>
+              </div>
+            </div>
           </div>
         )}
         </div>

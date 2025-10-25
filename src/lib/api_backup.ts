@@ -1,9 +1,4 @@
-// Validate API URL configuration
-if (!process.env.NEXT_PUBLIC_API_URL) {
-  console.warn('NEXT_PUBLIC_API_URL not configured, using default');
-}
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Helper function to check if error is a normal validation error
 const isNormalValidationError = (errorMessage: string): boolean => {
@@ -11,9 +6,7 @@ const isNormalValidationError = (errorMessage: string): boolean => {
     'ایمیل یا رمز عبور اشتباه است',
     'حساب کاربری غیرفعال است',
     'اطلاعات وارد شده صحیح نیست',
-    'کاربری با این ایمیل قبلاً ثبت شده است',
-    'دسترسی غیرمجاز - توکن نامعتبر',
-    'دسترسی غیرمجاز'
+    'کاربری با این ایمیل قبلاً ثبت شده است'
   ];
   
   return normalErrors.some(normalError => errorMessage.includes(normalError));
@@ -42,9 +35,6 @@ class ApiClient {
 
   private async request(endpoint: string, options: RequestInit = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
-    // Check if this is an auth check request
-    const isAuthCheck = endpoint.includes('/auth/me') || endpoint.includes('/auth/profile');
     
     // Default headers
     const defaultHeaders: Record<string, string> = {
@@ -90,11 +80,10 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        // Only log unexpected errors, not normal validation errors or auth check failures
+        // Only log unexpected errors, not normal validation errors
         const isNormalError = data.message && isNormalValidationError(data.message);
         
-        // Don't log if it's a normal error OR if it's an auth check with 401/403
-        if (!isNormalError && !(isAuthCheck && (response.status === 401 || response.status === 403))) {
+        if (!isNormalError) {
           console.error('Request failed:', {
             url,
             status: response.status,
@@ -102,7 +91,6 @@ class ApiClient {
             data: data
           });
         }
-        // For auth check failures, we silently handle them without any logging
         
         // Handle specific error cases
         if (response.status === 401) {
@@ -124,11 +112,7 @@ class ApiClient {
     } catch (error) {
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        // Don't log network errors during auth checks to avoid console spam
-        const isAuthCheck = endpoint.includes('/auth/me') || endpoint.includes('/auth/profile');
-        if (!isAuthCheck) {
-          console.error('Network error:', error);
-        }
+        console.error('Network error:', error);
         throw new Error('خطا در اتصال به اینترنت. لطفاً اتصال خود را بررسی کنید');
       }
       
@@ -142,20 +126,6 @@ class ApiClient {
     return this.request('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
-    });
-  }
-
-  async refreshToken(refreshToken: string) {
-    return this.request('/auth/refresh', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
-    });
-  }
-
-  async logout(refreshToken?: string) {
-    return this.request('/auth/logout', {
-      method: 'POST',
-      body: JSON.stringify({ refreshToken }),
     });
   }
 
@@ -272,13 +242,6 @@ class ApiClient {
   }
 
   // Orders
-  async validateCart(items: any[]) {
-    return this.request('/orders/validate-cart', {
-      method: 'POST',
-      body: JSON.stringify({ items }),
-    });
-  }
-
   async createOrder(orderData: any) {
     return this.request('/orders', {
       method: 'POST',
@@ -479,16 +442,6 @@ class ApiClient {
     return this.request(`/products/${productId}/accessories/${accessoryId}`, {
       method: 'DELETE',
     });
-  }
-
-  // Sliders
-  async getSliders() {
-    try {
-      return await this.request('/sliders');
-    } catch (error) {
-      // Return empty sliders if endpoint doesn't exist or fails
-      return { sliders: [] };
-    }
   }
 }
 

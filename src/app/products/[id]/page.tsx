@@ -8,6 +8,7 @@ import Head from 'next/head'
 import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 import { toast } from 'react-toastify'
+import { Heart } from 'lucide-react'
 
 interface Product {
   _id: string
@@ -49,6 +50,7 @@ export default function ProductDetailPage() {
   const [categoryInfo, setCategoryInfo] = useState<any | null>(null)
   const [parentCategoryInfo, setParentCategoryInfo] = useState<any | null>(null)
   const [attributeNames, setAttributeNames] = useState<{[key: string]: string}>({})
+  const [isFavorite, setIsFavorite] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -60,6 +62,7 @@ export default function ProductDetailPage() {
     try {
       const response = await api.getProduct(id)
       setProduct(response)
+      // Optionally initialize like state later from a dedicated endpoint/list
       fetchReviews(id)
       fetchRelatedProducts(response.category._id, id)
       if (response.category._id) {
@@ -430,6 +433,32 @@ export default function ProductDetailPage() {
                       {brandName}
                     </span>
                   )}
+                <button
+                  onClick={async () => {
+                    if (!user) {
+                      toast.info('برای پسندیدن وارد شوید')
+                      return
+                    }
+                    try {
+                      if (isFavorite) {
+                        await api.unlikeProduct(product._id)
+                        setIsFavorite(false)
+                        toast.success('از پسندیده‌ها حذف شد')
+                      } else {
+                        await api.likeProduct(product._id)
+                        setIsFavorite(true)
+                        toast.success('به پسندیده‌ها اضافه شد')
+                      }
+                    } catch (e: any) {
+                      toast.error(e?.message || 'خطا در ثبت پسند')
+                    }
+                  }}
+                  className={`ml-auto inline-flex items-center justify-center w-10 h-10 rounded-full border ${isFavorite ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-600 border-gray-200'} hover:shadow`}
+                  aria-label="like"
+                  title="پسندیدن"
+                >
+                  <Heart className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`} />
+                </button>
                 </div>
                 
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>

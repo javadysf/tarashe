@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 
@@ -27,23 +27,68 @@ export default function AdminOrdersPage() {
   const [loading, setLoading] = useState(true)
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalOrders, setTotalOrders] = useState(0)
+  const [search, setSearch] = useState('')
+  const [status, setStatus] = useState('')
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
+  const [minAmount, setMinAmount] = useState('')
+  const [maxAmount, setMaxAmount] = useState('')
+  const [sort, setSort] = useState('createdAt-desc')
+  const limit = 10
+
+  // Stable hook for pagination pages
+  const pageNumbers = useMemo(() => {
+    const pages: number[] = []
+    const maxToShow = 5
+    const half = Math.floor(maxToShow / 2)
+    let start = Math.max(1, page - half)
+    let end = Math.min(totalPages, start + maxToShow - 1)
+    if (end - start + 1 < maxToShow) start = Math.max(1, end - maxToShow + 1)
+    for (let i = start; i <= end; i++) pages.push(i)
+    return pages
+  }, [page, totalPages])
 
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchOrders()
     }
-  }, [user])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, page, sort])
 
   const fetchOrders = async () => {
+    setLoading(true)
     try {
-      const response = await api.getOrders()
+      const params: any = { page: String(page), limit: String(limit), sort }
+      if (search) params.search = search
+      if (status) params.status = status
+      if (dateFrom) params.dateFrom = dateFrom
+      if (dateTo) params.dateTo = dateTo
+      if (minAmount) params.minAmount = minAmount
+      if (maxAmount) params.maxAmount = maxAmount
+      const response = await api.getOrders(params)
       setOrders(response.orders || [])
+      setTotalPages(response.pagination?.totalPages || 1)
+      setTotalOrders(response.pagination?.totalOrders || 0)
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  // Debounce filters/search
+  useEffect(() => {
+    if (user?.role !== 'admin') return
+    const t = setTimeout(() => {
+      setPage(1)
+      fetchOrders()
+    }, 400)
+    return () => clearTimeout(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, status, dateFrom, dateTo, minAmount, maxAmount])
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
@@ -87,6 +132,39 @@ export default function AdminOrdersPage() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">مدیریت سفارشات</h1>
 
+        {/* Filters */}
+        <div className="bg-white rounded-lg shadow p-4 mb-4 grid grid-cols-1 md:grid-cols-6 gap-3">
+          <input
+            type="text"
+            placeholder="جستجوی مشتری (نام/ایمیل)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="border border-gray-300 rounded px-3 py-2 text-sm md:col-span-2"
+          />
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm">
+            <option value="">همه وضعیت‌ها</option>
+            <option value="pending">در انتظار</option>
+            <option value="confirmed">تایید شده</option>
+            <option value="processing">در حال پردازش</option>
+            <option value="shipped">ارسال شده</option>
+            <option value="delivered">تحویل داده شده</option>
+            <option value="cancelled">لغو شده</option>
+          </select>
+          <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="number" inputMode="numeric" placeholder="حداقل مبلغ" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <input type="number" inputMode="numeric" placeholder="حداکثر مبلغ" value={maxAmount} onChange={(e) => setMaxAmount(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm" />
+          <select value={sort} onChange={(e) => setSort(e.target.value)} className="border border-gray-300 rounded px-3 py-2 text-sm md:col-span-2">
+            <option value="createdAt-desc">جدیدترین</option>
+            <option value="createdAt-asc">قدیمی‌ترین</option>
+            <option value="amount-desc">مبلغ (زیاد به کم)</option>
+            <option value="amount-asc">مبلغ (کم به زیاد)</option>
+            <option value="status">وضعیت</option>
+          </select>
+          <button onClick={() => { setSearch(''); setStatus(''); setDateFrom(''); setDateTo(''); setMinAmount(''); setMaxAmount(''); setSort('createdAt-desc'); setPage(1); fetchOrders(); }} className="border border-gray-300 rounded px-3 py-2 text-sm">پاک‌سازی</button>
+          <div className="text-sm text-gray-600 self-center md:col-span-2">{totalOrders} سفارش</div>
+        </div>
+
         {loading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
@@ -120,8 +198,8 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div>
-                        <div className="font-medium">{order.user.name}</div>
-                        <div className="text-gray-400">{order.user.email}</div>
+                        <div className="font-medium">{order?.user?.name}</div>
+                        <div className="text-gray-400">{order?.user?.email}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -159,6 +237,18 @@ export default function AdminOrdersPage() {
                 هیچ سفارشی یافت نشد
               </div>
             )}
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-6 py-4 bg-white border-t">
+              <div className="text-sm text-gray-600">صفحه {page} از {totalPages}</div>
+              <div className="flex items-center gap-2">
+                <button disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className={`px-3 py-1 rounded-lg border text-sm ${page <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>قبلی</button>
+                {pageNumbers.map(p => (
+                  <button key={p} onClick={() => setPage(p)} className={`px-3 py-1 rounded-lg text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>{p}</button>
+                ))}
+                <button disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className={`px-3 py-1 rounded-lg border text-sm ${page >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>بعدی</button>
+              </div>
+            </div>
           </div>
         )}
         
@@ -185,8 +275,8 @@ export default function AdminOrdersPage() {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-3">اطلاعات مشتری</h3>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <p><span className="font-medium">نام:</span> {selectedOrder.user.name}</p>
-                    <p><span className="font-medium">ایمیل:</span> {selectedOrder.user.email}</p>
+                    <p><span className="font-medium">نام:</span> {selectedOrder?.user?.name}</p>
+                    <p><span className="font-medium">ایمیل:</span> {selectedOrder?.user?.email}</p>
                     {(selectedOrder.phone || selectedOrder.shippingAddress?.phone) && (
                       <p><span className="font-medium">شماره تماس:</span> {selectedOrder.phone || selectedOrder.shippingAddress?.phone}</p>
                     )}

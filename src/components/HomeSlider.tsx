@@ -57,29 +57,51 @@ export default function HomeSlider() {
     try {
       setLoading(true)
       
-      // Fetch categories
-      const categoriesResponse = await api.getCategories()
-      setCategories(categoriesResponse || [])
+      // Mock data for now
+      setCategories([
+        { _id: '1', name: 'باتری لپ تاپ', description: 'انواع باتری لپ تاپ', image: { url: '/pics/battery.jpg' } },
+        { _id: '2', name: 'شارژر لپ تاپ', description: 'شارژرهای اصل', image: { url: '/pics/battery.jpg' } },
+        { _id: '3', name: 'قطعات لپ تاپ', description: 'قطعات یدکی', image: { url: '/pics/battery.jpg' } }
+      ])
       
-      // Fetch brands
-      const brandsResponse = await api.getBrands()
-      setBrands(brandsResponse || [])
+      setBrands([
+        { _id: '1', name: 'HP', image: { url: '/pics/battery.jpg' } },
+        { _id: '2', name: 'Dell', image: { url: '/pics/battery.jpg' } },
+        { _id: '3', name: 'Lenovo', image: { url: '/pics/battery.jpg' } }
+      ])
       
-      // Fetch latest products
-      const latestResponse = await api.getProducts({ limit: 8, sort: 'newest' })
-      setLatestProducts(latestResponse.products || [])
+      setLatestProducts([
+        {
+          _id: '1',
+          name: 'باتری HP Pavilion 15',
+          brand: 'HP',
+          model: 'Pavilion 15',
+          price: 850000,
+          originalPrice: 1200000,
+          images: [{ url: '/pics/battery.jpg', alt: 'باتری HP' }],
+          rating: { average: 4.8, count: 24 },
+          inStock: true,
+          stock: 25,
+          createdAt: new Date().toISOString()
+        }
+      ])
       
-      // Fetch discounted products
-      const allProductsResponse = await api.getProducts({ limit: 20 })
-      const discounted = allProductsResponse.products
-        .filter((product: any) => product.originalPrice && product.originalPrice > product.price)
-        .map((product: any) => ({
-          ...product,
-          discountPercentage: Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-        }))
-        .sort((a: any, b: any) => b.discountPercentage - a.discountPercentage)
-        .slice(0, 8)
-      setDiscountedProducts(discounted)
+      setDiscountedProducts([
+        {
+          _id: '1',
+          name: 'باتری HP Pavilion 15',
+          brand: 'HP',
+          model: 'Pavilion 15',
+          price: 850000,
+          originalPrice: 1200000,
+          images: [{ url: '/pics/battery.jpg', alt: 'باتری HP' }],
+          rating: { average: 4.8, count: 24 },
+          inStock: true,
+          stock: 25,
+          createdAt: new Date().toISOString(),
+          discountPercentage: 29
+        }
+      ])
       
     } catch (error) {
       console.error('Error fetching data:', error)

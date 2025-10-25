@@ -21,6 +21,14 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [liked, setLiked] = useState<any[]>([])
+  const [likedLoading, setLikedLoading] = useState(false)
+  const [ordersPage, setOrdersPage] = useState(1)
+  const [ordersTotalPages, setOrdersTotalPages] = useState(1)
+  const [ordersTotal, setOrdersTotal] = useState(0)
+  const [likesPage, setLikesPage] = useState(1)
+  const [likesTotalPages, setLikesTotalPages] = useState(1)
+  const [likesTotal, setLikesTotal] = useState(0)
   const [editMode, setEditMode] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [formData, setFormData] = useState({
@@ -51,6 +59,7 @@ export default function ProfilePage() {
         }
       })
       fetchOrders()
+      fetchLiked()
     } else {
       router.push('/auth/login')
     }
@@ -58,14 +67,42 @@ export default function ProfilePage() {
 
   const fetchOrders = async () => {
     try {
-      const response = await api.getOrders()
+      const response = await api.getOrders({ page: String(ordersPage), limit: '10' })
       setOrders(response.orders || [])
+      setOrdersTotalPages(response.pagination?.totalPages || 1)
+      setOrdersTotal(response.pagination?.totalOrders || 0)
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
       setLoading(false)
     }
   }
+
+  const fetchLiked = async () => {
+    try {
+      setLikedLoading(true)
+      const res = await api.getLikedProducts({ page: String(likesPage), limit: '10' })
+      setLiked(res.products || [])
+      setLikesTotalPages(res.pagination?.totalPages || 1)
+      setLikesTotal(res.pagination?.totalProducts || 0)
+    } catch (e) {
+      // silent
+    } finally {
+      setLikedLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!user) return
+    fetchOrders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ordersPage])
+
+  useEffect(() => {
+    if (!user) return
+    fetchLiked()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [likesPage])
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -223,6 +260,16 @@ export default function ProfilePage() {
                 }`}
               >
                 سفارشات من
+              </button>
+              <button
+                onClick={() => setActiveTab('liked')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                  activeTab === 'liked'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                پسندیده‌ها
               </button>
             </nav>
           </div>
@@ -420,6 +467,69 @@ export default function ProfilePage() {
                     <p className="text-gray-600">شما هنوز هیچ سفارشی ثبت نکرده‌اید</p>
                   </div>
                 )}
+
+                {/* Orders Pagination */}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="text-sm text-gray-600">{ordersTotal} سفارش • صفحه {ordersPage} از {ordersTotalPages}</div>
+                  <div className="flex items-center gap-2">
+                    <button disabled={ordersPage <= 1} onClick={() => setOrdersPage(p => Math.max(1, p - 1))} className={`px-3 py-1 rounded-lg border text-sm ${ordersPage <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>قبلی</button>
+                    {Array.from({ length: Math.min(5, ordersTotalPages) }, (_, i) => {
+                      const half = 2
+                      let start = Math.max(1, ordersPage - half)
+                      let end = Math.min(ordersTotalPages, start + 4)
+                      if (end - start < 4) start = Math.max(1, end - 4)
+                      const pageNum = start + i
+                      return pageNum <= ordersTotalPages ? (
+                        <button key={pageNum} onClick={() => setOrdersPage(pageNum)} className={`px-3 py-1 rounded-lg text-sm border ${pageNum === ordersPage ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>{pageNum}</button>
+                      ) : null
+                    })}
+                    <button disabled={ordersPage >= ordersTotalPages} onClick={() => setOrdersPage(p => Math.min(ordersTotalPages, p + 1))} className={`px-3 py-1 rounded-lg border text-sm ${ordersPage >= ordersTotalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>بعدی</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'liked' && (
+              <div className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900">محصولات پسندیده</h2>
+                {likedLoading ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : liked.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {liked.map((p) => (
+                      <div key={p._id} className="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+                        <Image src={p.images?.[0]?.url || '/pics/battery.jpg'} alt={p.name} width={64} height={64} className="rounded object-cover" />
+                        <div className="flex-1">
+                          <div className="font-semibold text-gray-900 line-clamp-1">{p.name}</div>
+                          <div className="text-sm text-gray-600 mt-1">{new Intl.NumberFormat('fa-IR').format(p.price)} تومان</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-600">محصولی پسندیده نشده است</div>
+                )}
+
+                {/* Likes Pagination */}
+                <div className="flex items-center justify-between pt-2">
+                  <div className="text-sm text-gray-600">{likesTotal} محصول • صفحه {likesPage} از {likesTotalPages}</div>
+                  <div className="flex items-center gap-2">
+                    <button disabled={likesPage <= 1} onClick={() => setLikesPage(p => Math.max(1, p - 1))} className={`px-3 py-1 rounded-lg border text-sm ${likesPage <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>قبلی</button>
+                    {Array.from({ length: Math.min(5, likesTotalPages) }, (_, i) => {
+                      const half = 2
+                      let start = Math.max(1, likesPage - half)
+                      let end = Math.min(likesTotalPages, start + 4)
+                      if (end - start < 4) start = Math.max(1, end - 4)
+                      const pageNum = start + i
+                      return pageNum <= likesTotalPages ? (
+                        <button key={pageNum} onClick={() => setLikesPage(pageNum)} className={`px-3 py-1 rounded-lg text-sm border ${pageNum === likesPage ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>{pageNum}</button>
+                      ) : null
+                    })}
+                    <button disabled={likesPage >= likesTotalPages} onClick={() => setLikesPage(p => Math.min(likesTotalPages, p + 1))} className={`px-3 py-1 rounded-lg border text-sm ${likesPage >= likesTotalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>بعدی</button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

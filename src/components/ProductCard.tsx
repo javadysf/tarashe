@@ -7,10 +7,12 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { toast } from 'react-toastify'
 import AccessorySelector from './AccessorySelector'
+import { api } from '@/lib/api'
+import { useAuthStore } from '@/store/authStore'
 
 interface Accessory {
   _id: string
@@ -59,6 +61,12 @@ export default function ProductCard({ product, index }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false)
   const [showAccessorySelector, setShowAccessorySelector] = useState(false)
   const { addItem } = useCartStore()
+  const { user } = useAuthStore()
+
+  useEffect(() => {
+    // Optionally, preload liked status when logged in
+    // This can be optimized by passing liked info in product list
+  }, [user])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('fa-IR').format(price)
@@ -209,7 +217,25 @@ export default function ProductCard({ product, index }: ProductCardProps) {
             
             <Button
               size="sm"
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={async () => {
+                if (!user) {
+                  toast.info('لطفاً برای پسندیدن وارد شوید')
+                  return
+                }
+                try {
+                  if (isFavorite) {
+                    await api.unlikeProduct(product._id)
+                    setIsFavorite(false)
+                    toast.success('از پسندیده‌ها حذف شد')
+                  } else {
+                    await api.likeProduct(product._id)
+                    setIsFavorite(true)
+                    toast.success('به پسندیده‌ها اضافه شد')
+                  }
+                } catch (e: any) {
+                  toast.error(e?.message || 'خطا در ثبت پسندیدن')
+                }
+              }}
               variant={isFavorite ? "default" : "secondary"}
               className="bg-white/90 backdrop-blur-sm hover:bg-white"
             >

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { ChevronDown, Grid3X3 } from 'lucide-react'
 import { api } from '@/lib/api'
@@ -23,35 +22,10 @@ export default function SearchWithCategories() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [activeParentId, setActiveParentId] = useState<string | null>(null)
-  const [hoverTimeout, setHoverTimeout] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
-    if (isOpen && categories.length === 0) {
-      fetchCategories()
-    }
-  }, [isOpen])
-
-  const handleMouseEnter = () => {
-    if (hoverTimeout) {
-      clearTimeout(hoverTimeout)
-      setHoverTimeout(null)
-    }
-    setIsOpen(true)
-  }
-
-  const handleLinkClick = () => {
-    // Don't close immediately when clicking links, let the navigation handle it
-    setTimeout(() => {
-      setIsOpen(false)
-    }, 100)
-  }
-
-  const handleMouseLeave = () => {
-    const timeout = setTimeout(() => {
-      setIsOpen(false)
-    }, 800) // Increased to 800ms for better UX
-    setHoverTimeout(timeout)
-  }
+    fetchCategories()
+  }, [])
 
   const fetchCategories = async () => {
     try {
@@ -71,7 +45,6 @@ export default function SearchWithCategories() {
     for (const c of categories) {
       if (!c.parent) parents.push(c)
       else {
-        // Only show direct children (level 2) of level 1 categories
         const pid = typeof c.parent === 'string' ? c.parent : String(c.parent)
         if (!childrenByParent[pid]) childrenByParent[pid] = []
         childrenByParent[pid].push(c)
@@ -86,126 +59,114 @@ export default function SearchWithCategories() {
     if (!activeParentId && parents.length) setActiveParentId(parents[0]._id)
   }, [parents, activeParentId])
 
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (hoverTimeout) {
-        clearTimeout(hoverTimeout)
-      }
-    }
-  }, [hoverTimeout])
-
   return (
-    <div className="flex items-center gap-4 w-full max-w-6xl">
-      {/* Categories Menu - Right Side */}
+    <div className="flex items-center gap-2 md:gap-4 w-full max-w-6xl">
+      {/* Categories Menu */}
       <div className="relative">
         <button
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          className="flex items-center bg-yellow-200 gap-2 px-4 py-3 bg-white/80 backdrop-blur-sm border-2 border-gray-200 rounded-full hover:border-blue-500 transition-all duration-300 font-medium text-gray-700 hover:text-blue-600 min-w-max"
+          onMouseEnter={() => setIsOpen(true)}
+          onMouseLeave={() => setIsOpen(false)}
+          onClick={() => setIsOpen(!isOpen)}
+          className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 shadow-sm"
         >
-          <Grid3X3 className="w-5 h-5" />
-          دسته بندی محصولات
-          <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+          <Grid3X3 className="h-4 w-4" />
+          <span className="hidden md:inline">دسته بندی محصولات</span>
+          <span className="md:hidden">دسته ها</span>
+          <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              transition={{ duration: 0.2 }}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
-              className="absolute top-full right-0 mt-2 w-screen bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-gray-200/50 p-0 z-[9999] pb-8"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-12">
-                  {/* Parents */}
-                  <div className="col-span-12 md:col-span-4 border-l border-gray-200 bg-gray-50 rounded-r-2xl overflow-auto max-h-[70vh]">
-                    <div className="px-4 py-3 border-b border-gray-200 font-bold text-gray-900">دستهبندی کالاها</div>
-                    <ul className="divide-y divide-gray-200">
-                      {parents.map((p) => {
-                        const isActive = p._id === activeParentId
-                        return (
-                          <li key={p._id}>
-                            <button
-                              onMouseEnter={() => setActiveParentId(p._id)}
-                              onFocus={() => setActiveParentId(p._id)}
-                              onClick={() => setActiveParentId(p._id)}
-                              className={`w-full text-right px-4 py-3 flex items-center justify-between gap-3 transition-colors ${isActive ? 'bg-white text-blue-700' : 'hover:bg-white'}`}
-                            >
-                              <span className="font-medium truncate">{p.name}</span>
-                              <svg className={`w-4 h-4 transition-transform ${isActive ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                              </svg>
-                            </button>
-                          </li>
-                        )
-                      })}
-                    </ul>
+        {isOpen && (
+          <div 
+            className="absolute right-0 top-full z-[9999] mt-1 w-[800px] rounded-md border bg-popover p-0 text-popover-foreground shadow-md"
+            onMouseEnter={() => setIsOpen(true)}
+            onMouseLeave={() => setIsOpen(false)}
+            dir="rtl"
+          >
+            {loading ? (
+              <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="grid gap-3 p-6 lg:grid-cols-[.75fr_1fr]">
+                {/* Categories Sidebar */}
+                <div className="row-span-3">
+                  <div className="mb-3 pb-2 border-b">
+                    <h4 className="text-sm font-semibold text-right">دسته بندی کالاها</h4>
                   </div>
+                  <div className="grid gap-1">
+                    {parents.map((parent) => (
+                      <button
+                        key={parent._id}
+                        onMouseEnter={() => setActiveParentId(parent._id)}
+                        className={`block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-right bg-blue-50 ${
+                          activeParentId === parent._id ? "bg-accent text-accent-foreground" : ""
+                        }`}
+                      >
+                        <div className="flex cursor-pointer] items-center justify-between">
+                          <div className={`h-2 w-2 rounded-full transition-colors ${
+                            activeParentId === parent._id ? "bg-primary" : "bg-muted-foreground/50"
+                          }`} />
+                          <div className="text-sm font-medium leading-none">{parent.name}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-                  {/* Children */}
-                  <div className="col-span-12 md:col-span-8 p-6 pb-12 max-h-[70vh] overflow-auto">
-                    {activeParentId ? (
-                      <div className="space-y-4 pb-8">
-                        {(childrenByParent[activeParentId] || []).map((sub: any) => (
-                          <div key={sub._id} className="rounded-xl border border-gray-200">
-                            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-t-xl">
-                              <Link
-                                href={`/products?category=${encodeURIComponent(sub._id)}`}
-                                className="font-semibold text-gray-900 hover:text-blue-700 truncate"
-                                onClick={handleLinkClick}
-                              >
-                                {sub.name}
-                              </Link>
-                              <span className="text-gray-300">›</span>
-                            </div>
+                {/* Content Area */}
+                <div className="space-y-3">
+                  {activeParentId ? (
+                    <>
+                      <h5 className="text-sm font-medium text-right text-muted-foreground mb-3">
+                        {parents.find(p => p._id === activeParentId)?.name}
+                      </h5>
+                      <div className="grid gap-3">
+                        {(childrenByParent[activeParentId] || []).map((sub) => (
+                          <div key={sub._id} className="space-y-2">
+                            <Link
+                              href={`/products?category=${encodeURIComponent(sub._id)}`}
+                              onClick={() => setIsOpen(false)}
+                              className="block select-none space-y-1 rounded-md bg-gradient-to-r from-muted/50 to-muted p-3 leading-none no-underline outline-none transition-colors hover:bg-accent focus:bg-accent focus:text-accent-foreground text-right"
+                            >
+                              <div className="text-sm font-medium leading-none">{sub.name}</div>
+                            </Link>
                             {(childrenByParent[sub._id] || []).length > 0 && (
-                              <div className="p-2">
-                                <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-1">
-                                  {(childrenByParent[sub._id] || []).map((g: any) => (
-                                    <li key={g._id}>
-                                      <Link
-                                        href={`/products?category=${encodeURIComponent(g._id)}`}
-                                        className="flex items-center justify-between rounded-lg px-3 py-2 hover:bg-gray-50 text-gray-700 hover:text-blue-700"
-                                        onClick={handleLinkClick}
-                                      >
-                                        <span className="truncate">{g.name}</span>
-                                        <span className="text-gray-300">›</span>
-                                      </Link>
-                                    </li>
-                                  ))}
-                                </ul>
+                              <div className="grid grid-cols-2 gap-2 pr-4">
+                                {(childrenByParent[sub._id] || []).map((child) => (
+                                  <Link
+                                    key={child._id}
+                                    href={`/products?category=${encodeURIComponent(child._id)}`}
+                                    onClick={() => setIsOpen(false)}
+                                    className="block select-none rounded-sm p-2 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground text-right text-xs border"
+                                  >
+                                    {child.name}
+                                  </Link>
+                                ))}
                               </div>
                             )}
                           </div>
                         ))}
-                        {(childrenByParent[activeParentId] || []).length === 0 && (
-                          <div className="text-gray-500 py-2">زیردسته‌ای ثبت نشده</div>
-                        )}
                       </div>
-                    ) : null}
-                  </div>
+                    </>
+                  ) : (
+                    <div className="flex h-32 items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <Grid3X3 className="mx-auto h-8 w-8 opacity-50" />
+                        <p className="mt-2 text-xs">روی دستهای حرکت کنید</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-              {/* Invisible hover area at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 h-12 bg-transparent"></div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </div>
+            )}
+          </div>
+        )}
       </div>
-      <CartButton />
-      {/* Search Bar */}
+      
       <div className="flex-1">
         <GlobalSearch />
       </div>
+      <CartButton />
     </div>
   )
 }

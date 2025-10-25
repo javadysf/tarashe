@@ -42,6 +42,11 @@ export default function AdminSidebar() {
       icon: '📝'
     },
     {
+      title: 'مدیریت اسلایدر',
+      href: '/admin/sliders',
+      icon: '🎠'
+    },
+    {
       title: 'مشاهده وبسایت',
       href: '/',
       icon: '🌐',
@@ -75,10 +80,6 @@ export default function AdminSidebar() {
             </Link>
           ))}
           
-          {/* Theme Toggle */}
-          <div className="flex justify-center mt-4">
-            <ThemeToggle />
-          </div>
           
           {/* Logout Button */}
           <button

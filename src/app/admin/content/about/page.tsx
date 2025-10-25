@@ -53,7 +53,7 @@ export default function AboutContentManagement() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/content/admin/about', {
+      const response = await fetch('http://localhost:3002/api/content/admin/about', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -119,7 +119,7 @@ export default function AboutContentManagement() {
     setSaving(true)
 
     try {
-      const response = await fetch('http://localhost:5000/api/content/admin/about', {
+      const response = await fetch('http://localhost:3002/api/content/admin/about', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
