@@ -138,19 +138,47 @@ export default function FilterSidebar({
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               محدوده قیمت
             </label>
-            <div className="px-2">
-              <Slider
-              dir='ltr'
-                value={[Math.min(filters.minPrice, filters.maxPrice), Math.max(filters.minPrice, filters.maxPrice)]}
-                onValueChange={([min, max]) => setFilters({...filters, minPrice: min, maxPrice: max})}
-                max={10000000}
-                min={0}
-                step={100000}
-                className="w-full"
-              />
-              <div className="flex justify-between text-sm text-gray-500 mt-2">
-                <span>{new Intl.NumberFormat('fa-IR').format(Math.max(filters.minPrice, filters.maxPrice))} تومان</span>
-                <span>{new Intl.NumberFormat('fa-IR').format(Math.min(filters.minPrice, filters.maxPrice))} تومان</span>
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-600 font-medium">از (تومان)</label>
+                    <input
+                      type="number"
+                      value={filters.minPrice}
+                      onChange={(e) => setFilters({...filters, minPrice: Number(e.target.value) || 0})}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-right"
+                      placeholder="۰"
+                      min="0"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-gray-600 font-medium">تا (تومان)</label>
+                    <input
+                      type="number"
+                      value={filters.maxPrice}
+                      onChange={(e) => setFilters({...filters, maxPrice: Number(e.target.value) || 10000000})}
+                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-right"
+                      placeholder="۱۰,۰۰۰,۰۰۰"
+                      min="0"
+                    />
+                  </div>
+                </div>
+                <div className="px-2">
+                  <Slider
+                    dir='ltr'
+                    value={[Math.min(filters.minPrice, filters.maxPrice), Math.max(filters.minPrice, filters.maxPrice)]}
+                    onValueChange={([min, max]) => setFilters({...filters, minPrice: min, maxPrice: max})}
+                    max={10000000}
+                    min={0}
+                    step={100000}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>{new Intl.NumberFormat('fa-IR').format(Math.max(filters.minPrice, filters.maxPrice))}</span>
+                    <span>{new Intl.NumberFormat('fa-IR').format(Math.min(filters.minPrice, filters.maxPrice))}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

@@ -244,17 +244,17 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           </motion.div>
         </div>
 
-        <CardContent className="p-6">
+        <CardContent className="p-4 md:p-6">
           {/* Product Title */}
           <Link href={`/products/${product._id}`}>
-            <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
               {product.name}
             </h3>
           </Link>
           
           {/* Brand */}
           {brandName && (
-            <div className="text-sm text-gray-500 mb-2">برند: {brandName}</div>
+            <div className="text-xs md:text-sm text-gray-500 mb-2">برند: {brandName}</div>
           )}
 
           {/* Attributes */}
@@ -276,7 +276,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           )}
 
           {/* Description */}
-          <div className="text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed">
+          <div className="text-gray-600 text-xs md:text-sm mb-4 line-clamp-2 leading-relaxed">
             {product.description}
           </div>
 
@@ -284,11 +284,11 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-1">
               {renderStars(product.rating.average)}
-              <span className="mr-2 text-sm text-gray-600">
+              <span className="mr-2 text-xs md:text-sm text-gray-600">
                 ({product.rating.count})
               </span>
             </div>
-            <div className="text-sm text-gray-500">
+            <div className="text-xs md:text-sm text-gray-500">
               امتیاز: {product.rating.average.toFixed(1)}
             </div>
           </div>
@@ -296,10 +296,10 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           {/* Price and Add to Cart */}
           <div className="flex items-center justify-between">
             <div className="text-right">
-              <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <div className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {formatPrice(product.price)}
               </div>
-              <div className="text-sm text-gray-500">تومان</div>
+              <div className="text-xs md:text-sm text-gray-500">تومان</div>
             </div>
             
             <Button

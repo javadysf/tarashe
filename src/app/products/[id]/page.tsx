@@ -51,10 +51,13 @@ export default function ProductDetailPage() {
   const [parentCategoryInfo, setParentCategoryInfo] = useState<any | null>(null)
   const [attributeNames, setAttributeNames] = useState<{[key: string]: string}>({})
   const [isFavorite, setIsFavorite] = useState(false)
+  const [likesCount, setLikesCount] = useState(0)
+  const [viewsCount, setViewsCount] = useState(0)
 
   useEffect(() => {
     if (params.id) {
       fetchProduct(params.id as string)
+      fetchProductStats(params.id as string)
     }
   }, [params.id])
 
@@ -62,7 +65,18 @@ export default function ProductDetailPage() {
     try {
       const response = await api.getProduct(id)
       setProduct(response)
-      // Optionally initialize like state later from a dedicated endpoint/list
+      
+      // Check if user has liked this product
+      if (user) {
+        try {
+          const likedProducts = await api.getLikedProducts()
+          const isLiked = likedProducts.products?.some((p: any) => p._id === id)
+          setIsFavorite(isLiked || false)
+        } catch (error) {
+          console.error('Error checking like status:', error)
+        }
+      }
+      
       fetchReviews(id)
       fetchRelatedProducts(response.category._id, id)
       if (response.category._id) {
@@ -85,6 +99,15 @@ export default function ProductDetailPage() {
       console.error('Error fetching product:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchProductStats = async (id: string) => {
+    try {
+      const likesResponse = await api.getProductLikesCount(id)
+      setLikesCount(likesResponse.count || 0)
+    } catch (error) {
+      console.error('Error fetching product stats:', error)
     }
   }
 
@@ -485,7 +508,7 @@ export default function ProductDetailPage() {
                   ))}
                 </div>
                 <span className="text-sm text-gray-600">
-                  ({product.rating.average}) • {product.rating.count} نظر
+                  ({product.rating.average.toFixed(1)}) • {reviews.length || product.rating.count} نظر
                 </span>
               </div>
 

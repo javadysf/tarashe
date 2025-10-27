@@ -359,6 +359,10 @@ class ApiClient {
     return this.request(`/users/me/likes${query}`);
   }
 
+  async getProductLikesCount(productId: string) {
+    return this.request(`/products/${productId}/likes/count`);
+  }
+
   // Admin Orders
   async updateOrderStatus(id: string, status: string) {
     return this.request(`/orders/${id}/status`, {

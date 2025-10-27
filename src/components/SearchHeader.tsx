@@ -32,17 +32,17 @@ export default function SearchHeader({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-0 p-6 mb-8"
+      className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-0 p-4 md:p-6 mb-8"
     >
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
         <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
             محصولات
           </h1>
-          <div className="text-gray-600 flex items-center gap-2">
+          <div className="text-sm md:text-base text-gray-600 flex items-center gap-2">
             مجموعه کاملی از بهترین محصولات
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+            <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs md:text-sm">
               {productsCount} محصول
             </Badge>
           </div>
