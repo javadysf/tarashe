@@ -130,10 +130,10 @@ export default function AdminOrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">مدیریت سفارشات</h1>
+        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">مدیریت سفارشات</h1>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow p-4 mb-4 grid grid-cols-1 md:grid-cols-6 gap-3">
+        <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 sm:gap-3">
           <input
             type="text"
             placeholder="جستجوی مشتری (نام/ایمیل)"
@@ -171,53 +171,54 @@ export default function AdminOrdersPage() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">شماره سفارش</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">مشتری</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">مبلغ</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">وضعیت</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">تاریخ</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">عملیات</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">شماره</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">مشتری</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">مبلغ</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">وضعیت</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">تاریخ</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">عملیات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {orders.map((order) => (
                   <tr key={order._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900">
                       <button
                         onClick={() => {
                           setSelectedOrder(order)
                           setShowModal(true)
                         }}
-                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                        className="text-blue-600 hover:text-blue-800 hover:underline text-xs sm:text-sm"
                       >
                         #{order._id.slice(-6)}
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 sm:px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">
                       <div>
-                        <div className="font-medium">{order?.user?.name}</div>
-                        <div className="text-gray-400">{order?.user?.email}</div>
+                        <div className="font-medium truncate max-w-32">{order?.user?.name}</div>
+                        <div className="text-gray-400 text-xs truncate max-w-32">{order?.user?.email}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Intl.NumberFormat('fa-IR').format(order.totalAmount)} تومان
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <div className="text-xs sm:text-sm">{new Intl.NumberFormat('fa-IR').format(order.totalAmount)} ت</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
                         {getStatusText(order.status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                       {new Date(order.createdAt).toLocaleDateString('fa-IR')}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <select
                         value={order.status}
                         onChange={(e) => updateOrderStatus(order._id, e.target.value)}
-                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                        className="text-xs sm:text-sm border border-gray-300 rounded px-1 sm:px-2 py-1 w-full max-w-24 sm:max-w-none"
                       >
                         <option value="pending">در انتظار</option>
                         <option value="confirmed">تایید شده</option>
@@ -231,6 +232,7 @@ export default function AdminOrdersPage() {
                 ))}
               </tbody>
             </table>
+            </div>
             
             {orders.length === 0 && (
               <div className="text-center py-8 text-gray-500">
@@ -239,14 +241,14 @@ export default function AdminOrdersPage() {
             )}
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 bg-white border-t">
-              <div className="text-sm text-gray-600">صفحه {page} از {totalPages}</div>
-              <div className="flex items-center gap-2">
-                <button disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className={`px-3 py-1 rounded-lg border text-sm ${page <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>قبلی</button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-4 bg-white border-t gap-4">
+              <div className="text-sm text-gray-600 text-center sm:text-right">صفحه {page} از {totalPages}</div>
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
+                <button disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))} className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>قبلی</button>
                 {pageNumbers.map(p => (
-                  <button key={p} onClick={() => setPage(p)} className={`px-3 py-1 rounded-lg text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>{p}</button>
+                  <button key={p} onClick={() => setPage(p)} className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>{p}</button>
                 ))}
-                <button disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className={`px-3 py-1 rounded-lg border text-sm ${page >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>بعدی</button>
+                <button disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))} className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>بعدی</button>
               </div>
             </div>
           </div>

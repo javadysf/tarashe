@@ -26,7 +26,7 @@ export default function About() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/content/about')
+      const response = await fetch('http://localhost:3002/api/content/about')
       if (response.ok) {
         const data = await response.json()
         setContent(data.content)

@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { toast } from 'react-toastify'
 import Image from 'next/image'
+import { Edit, Trash2, Plus, Eye } from 'lucide-react'
 
 export default function CategoriesPage() {
   const { user, checkAuth } = useAuthStore()
@@ -14,6 +15,7 @@ export default function CategoriesPage() {
   const [loading, setLoading] = useState(true)
   const [showAddForm, setShowAddForm] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -45,7 +47,7 @@ export default function CategoriesPage() {
       setCategories(response)
     } catch (error) {
       console.error('Error fetching categories:', error)
-      toast.error('خطا در دریافت دسته بندی‌ها')
+      toast.error('خطا در دریافت دسته بندیها')
     } finally {
       setLoading(false)
     }
@@ -55,7 +57,7 @@ export default function CategoriesPage() {
     const file = e.target.files?.[0]
     if (file) {
       if (!file.type.startsWith('image/')) {
-        toast.error('فقط فایل‌های تصویری مجاز هستند')
+        toast.error('فقط فایلهای تصویری مجاز هستند')
         return
       }
       if (file.size > 5 * 1024 * 1024) {
@@ -82,10 +84,8 @@ export default function CategoriesPage() {
 
     setUploading(true)
     try {
-      // Upload image first
       const imageResponse = await api.uploadCategoryImage(formData.image, formData.name)
       
-      // Create category
       const response = await api.createCategory({
         name: formData.name,
         description: formData.description,
@@ -103,6 +103,23 @@ export default function CategoriesPage() {
       toast.error('❌ ' + (error.message || 'خطا در ایجاد دسته بندی'))
     } finally {
       setUploading(false)
+    }
+  }
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`آیا مطمئن هستید که میخواهید دسته بندی "${name}" را حذف کنید؟`)) {
+      return
+    }
+
+    setDeleting(id)
+    try {
+      await api.deleteCategory(id)
+      setCategories(categories.filter(cat => cat._id !== id))
+      toast.success('دسته بندی با موفقیت حذف شد')
+    } catch (error: any) {
+      toast.error(error.message || 'خطا در حذف دسته بندی')
+    } finally {
+      setDeleting(null)
     }
   }
 
@@ -127,21 +144,19 @@ export default function CategoriesPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
       <div className="max-w-6xl mx-auto px-6 py-8">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              مدیریت دسته بندی‌ها
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              مدیریت دسته بندیها
             </h1>
-            <p className="text-gray-600 mt-2">مدیریت دسته بندی‌های محصولات</p>
+            <p className="text-gray-600 mt-2 text-sm sm:text-base">مدیریت دسته بندیهای محصولات ({categories.length} دسته)</p>
           </div>
           
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 sm:px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl text-sm sm:text-base w-full sm:w-auto"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
+            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
             افزودن دسته بندی
           </button>
         </div>
@@ -152,7 +167,7 @@ export default function CategoriesPage() {
             <h2 className="text-xl font-bold text-gray-900 mb-6">افزودن دسته بندی جدید</h2>
             
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">نام دسته بندی *</label>
                   <input
@@ -266,7 +281,7 @@ export default function CategoriesPage() {
 
         {/* Categories List */}
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">لیست دسته بندی‌ها ({categories.length})</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">لیست دسته بندیها</h2>
           
           {loading ? (
             <div className="text-center py-8">
@@ -274,20 +289,24 @@ export default function CategoriesPage() {
               <p className="text-gray-600 mt-2">در حال بارگذاری...</p>
             </div>
           ) : categories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {categories.map((category) => (
                 <div key={category._id} className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition-shadow duration-200">
                   <div className="aspect-video bg-gray-100">
-                    <Image
-                      src={category.image?.url || '/pics/battery.jpg'}
-                      alt={category.image?.alt || category.name}
-                      width={300}
-                      height={200}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.src = '/pics/battery.jpg'
-                      }}
-                    />
+                    {category.image?.url ? (
+                      <Image
+                        src={category.image.url}
+                        alt={category.image.alt || category.name}
+                        width={300}
+                        height={200}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <span className="text-gray-400 text-sm">{category.name}</span>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="p-4">
@@ -296,21 +315,42 @@ export default function CategoriesPage() {
                       <p className="text-gray-600 text-sm mb-3">{category.description}</p>
                     )}
                     
-                    <div className="flex items-center justify-between mb-3">
-                      <button
-                        onClick={() => router.push(`/admin/categories/${category._id}/attributes`)}
-                        className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-medium transition-colors flex items-center gap-1"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                        </svg>
-                        ویژگی‌ها
-                      </button>
+                    <div className="flex flex-col gap-3 mb-4">
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          onClick={() => router.push(`/admin/categories/${category._id}/attributes`)}
+                          className="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Eye className="w-3 h-3" />
+                          <span className="hidden sm:inline">ویژگیها</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => router.push(`/admin/categories/edit/${category._id}`)}
+                          className="bg-green-500 hover:bg-green-600 text-white px-2 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1"
+                        >
+                          <Edit className="w-3 h-3" />
+                          <span className="hidden sm:inline">ویرایش</span>
+                        </button>
+                        
+                        <button
+                          onClick={() => handleDelete(category._id, category.name)}
+                          disabled={deleting === category._id}
+                          className="bg-red-500 hover:bg-red-600 text-white px-2 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1 disabled:opacity-50"
+                        >
+                          {deleting === category._id ? (
+                            <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <Trash2 className="w-3 h-3" />
+                          )}
+                          <span className="hidden sm:inline">حذف</span>
+                        </button>
+                      </div>
                     </div>
                     
-                    <div className="flex items-center justify-between text-xs text-gray-500">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-gray-500">
                       <span>ایجاد: {new Date(category.createdAt).toLocaleDateString('fa-IR')}</span>
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full">فعال</span>
+                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-center">فعال</span>
                     </div>
                   </div>
                 </div>

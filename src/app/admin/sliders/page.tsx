@@ -194,7 +194,7 @@ export default function SliderManagement() {
               <span className="text-2xl">🎠</span>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">مدیریت اسلایدرها</h1>
+              <h1 className="text-3xl max-sm:text-xl font-bold text-gray-900">مدیریت اسلایدرها</h1>
               <p className="text-gray-600">مدیریت اسلایدرهای صفحه اصلی</p>
             </div>
           </div>
@@ -397,8 +397,8 @@ export default function SliderManagement() {
         ) : (
           sliders.map((slider) => (
             <div key={slider._id} className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
+              <div className="flex max-sm:flex-col max-sm:gap-8 items-center justify-between mb-4">
+                <div className="flex  items-center gap-3">
                   <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
                     <img
                       src={slider.backgroundImage}

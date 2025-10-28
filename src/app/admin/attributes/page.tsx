@@ -121,7 +121,9 @@ export default function AttributesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -230,7 +232,7 @@ export default function AttributesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md">
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div>
@@ -328,8 +330,10 @@ export default function AttributesPage() {
               </Card>
             </motion.div>
           ))}
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }

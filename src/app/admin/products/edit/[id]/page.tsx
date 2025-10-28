@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-toastify';
 import { api } from '@/lib/api';
 import AdminAccessorySelector from '@/components/AdminAccessorySelector';
+import AttributeSelector from '@/components/AttributeSelector';
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -451,16 +452,35 @@ export default function EditProductPage() {
                   <div className="mt-6 p-4 bg-white/60 rounded-lg border border-purple-200">
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-sm font-semibold text-purple-800">ویژگی های محصول</h4>
-                      <button
-                        type="button"
-                        onClick={() => setShowNewAttribute(!showNewAttribute)}
-                        className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowNewAttribute(!showNewAttribute)}
+                          className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                          </svg>
+                          ویژگی جدید
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Select Existing Attributes */}
+                    <div className="mb-6 p-6 bg-white rounded-xl border-2 border-blue-300 shadow-md">
+                      <h5 className="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
-                        ویژگی جدید
-                      </button>
+                        افزودن ویژگی موجود
+                      </h5>
+                      <AttributeSelector
+                        categoryId={formData.category}
+                        onAttributeAdd={(attributeId) => {
+                          fetchCategoryAttributes(formData.category)
+                          toast.success('ویژگی به دسته اضافه شد')
+                        }}
+                      />
                     </div>
 
                     {/* Create New Attribute */}
@@ -563,6 +583,7 @@ export default function EditProductPage() {
                             <div className="flex items-center justify-between mb-2">
                               <label className="block text-sm font-medium text-gray-700">
                                 {attr.name}
+                                {attr.isRequired && <span className="text-red-500 mr-1">*</span>}
                               </label>
                               <button
                                 type="button"
@@ -585,6 +606,7 @@ export default function EditProductPage() {
                             </div>
                             {attr.type === 'select' ? (
                               <select
+                                required={attr.isRequired}
                                 value={formData.attributes[attr._id] || ''}
                                 onChange={(e) => setFormData({
                                   ...formData,
@@ -603,6 +625,7 @@ export default function EditProductPage() {
                             ) : (
                               <input
                                 type={attr.type === 'number' ? 'number' : 'text'}
+                                required={attr.isRequired}
                                 value={formData.attributes[attr._id] || ''}
                                 onChange={(e) => setFormData({
                                   ...formData,
@@ -612,7 +635,7 @@ export default function EditProductPage() {
                                   }
                                 })}
                                 className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
-                                placeholder={`وارد کردن ${attr.name}`}
+                                placeholder={`وارد کردن ${attr.name}${attr.isRequired ? ' (الزامی)' : ''}`}
                               />
                             )}
                           </div>

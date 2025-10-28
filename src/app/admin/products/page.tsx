@@ -104,9 +104,9 @@ export default function AdminProductsPage() {
       <AdminSidebar />
       <div className="flex-1 p-8">
         <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">مدیریت محصولات</h1>
-          <Link href="/admin/products/add" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold">مدیریت محصولات</h1>
+          <Link href="/admin/products/add" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm sm:text-base">
             افزودن محصول
           </Link>
         </div>
@@ -138,47 +138,48 @@ export default function AdminProductsPage() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">نام</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">برند</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">قیمت</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">موجودی</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">دسته بندی</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">عملیات</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">نام</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">برند</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">قیمت</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">موجودی</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">دسته بندی</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">عملیات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {products.length > 0 ? (
                   products.map((product) => (
                     <tr key={product._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {product.name}
+                      <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900">
+                        <div className="truncate max-w-32 sm:max-w-none">{product.name}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
                         {typeof product.brand === 'object' ? product.brand?.name : product.brand}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {new Intl.NumberFormat('fa-IR').format(product.price)} تومان
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="text-xs sm:text-sm">{new Intl.NumberFormat('fa-IR').format(product.price)} ت</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
                         {product.stock}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
                         {product.category.name}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex gap-2 justify-end">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
                           <Link 
                             href={`/admin/products/edit/${product._id}`} 
-                            className="text-blue-600 hover:text-blue-900 transition-colors px-3 py-1 rounded bg-blue-50 hover:bg-blue-100"
+                            className="text-blue-600 hover:text-blue-900 transition-colors px-2 sm:px-3 py-1 rounded bg-blue-50 hover:bg-blue-100 text-xs sm:text-sm text-center"
                           >
                             ویرایش
                           </Link>
                           <button 
                             onClick={() => deleteProduct(product._id)} 
-                            className="text-red-600 hover:text-red-900 transition-colors px-3 py-1 rounded bg-red-50 hover:bg-red-100"
+                            className="text-red-600 hover:text-red-900 transition-colors px-2 sm:px-3 py-1 rounded bg-red-50 hover:bg-red-100 text-xs sm:text-sm"
                           >
                             حذف
                           </button>
@@ -188,7 +189,7 @@ export default function AdminProductsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
+                    <td colSpan={6} className="px-3 sm:px-6 py-12 text-center">
                       <div className="text-gray-500">
                         <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -216,16 +217,17 @@ export default function AdminProductsPage() {
                 )}
               </tbody>
             </table>
+            </div>
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-4 bg-white border-t">
-              <div className="text-sm text-gray-600">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-4 bg-white border-t gap-4">
+              <div className="text-sm text-gray-600 text-center sm:text-right">
                 صفحه {page} از {totalPages}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-1 sm:gap-2">
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className={`px-3 py-1 rounded-lg border text-sm ${page <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
                 >
                   قبلی
                 </button>
@@ -233,7 +235,7 @@ export default function AdminProductsPage() {
                   <button
                     key={p}
                     onClick={() => setPage(p)}
-                    className={`px-3 py-1 rounded-lg text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                    className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
                   >
                     {p}
                   </button>
@@ -241,7 +243,7 @@ export default function AdminProductsPage() {
                 <button
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className={`px-3 py-1 rounded-lg border text-sm ${page >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
                 >
                   بعدی
                 </button>

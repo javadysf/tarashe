@@ -106,6 +106,7 @@ export default function AdminUsersPage() {
           </div>
         ) : (
           <div className="bg-white rounded-lg shadow overflow-hidden">
+            <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -172,6 +173,7 @@ export default function AdminUsersPage() {
                 ))}
               </tbody>
             </table>
+            </div>
             
             {users.length === 0 && (
               <div className="text-center py-8 text-gray-500">

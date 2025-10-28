@@ -171,25 +171,6 @@ export default function ContentManagement() {
         )}
       </div>
 
-        {content.length > 0 && (
-        <div className="mt-8 text-center">
-          <p className="text-gray-600 mb-4">برای ویرایش محتوا:</p>
-          <div className="space-x-4">
-            <Link
-              href="/admin/content/contact"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
-            >
-              ویرایش تماس با ما
-            </Link>
-            <Link
-              href="/admin/content/about"
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-medium"
-            >
-              ویرایش درباره ما
-            </Link>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

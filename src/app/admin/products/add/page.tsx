@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { toast } from 'react-toastify'
 import AccessorySelector from '@/components/AdminAccessorySelector'
+import AttributeSelector from '@/components/AttributeSelector'
 
 export default function AddProductPage() {
   const { user, token, checkAuth } = useAuthStore()
@@ -876,16 +877,38 @@ export default function AddProductPage() {
                     </div>
                     <h4 className="text-lg font-bold text-purple-800">ویژگی‌های محصول</h4>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowNewAttribute(!showNewAttribute)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowNewAttribute(!showNewAttribute)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                      </svg>
+                      ویژگی جدید
+                    </button>
+                  </div>
+                </div>
+
+                {/* Select Existing Attributes */}
+                <div className="mb-6 p-6 bg-white rounded-xl border-2 border-blue-300 shadow-md">
+                  <h5 className="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
-                    ویژگی جدید
-                  </button>
+                    افزودن ویژگی موجود
+                  </h5>
+                  <AttributeSelector
+                    categoryId={formData.category || secondLevelCategoryId || parentCategoryId}
+                    onAttributeAdd={(attributeId) => {
+                      const currentCategoryId = formData.category || secondLevelCategoryId || parentCategoryId
+                      if (currentCategoryId) {
+                        fetchAllCategoryAttributes()
+                        toast.success('ویژگی به دسته اضافه شد')
+                      }
+                    }}
+                  />
                 </div>
 
                 {/* Create New Attribute */}

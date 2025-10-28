@@ -266,6 +266,19 @@ class ApiClient {
     return this.request(`/categories/${id}`);
   }
 
+  async updateCategory(id: string, categoryData: any) {
+    return this.request(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(categoryData),
+    });
+  }
+
+  async deleteCategory(id: string) {
+    return this.request(`/categories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getCategoryProducts(id: string, params?: any) {
     const query = params ? `?${new URLSearchParams(params)}` : '';
     return this.request(`/categories/${id}/products${query}`);
@@ -401,6 +414,10 @@ class ApiClient {
   // Attributes
   async getAttributes() {
     return this.request('/attributes');
+  }
+
+  async getAttribute(id: string) {
+    return this.request(`/attributes/${id}`);
   }
 
   // Brands
