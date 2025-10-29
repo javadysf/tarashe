@@ -13,7 +13,8 @@ const isNormalValidationError = (errorMessage: string): boolean => {
     'اطلاعات وارد شده صحیح نیست',
     'کاربری با این ایمیل قبلاً ثبت شده است',
     'دسترسی غیرمجاز - توکن نامعتبر',
-    'دسترسی غیرمجاز'
+    'دسترسی غیرمجاز',
+    'شما قبلاً برای این محصول نظر ثبت کردهاید'
   ];
   
   return normalErrors.some(normalError => errorMessage.includes(normalError));
@@ -112,7 +113,7 @@ class ApiClient {
         } else if (response.status === 404) {
           throw new Error('منبع یافت نشد');
         } else if (response.status === 409) {
-          throw new Error('کاربری با این ایمیل قبلاً ثبت شده است');
+          throw new Error(data.message || 'کاربری با این ایمیل قبلاً ثبت شده است');
         } else if (response.status === 500) {
           throw new Error('خطا در سرور. لطفاً دوباره تلاش کنید');
         } else {
@@ -406,6 +407,25 @@ class ApiClient {
     });
   }
 
+  async replyToReview(reviewId: string, comment: string) {
+    return this.request(`/products/reviews/${reviewId}/reply`, {
+      method: 'POST',
+      body: JSON.stringify({ comment }),
+    });
+  }
+
+  async likeReview(reviewId: string) {
+    return this.request(`/products/reviews/${reviewId}/like`, {
+      method: 'POST',
+    });
+  }
+
+  async dislikeReview(reviewId: string) {
+    return this.request(`/products/reviews/${reviewId}/dislike`, {
+      method: 'POST',
+    });
+  }
+
   // Admin Stats
   async getAdminStats() {
     return this.request('/admin/stats');
@@ -500,6 +520,10 @@ class ApiClient {
     return this.request(`/products/${productId}/accessories/${accessoryId}`, {
       method: 'DELETE',
     });
+  }
+
+  async getProductAccessories(productId: string) {
+    return this.request(`/products/${productId}/accessories`);
   }
 
   // Sliders

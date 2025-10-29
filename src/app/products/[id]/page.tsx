@@ -9,6 +9,8 @@ import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 import { toast } from 'react-toastify'
 import { Heart } from 'lucide-react'
+import ShareButton from '@/components/ShareButton'
+import AccessorySelector from '@/components/AccessorySelector'
 
 interface Product {
   _id: string
@@ -32,6 +34,10 @@ interface Review {
   rating: number
   comment: string
   createdAt: string
+  replies?: Review[]
+  likesCount?: number
+  dislikesCount?: number
+  isAdminReply?: boolean
 }
 
 export default function ProductDetailPage() {
@@ -53,6 +59,8 @@ export default function ProductDetailPage() {
   const [isFavorite, setIsFavorite] = useState(false)
   const [likesCount, setLikesCount] = useState(0)
   const [viewsCount, setViewsCount] = useState(0)
+  const [accessories, setAccessories] = useState<any[]>([])
+  const [showAccessorySelector, setShowAccessorySelector] = useState(false)
 
   useEffect(() => {
     if (params.id) {
@@ -79,6 +87,7 @@ export default function ProductDetailPage() {
       
       fetchReviews(id)
       fetchRelatedProducts(response.category._id, id)
+      fetchProductAccessories(id)
       if (response.category._id) {
         // Fetch product attributes after setting the product
         await fetchProductAttributes(response.category._id, response)
@@ -250,6 +259,16 @@ export default function ProductDetailPage() {
     }
   }
 
+  const fetchProductAccessories = async (productId: string) => {
+    try {
+      const response = await api.getProductAccessories(productId)
+      setAccessories(response.accessories || [])
+    } catch (error) {
+      // Silently handle if accessories endpoint doesn't exist
+      setAccessories([])
+    }
+  }
+
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!user) {
@@ -271,6 +290,19 @@ export default function ProductDetailPage() {
   }
 
   const handleAddToCart = () => {
+    if (!product) return
+    
+    // If product has accessories, show selector first
+    if (accessories.length > 0) {
+      setShowAccessorySelector(true)
+      return
+    }
+    
+    // Otherwise add directly to cart
+    addProductToCart()
+  }
+
+  const addProductToCart = () => {
     if (!product) return
     
     addItem({
@@ -323,6 +355,24 @@ export default function ProductDetailPage() {
       pauseOnHover: true,
       draggable: true,
     })
+  }
+
+  const handleAccessorySelection = (selectedAccessories: any[]) => {
+    // Add main product to cart
+    addProductToCart()
+    
+    // Add selected accessories to cart
+    selectedAccessories.forEach(accessory => {
+      addItem({
+        id: accessory.accessoryId,
+        name: accessory.name,
+        price: accessory.discountedPrice,
+        image: '/pics/battery.jpg', // Default image for accessories
+        quantity: accessory.quantity
+      })
+    })
+    
+    setShowAccessorySelector(false)
   }
 
   const formatPrice = (price: number) => {
@@ -532,13 +582,22 @@ export default function ProductDetailPage() {
                 )}
               </div>
 
-              {/* Stock */}
-              <div className={`inline-flex px-4 py-2 rounded-full text-sm font-medium ${
-                product.stock > 0 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-red-100 text-red-800'
-              }`}>
-                {product.stock > 0 ? `موجود در انبار (${product.stock} عدد)` : 'ناموجود'}
+              {/* Stock & Share */}
+              <div className="flex items-center justify-between">
+                <div className={`inline-flex px-4 py-2 rounded-full text-sm font-medium ${
+                  product.stock > 0 
+                    ? 'bg-green-100 text-green-800' 
+                    : 'bg-red-100 text-red-800'
+                }`}>
+                  {product.stock > 0 ? `موجود در انبار (${product.stock} عدد)` : 'ناموجود'}
+                </div>
+                
+                <ShareButton
+                  productName={product.name}
+                  productUrl={`/products/${product._id}`}
+                  productImage={product.images[0]?.url}
+                  productPrice={product.price}
+                />
               </div>
 
               {/* Quantity & Add to Cart */}
@@ -713,7 +772,72 @@ export default function ProductDetailPage() {
                       {new Date(review.createdAt).toLocaleDateString('fa-IR')}
                     </span>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">{review.comment}</p>
+                  <p className="text-gray-700 leading-relaxed mb-3">{review.comment}</p>
+                  
+                  {/* Like/Dislike buttons */}
+                  {user && (
+                    <div className="flex items-center gap-4 mb-3">
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          try {
+                            await api.likeReview(review._id)
+                            fetchReviews(product!._id)
+                          } catch (error: any) {
+                            toast.error(error.message || 'خطا در لایک')
+                          }
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                        </svg>
+                        <span>{(review as any).likesCount || 0}</span>
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={async (e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          try {
+                            await api.dislikeReview(review._id)
+                            fetchReviews(product!._id)
+                          } catch (error: any) {
+                            toast.error(error.message || 'خطا در دیسلایک')
+                          }
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
+                        </svg>
+                        <span>{(review as any).dislikesCount || 0}</span>
+                      </button>
+                    </div>
+                  )}
+                  
+                  {/* Admin replies */}
+                  {(review as any).replies && (review as any).replies.length > 0 && (
+                    <div className="mr-8 mt-4 space-y-3">
+                      {(review as any).replies.map((reply: any) => (
+                        <div key={reply._id} className="bg-blue-50 p-3 rounded-lg">
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-xs font-semibold">
+                                {reply.user.name.charAt(0)}
+                              </span>
+                            </div>
+                            <span className="text-sm font-medium text-blue-700">{reply.user.name}</span>
+                            <span className="text-xs text-blue-600 bg-blue-200 px-2 py-1 rounded-full">پاسخ ادمین</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{reply.comment}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
@@ -728,6 +852,97 @@ export default function ProductDetailPage() {
             )}
           </div>
         </div>
+
+        {/* Accessories Section */}
+        {accessories.length > 0 && (
+          <div className="bg-white rounded-2xl shadow-lg mt-8 p-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">متعلقات این محصول</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {accessories.slice(0, 4).map((accessory) => {
+                const originalPrice = accessory.accessory.price
+                const discountAmount = (originalPrice * accessory.bundleDiscount) / 100
+                const discountedPrice = originalPrice - discountAmount
+                
+                return (
+                  <div key={accessory.accessory._id} className="group border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300">
+                    <a href={`/products/${accessory.accessory._id}`} className="block">
+                      <div className="bg-gray-100 rounded-xl overflow-hidden mb-4 aspect-square">
+                        <Image
+                          src={accessory.accessory.images[0]?.url || '/pics/battery.jpg'}
+                          alt={accessory.accessory.name}
+                          width={300}
+                          height={300}
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                          {accessory.accessory.name}
+                        </h3>
+                        
+                        <div className="flex items-center gap-2">
+                          {accessory.bundleDiscount > 0 ? (
+                            <>
+                              <span className="text-lg font-bold text-blue-600">
+                                {formatPrice(discountedPrice)} تومان
+                              </span>
+                              <span className="text-sm text-gray-500 line-through">
+                                {formatPrice(originalPrice)}
+                              </span>
+                              <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                                {accessory.bundleDiscount}% تخفیف
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-lg font-bold text-blue-600">
+                              {formatPrice(originalPrice)} تومان
+                            </span>
+                          )}
+                        </div>
+                        
+                        {accessory.isSuggested && (
+                          <div className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            پیشنهادی
+                          </div>
+                        )}
+                      </div>
+                    </a>
+                    
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        addItem({
+                          id: accessory.accessory._id,
+                          name: accessory.accessory.name,
+                          price: discountedPrice,
+                          image: accessory.accessory.images[0]?.url || '/pics/battery.jpg',
+                          quantity: 1
+                        })
+                        toast.success('متعلق به سبد اضافه شد')
+                      }}
+                      className="w-full mt-3 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      افزودن به سبد
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+            
+            {accessories.length > 4 && (
+              <div className="text-center mt-6">
+                <button
+                  onClick={() => setShowAccessorySelector(true)}
+                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                >
+                  مشاهده همه متعلقات ({accessories.length})
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Related Products Section */}
         <div className="bg-white rounded-2xl shadow-lg mt-8 p-8">
@@ -814,6 +1029,15 @@ export default function ProductDetailPage() {
             </div>
           )}
         </div>
+
+        {/* Accessory Selector Modal */}
+        <AccessorySelector
+          accessories={accessories}
+          isOpen={showAccessorySelector}
+          onClose={() => setShowAccessorySelector(false)}
+          onAddToCart={handleAccessorySelection}
+          productName={product.name}
+        />
       </div>
     </div>
   )

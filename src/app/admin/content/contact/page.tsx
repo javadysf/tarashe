@@ -360,7 +360,7 @@ export default function ContactContentManagement() {
                 <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
                   <li>به <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="underline">Google Maps</a> بروید</li>
                   <li>آدرس شرکت خود را جستجو کنید</li>
-                  <li>روی دکمه "اشتراک‌گذاری" کلیک کنید</li>
+                  <li>روی دکمه "اشتراک‌ گذاری" کلیک کنید</li>
                   <li>گزینه "تعبیه نقشه" را انتخاب کنید</li>
                   <li>کد HTML را کپی و در اینجا قرار دهید</li>
                 </ol>

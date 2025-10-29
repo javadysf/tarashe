@@ -70,7 +70,7 @@ export default function MapHelper({ onEmbedCodeGenerated }: MapHelperProps) {
           <ol className="space-y-1 list-decimal list-inside">
             <li>به <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">Google Maps</a> بروید</li>
             <li>آدرس را جستجو کنید</li>
-            <li>روی "اشتراک‌گذاری" → "تعبیه نقشه" کلیک کنید</li>
+            <li>روی "اشتراک‌ گذاری" → "تعبیه نقشه" کلیک کنید</li>
             <li>کد HTML را کپی کنید</li>
           </ol>
         </div>

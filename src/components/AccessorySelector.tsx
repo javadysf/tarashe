@@ -225,11 +225,14 @@ export default function AccessorySelector({
 
           <div className="flex gap-3 pt-4 border-t">
             <Button
-              onClick={onClose}
+              onClick={() => {
+                onAddToCart([])
+                onClose()
+              }}
               variant="outline"
               className="flex-1"
             >
-              انصراف
+              ادامه خرید بدون متعلقات
             </Button>
             
             <Button

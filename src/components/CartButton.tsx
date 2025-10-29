@@ -11,19 +11,16 @@ export default function CartButton() {
   return (
     <ClientOnly>
       {/* Desktop Version */}
-      <div className='hidden md:flex border rounded-full w-fit p-4 gap-4'>
+      <button onClick={toggleCart} className='hidden md:flex border rounded-full w-fit p-4 gap-4 hover:bg-gray-50 transition-colors cursor-pointer'>
         <ShoppingCartIcon className='h-6 w-6 max-sm:w-8 max-sm:h-8'/>
         <span>
           سبد خرید
         </span>
-        <button
-          onClick={toggleCart}
-          className="relative w-6 h-6 text-center bg-green-300 rounded-full text-black hover:bg-primary-dark transition-colors shadow-lg hover:shadow-xl"
-        >
+        <div className="relative w-6 h-6 text-center bg-green-300 rounded-full text-black transition-colors shadow-lg">
           {totalItems > 0 && 
               totalItems > 99 ? '99+' : totalItems}
-        </button>
-      </div>
+        </div>
+      </button>
       
       {/* Mobile Version */}
       <button

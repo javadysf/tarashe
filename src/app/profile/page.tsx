@@ -439,7 +439,7 @@ export default function ProfilePage() {
                         <div className="space-y-2 mb-4">
                           {order.items.map((item, index) => (
                             <div key={index} className="flex justify-between text-sm">
-                              <span>{item.product.name}</span>
+                              <span>{item?.product?.name}</span>
                               <span>تعداد: {item.quantity}</span>
                             </div>
                           ))}
