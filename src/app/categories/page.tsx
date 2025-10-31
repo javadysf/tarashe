@@ -8,6 +8,7 @@ import Link from 'next/link'
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchCategories()
@@ -26,7 +27,19 @@ export default function CategoriesPage() {
 
   const getCategoryImage = (category: any) => {
     if (category.image?.url) {
-      return category.image.url
+      let imageUrl = category.image.url
+      
+      // Fix old localhost:5000 URLs to use localhost:3002
+      if (imageUrl.includes('localhost:5000')) {
+        imageUrl = imageUrl.replace('localhost:5000', 'localhost:3002')
+      }
+      
+      // If URL starts with /uploads, prepend backend URL
+      if (imageUrl.startsWith('/uploads')) {
+        imageUrl = `http://localhost:3002${imageUrl}`
+      }
+      
+      return imageUrl
     }
     return '/pics/battery.jpg'
   }
@@ -60,8 +73,16 @@ export default function CategoriesPage() {
                       width={400}
                       height={250}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                      loading="lazy"
+                      unoptimized={category.image?.url?.startsWith('/uploads')}
                       onError={(e) => {
-                        e.currentTarget.src = '/pics/battery.jpg'
+                        const target = e.target as HTMLImageElement
+                        const currentSrc = target.src
+                        
+                        if (!failedImages.has(currentSrc) && !currentSrc.includes('/pics/battery.jpg')) {
+                          setFailedImages(prev => new Set(prev).add(currentSrc))
+                          target.src = '/pics/battery.jpg'
+                        }
                       }}
                     />
                   </div>

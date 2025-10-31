@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { api } from '@/lib/api'
-import { ChevronLeft, Home } from 'lucide-react'
+import { ChevronLeft, Home, ChevronRight } from 'lucide-react'
 
 interface Category {
   _id: string
@@ -24,6 +24,7 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
   const [loading, setLoading] = useState(true)
   const [currentCategory, setCurrentCategory] = useState<Category | null>(null)
   const [parentCategory, setParentCategory] = useState<Category | null>(null)
+  const [currentSlide, setCurrentSlide] = useState(0)
 
   useEffect(() => {
     fetchCategories()
@@ -96,6 +97,31 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
     }
   }
 
+  const ITEMS_PER_SLIDE = 10
+  const displayCategories = getDisplayCategories()
+  const totalSlides = Math.ceil(displayCategories.length / ITEMS_PER_SLIDE)
+  const currentSlideCategories = displayCategories.slice(
+    currentSlide * ITEMS_PER_SLIDE,
+    (currentSlide + 1) * ITEMS_PER_SLIDE
+  )
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides)
+  }
+
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides)
+  }
+
+  const goToSlide = (slideIndex: number) => {
+    setCurrentSlide(slideIndex)
+  }
+
+  // Reset slide when categories change
+  useEffect(() => {
+    setCurrentSlide(0)
+  }, [currentCategoryId])
+
   const getBreadcrumb = () => {
     const breadcrumb = []
     
@@ -126,7 +152,6 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
     )
   }
 
-  const displayCategories = getDisplayCategories()
   const breadcrumb = getBreadcrumb()
 
   return (
@@ -174,31 +199,80 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
         </div>
       )}
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-6">
-        {displayCategories.map((category) => (
-          <button
-            key={category._id}
-            onClick={() => onCategorySelect(category._id)}
-            className="group flex flex-col items-center p-2 transition-all duration-200"
-          >
-            <div className="relative w-28 h-28 rounded-full overflow-hidden bg-gray-100 mb-3 shadow-lg group-hover:shadow-xl transition-all duration-200">
-              <Image
-                src={category.image?.url || '/pics/battery.jpg'}
-                alt={category.image?.alt || category.name}
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-200"
-              />
-              {/* Circular overlay for better text visibility */}
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-200 rounded-full" />
-            </div>
-            <span className="text-md font-black text-gray-900 text-center group-hover:text-blue-600 transition-colors leading-tight">
-              {category.name}
-            </span>
-          </button>
-        ))}
-      </div>
+      {/* Categories Slider */}
+      {displayCategories.length > 0 && (
+        <div className="relative">
+          {/* Navigation Arrows */}
+          {totalSlides > 1 && (
+            <>
+              <button
+                onClick={nextSlide}
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-600" />
+              </button>
+              <button
+                onClick={prevSlide}
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+              </button>
+            </>
+          )}
 
+          {/* Categories Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 px-8">
+            {currentSlideCategories.map((category) => {
+              // Fix image URL if it contains localhost:5000
+              const imageUrl = category.image?.url?.includes('localhost:5000') 
+                ? category.image.url.replace('localhost:5000', 'localhost:3002')
+                : category.image?.url || '/pics/battery.jpg'
+              
+              return (
+                <button
+                  key={category._id}
+                  onClick={() => onCategorySelect(category._id)}
+                  className="group flex flex-col items-center p-2 transition-all duration-200"
+                >
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100 mb-3 shadow-lg group-hover:shadow-xl transition-all duration-200">
+                    <Image
+                      src={imageUrl}
+                      alt={category.image?.alt || category.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-200"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.src = '/pics/battery.jpg'
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-200 rounded-full" />
+                  </div>
+                  <span className="text-sm font-bold text-gray-900 text-center group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">
+                    {category.name}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Slide Indicators */}
+          {totalSlides > 1 && (
+            <div className="flex justify-center mt-6 gap-2">
+              {Array.from({ length: totalSlides }, (_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    index === currentSlide
+                      ? 'bg-blue-600 w-6'
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

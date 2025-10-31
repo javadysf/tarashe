@@ -35,6 +35,7 @@ interface Product {
   _id: string
   name: string
   price: number
+  originalPrice?: number
   description: string
   category: {
     _id: string
@@ -54,9 +55,10 @@ interface Product {
 interface ProductCardProps {
   product: Product
   index: number
+  className?: string
 }
 
-export default function ProductCard({ product, index }: ProductCardProps) {
+export default function ProductCard({ product, index, className }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isFavorite, setIsFavorite] = useState(false)
   const [showAccessorySelector, setShowAccessorySelector] = useState(false)
@@ -86,6 +88,10 @@ export default function ProductCard({ product, index }: ProductCardProps) {
   }
 
   const brandName = typeof product.brand === 'string' ? product.brand : product.brand?.name
+  const hasDiscount = typeof product.originalPrice === 'number' && product.originalPrice > product.price
+  const discountPercent = hasDiscount
+    ? Math.round(((product.originalPrice as number) - product.price) / (product.originalPrice as number) * 100)
+    : 0
 
   const handleAddToCart = () => {
     if (product.stock === 0) {
@@ -151,6 +157,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
 
   return (
     <motion.div
+      className={className}
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ 
@@ -162,23 +169,23 @@ export default function ProductCard({ product, index }: ProductCardProps) {
       onHoverStart={() => setIsHovered(true)}
       onHoverEnd={() => setIsHovered(false)}
     >
-      <Card className="group relative overflow-hidden bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500">
-        {/* Product Image */}
-        <div className="relative h-64 overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50/30">
+      <Card className="max-sm:w-44 max-sm:h-56 group relative overflow-hidden bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500 h-full flex flex-col">
+        {/* Product Image (fixed height) */}
+        <div className="relative  max-sm:h-64 h-16 md:h-24 overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50/30">
           <Link href={`/products/${product._id}`}>
             <Image
               src={product.images[0]?.url || '/pics/battery.jpg'}
               alt={product.images[0]?.alt || product.name}
               fill
               className="object-contain p-4 group-hover:scale-110 transition-transform duration-700"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              // sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </Link>
           
           {/* Category Badge */}
           <Badge 
             variant="secondary" 
-            className="absolute top-3 right-3 bg-blue-600 text-white border-0 shadow-lg"
+            className="hidden md:inline-flex absolute top-3 right-3 bg-blue-600 text-white border-0 shadow-lg"
           >
             {product.category.name}
           </Badge>
@@ -187,10 +194,16 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           {product.stock < 5 && (
             <Badge 
               variant="destructive" 
-              className="absolute top-3 left-3 animate-pulse"
+              className="hidden md:inline-flex absolute top-3 left-3 animate-pulse"
             >
               {product.stock === 0 ? 'ناموجود' : `تنها ${product.stock} عدد`}
             </Badge>
+          )}
+
+          {hasDiscount && (
+            <div className="md:hidden absolute top-2 left-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              {discountPercent}%
+            </div>
           )}
 
           {/* Hover Actions */}
@@ -201,7 +214,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
               y: isHovered ? 0 : 20 
             }}
             transition={{ duration: 0.3 }}
-            className="absolute bottom-3 left-3 right-3 flex gap-2"
+            className="hidden md:flex absolute bottom-3 left-3 right-3 gap-2"
           >
             <Button
               size="sm"
@@ -244,22 +257,22 @@ export default function ProductCard({ product, index }: ProductCardProps) {
           </motion.div>
         </div>
 
-        <CardContent className="p-4 md:p-6">
+        <CardContent className="p-3 md:p-6 flex-1 flex flex-col">
           {/* Product Title */}
           <Link href={`/products/${product._id}`}>
-            <h3 className="text-base md:text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+            <h3 className="text-sm md:text-lg font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300 min-h-[40px] md:min-h-[48px]">
               {product.name}
             </h3>
           </Link>
           
           {/* Brand */}
           {brandName && (
-            <div className="text-xs md:text-sm text-gray-500 mb-2">برند: {brandName}</div>
+            <div className="hidden md:block text-sm text-gray-500 mb-2">برند: {brandName}</div>
           )}
 
           {/* Attributes */}
-          {product.attributes && Object.keys(product.attributes).length > 0 && (
-            <div className="mb-3">
+          <div className="hidden md:block mb-3 ">
+            {product.attributes && Object.keys(product.attributes).length > 0 && (
               <div className="flex flex-wrap gap-1">
                 {Object.entries(product.attributes).slice(0, 3).map(([key, value]) => (
                   <Badge key={key} variant="secondary" className="text-xs">
@@ -272,29 +285,29 @@ export default function ProductCard({ product, index }: ProductCardProps) {
                   </Badge>
                 )}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Description */}
-          <div className="text-gray-600 text-xs md:text-sm mb-4 line-clamp-2 leading-relaxed">
+          <div className="hidden md:block text-gray-600 text-sm mb-4 line-clamp-2 leading-relaxed min-h-[36px]">
             {product.description}
           </div>
 
           {/* Rating */}
-          <div className="flex items-center justify-between mb-4">
+          <div className="hidden md:flex items-center justify-between mb-4">
             <div className="flex items-center gap-1">
               {renderStars(product.rating.average)}
-              <span className="mr-2 text-xs md:text-sm text-gray-600">
+              <span className="mr-2 text-sm text-gray-600">
                 ({product.rating.count})
               </span>
             </div>
-            <div className="text-xs md:text-sm text-gray-500">
+            <div className="text-sm text-gray-500">
               امتیاز: {product.rating.average.toFixed(1)}
             </div>
           </div>
 
           {/* Price and Add to Cart */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mt-auto">
             <div className="text-right">
               <div className="text-lg md:text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 {formatPrice(product.price)}
@@ -306,7 +319,7 @@ export default function ProductCard({ product, index }: ProductCardProps) {
               size="sm"
               disabled={product.stock === 0}
               onClick={handleAddToCart}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300"
+              className="max-sm:hidden bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 shadow-lg hover:shadow-xl transition-all duration-300 text-xs md:text-sm px-3 py-2"
             >
               <ShoppingCart className="w-4 h-4 mr-2" />
               {product.stock === 0 ? 'ناموجود' : 'افزودن'}

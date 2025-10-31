@@ -107,7 +107,40 @@ class ApiClient {
         
         // Handle specific error cases
         if (response.status === 401) {
-          throw new Error('ایمیل یا رمز عبور اشتباه است');
+          // Check if this is a token expiry vs invalid credentials
+          if (data.message && (data.message.includes('token') || data.message.includes('expired') || data.message.includes('invalid'))) {
+            // Try to refresh token
+            if (typeof window !== 'undefined') {
+              const refreshToken = localStorage.getItem('refreshToken');
+              if (refreshToken) {
+                try {
+                  const refreshResponse = await this.refreshToken(refreshToken);
+                  // Update tokens
+                  localStorage.setItem('token', refreshResponse.accessToken);
+                  localStorage.setItem('refreshToken', refreshResponse.refreshToken);
+                  // Retry original request
+                  return this.request(endpoint, options);
+                } catch (refreshError) {
+                  // Refresh failed, clear tokens and redirect to login
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('refreshToken');
+                  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+                    window.location.href = '/login';
+                  }
+                  throw new Error('نشست شما منقضی شده است. لطفاً دوباره وارد شوید');
+                }
+              } else {
+                // No refresh token, redirect to login
+                if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+                  window.location.href = '/login';
+                }
+                throw new Error('نشست شما منقضی شده است. لطفاً دوباره وارد شوید');
+              }
+            }
+          } else {
+            // This is likely invalid credentials
+            throw new Error('ایمیل یا رمز عبور اشتباه است');
+          }
         } else if (response.status === 403) {
           throw new Error('دسترسی غیرمجاز');
         } else if (response.status === 404) {

@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { api } from '@/lib/api'
+import { Carousel } from '@/components/ui/carousel'
+import ProductCard from '@/components/ProductCard'
 
 interface Product {
   _id: string
@@ -43,11 +45,7 @@ export default function HomeSlider() {
   const [brands, setBrands] = useState<Brand[]>([])
   const [loading, setLoading] = useState(true)
   
-  // Slider scroll positions
-  const [categoriesScroll, setCategoriesScroll] = useState(0)
-  const [latestScroll, setLatestScroll] = useState(0)
-  const [discountedScroll, setDiscountedScroll] = useState(0)
-  const [brandsScroll, setBrandsScroll] = useState(0)
+
 
   useEffect(() => {
     fetchAllData()
@@ -57,51 +55,36 @@ export default function HomeSlider() {
     try {
       setLoading(true)
       
-      // Mock data for now
-      setCategories([
-        { _id: '1', name: 'باتری لپ تاپ', description: 'انواع باتری لپ تاپ', image: { url: '/pics/battery.jpg' } },
-        { _id: '2', name: 'شارژر لپ تاپ', description: 'شارژرهای اصل', image: { url: '/pics/battery.jpg' } },
-        { _id: '3', name: 'قطعات لپ تاپ', description: 'قطعات یدکی', image: { url: '/pics/battery.jpg' } }
-      ])
+      // Fetch real categories
+      const categoriesResponse = await api.getCategories()
+      setCategories(categoriesResponse || [])
       
-      setBrands([
-        { _id: '1', name: 'HP', image: { url: '/pics/battery.jpg' } },
-        { _id: '2', name: 'Dell', image: { url: '/pics/battery.jpg' } },
-        { _id: '3', name: 'Lenovo', image: { url: '/pics/battery.jpg' } }
-      ])
+      // Fetch real brands
+      try {
+        const brandsResponse = await api.getBrands()
+        setBrands(brandsResponse || [])
+      } catch (error) {
+        console.error('Error fetching brands:', error)
+        setBrands([])
+      }
       
-      setLatestProducts([
-        {
-          _id: '1',
-          name: 'باتری HP Pavilion 15',
-          brand: 'HP',
-          model: 'Pavilion 15',
-          price: 850000,
-          originalPrice: 1200000,
-          images: [{ url: '/pics/battery.jpg', alt: 'باتری HP' }],
-          rating: { average: 4.8, count: 24 },
-          inStock: true,
-          stock: 25,
-          createdAt: new Date().toISOString()
-        }
-      ])
+      // Fetch latest products
+      try {
+        const latestResponse = await api.getProducts({ sort: 'newest', limit: 10 })
+        setLatestProducts(latestResponse.products || [])
+      } catch (error) {
+        console.error('Error fetching latest products:', error)
+        setLatestProducts([])
+      }
       
-      setDiscountedProducts([
-        {
-          _id: '1',
-          name: 'باتری HP Pavilion 15',
-          brand: 'HP',
-          model: 'Pavilion 15',
-          price: 850000,
-          originalPrice: 1200000,
-          images: [{ url: '/pics/battery.jpg', alt: 'باتری HP' }],
-          rating: { average: 4.8, count: 24 },
-          inStock: true,
-          stock: 25,
-          createdAt: new Date().toISOString(),
-          discountPercentage: 29
-        }
-      ])
+      // Fetch discounted products
+      try {
+        const discountedResponse = await api.getProducts({ sort: 'discount', limit: 10 })
+        setDiscountedProducts(discountedResponse.products || [])
+      } catch (error) {
+        console.error('Error fetching discounted products:', error)
+        setDiscountedProducts([])
+      }
       
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -125,259 +108,146 @@ export default function HomeSlider() {
     })
   }
 
-  const scrollSlider = (direction: 'left' | 'right', sliderType: 'categories' | 'latest' | 'discounted' | 'brands') => {
-    const scrollAmount = 300
-    const container = document.getElementById(`${sliderType}-slider`)
-    
-    if (container) {
-      const newScroll = direction === 'left' 
-        ? container.scrollLeft - scrollAmount
-        : container.scrollLeft + scrollAmount
-      
-      container.scrollTo({
-        left: newScroll,
-        behavior: 'smooth'
-      })
-      
-      // Update state
-      if (sliderType === 'categories') {
-        setCategoriesScroll(newScroll)
-      } else if (sliderType === 'latest') {
-        setLatestScroll(newScroll)
-      } else if (sliderType === 'discounted') {
-        setDiscountedScroll(newScroll)
-      } else if (sliderType === 'brands') {
-        setBrandsScroll(newScroll)
-      }
+
+
+  const chunkArray = <T,>(items: T[], chunkSize: number): T[][] => {
+    const result: T[][] = []
+    for (let i = 0; i < items.length; i += chunkSize) {
+      result.push(items.slice(i, i + chunkSize))
     }
+    return result
   }
 
-  const renderCategoriesSlider = () => (
-    <div className="relative">
-      {/* Left Arrow */}
-      <button
-        onClick={() => scrollSlider('left', 'categories')}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
+  const getCategoryImage = (category: Category) => {
+    if (category.image?.url) {
+      let imageUrl = category.image.url
       
-      {/* Right Arrow */}
-      <button
-        onClick={() => scrollSlider('right', 'categories')}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
+      // Fix old localhost:5000 URLs to use localhost:3002
+      if (imageUrl.includes('localhost:5000')) {
+        imageUrl = imageUrl.replace('localhost:5000', 'localhost:3002')
+      }
       
-      <div 
-        id="categories-slider"
-        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-16"
-      >
-        {categories.map((category) => (
-          <Link
-            key={category._id}
-            href={`/products?category=${encodeURIComponent(category._id)}`}
-            className="group relative glass rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center min-w-[150px] flex-shrink-0"
-          >
-            <div className="relative w-16 h-16 mx-auto mb-3 rounded-xl overflow-hidden bg-gray-100">
-              <Image
-                src={category.image?.url || '/pics/battery.jpg'}
-                alt={category.image?.alt || category.name}
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
+      // If URL starts with /uploads, prepend backend URL
+      if (imageUrl.startsWith('/uploads')) {
+        imageUrl = `http://localhost:3002${imageUrl}`
+      }
+      
+      return imageUrl
+    }
+    return '/pics/battery.jpg'
+  }
+
+
+
+  const renderCategoriesSlider = () => {
+    if (categories.length === 0) return null
+    
+    return (
+      <div className="sm:px-12">
+        <Carousel>
+          {chunkArray(categories, 10).map((catChunk, idx) => (
+            <div key={idx} className="w-full">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {catChunk.map((category) => (
+                  <Link
+                    key={category._id}
+                    href={`/products?category=${encodeURIComponent(category._id)}`}
+                    className="group relative glass rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center block"
+                  >
+                    <div className="relative w-32 h-32 sm:w-32 sm:h-32 mx-auto mb-2 rounded-full overflow-hidden bg-white ring-[0.5px] ring-white/30 shadow-lg shadow-white/20">
+                      <Image
+                        src={getCategoryImage(category)}
+                        alt={category.image?.alt || category.name}
+                        fill
+                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        loading="lazy"
+                        unoptimized={category.image?.url?.startsWith('/uploads')}
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          if (!target.src.includes('/pics/battery.jpg')) {
+                            target.src = '/pics/battery.jpg'
+                          }
+                        }}
+                      />
+                    </div>
+                    <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors line-clamp-2">
+                      {category.name}
+                    </h3>
+                  </Link>
+                ))}
+              </div>
             </div>
-            <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors line-clamp-2">
-              {category.name}
-            </h3>
-          </Link>
-        ))}
+          ))}
+        </Carousel>
       </div>
-    </div>
-  )
+    )
+  }
 
   const renderLatestProductsSlider = () => (
-    <div className="relative">
-      {/* Left Arrow */}
-      <button
-        onClick={() => scrollSlider('left', 'latest')}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      
-      {/* Right Arrow */}
-      <button
-        onClick={() => scrollSlider('right', 'latest')}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-      
-      <div 
-        id="latest-slider"
-        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-16"
-      >
-        {latestProducts.map((product) => (
-          <Link
-            key={product._id}
-            href={`/products/${product._id}`}
-            className="group relative glass rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden min-w-[200px] flex-shrink-0"
-          >
-            <div className="absolute top-2 right-2 z-10">
-              <div className="bg-gradient-4 text-white px-2 py-1 rounded-full text-xs font-bold">
-                جدید
-              </div>
+    <div className="sm:px-8">
+      <Carousel>
+        {chunkArray(latestProducts, 4).map((prodChunk, idx) => (
+          <div key={idx} className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2">
+              {prodChunk.map((product, i) => (
+                <div key={product._id} className="w-full sm:max-w-[260px] mx-auto sm:h-[420px]">
+                  <ProductCard product={product} index={i} className="h-full" />
+                </div>
+              ))}
             </div>
-            
-            <div className="aspect-square bg-gray-100 overflow-hidden">
-              <Image
-                src={product.images[0]?.url || '/pics/battery.jpg'}
-                alt={product.name}
-                width={200}
-                height={200}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            
-            <div className="p-3">
-              <h3 className="font-bold text-sm text-white mb-1 group-hover:text-yellow-300 transition-colors line-clamp-2">
-                {product.name}
-              </h3>
-              <div className="text-xs text-white/80 mb-2">{brandToText(product.brand)}</div>
-              <div className="text-lg font-bold text-white">
-                {formatPrice(product.price)} تومان
-              </div>
-            </div>
-          </Link>
+          </div>
         ))}
-      </div>
+      </Carousel>
     </div>
   )
 
   const renderDiscountedProductsSlider = () => (
-    <div className="relative">
-      {/* Left Arrow */}
-      <button
-        onClick={() => scrollSlider('left', 'discounted')}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      
-      {/* Right Arrow */}
-      <button
-        onClick={() => scrollSlider('right', 'discounted')}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-      
-      <div 
-        id="discounted-slider"
-        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-16"
-      >
-        {discountedProducts.map((product) => (
-          <Link
-            key={product._id}
-            href={`/products/${product._id}`}
-            className="group relative glass rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden min-w-[200px] flex-shrink-0"
-          >
-            <div className="absolute top-2 right-2 z-10">
-              <div className="bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                {product.discountPercentage}% تخفیف
-              </div>
-            </div>
-            
-            <div className="aspect-square bg-gray-100 overflow-hidden">
-              <Image
-                src={product.images[0]?.url || '/pics/battery.jpg'}
-                alt={product.name}
-                width={200}
-                height={200}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-              />
-            </div>
-            
-            <div className="p-3">
-              <h3 className="font-bold text-sm text-white mb-1 group-hover:text-yellow-300 transition-colors line-clamp-2">
-                {product.name}
-              </h3>
-              <div className="text-xs text-white/80 mb-2">{brandToText(product.brand)}</div>
-              <div className="space-y-1">
-                <div className="text-lg font-bold text-white">
-                  {formatPrice(product.price)} تومان
+    <div className="sm:px-12">
+      <Carousel>
+        {chunkArray(discountedProducts, 4).map((prodChunk, idx) => (
+          <div key={idx} className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
+              {prodChunk.map((product, i) => (
+                <div key={product._id} className="w-full max-w-[160px] sm:max-w-[200px] mx-auto h-[320px] md:h-[420px]">
+                  <ProductCard product={product} index={i} className="h-full" />
                 </div>
-                <div className="text-sm text-white/60 line-through">
-                  {formatPrice(product.originalPrice)}
-                </div>
-              </div>
+              ))}
             </div>
-          </Link>
+          </div>
         ))}
-      </div>
+      </Carousel>
     </div>
   )
 
   const renderBrandsSlider = () => (
-    <div className="relative">
-      {/* Left Arrow */}
-      <button
-        onClick={() => scrollSlider('left', 'brands')}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      
-      {/* Right Arrow */}
-      <button
-        onClick={() => scrollSlider('right', 'brands')}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white/20 backdrop-blur-sm text-white p-3 rounded-full hover:bg-white/30 transition-all duration-300 shadow-lg"
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </button>
-      
-      <div 
-        id="brands-slider"
-        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide px-16"
-      >
-        {brands.map((brand) => (
-          <Link
-            key={brand._id}
-            href={`/products?brand=${encodeURIComponent(brand._id)}`}
-            className="group relative glass rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center min-w-[150px] flex-shrink-0"
-          >
-            <div className="relative w-16 h-16 mx-auto mb-3 rounded-xl overflow-hidden bg-gray-100">
-              <Image
-                src={brand.image?.url || '/pics/battery.jpg'}
-                alt={brand.image?.alt || brand.name}
-                fill
-                className="object-cover group-hover:scale-110 transition-transform duration-300"
-              />
+    <div className="sm:px-12">
+      <Carousel>
+        {chunkArray(brands, 6).map((brandChunk, idx) => (
+          <div key={idx} className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {brandChunk.map((brand) => (
+                <Link
+                  key={brand._id}
+                  href={`/products?brand=${encodeURIComponent(brand._id)}`}
+                  className="group relative glass rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center block"
+                >
+                  <div className="relative w-16 h-16 mx-auto mb-3 rounded-xl overflow-hidden bg-gray-100">
+                    <Image
+                      src={brand.image?.url || '/pics/battery.jpg'}
+                      alt={brand.image?.alt || brand.name}
+                      fill
+                      className="object-cover group-hover:scale-110 transition-transform duration-300"
+                    />
+                  </div>
+                  <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors line-clamp-2">
+                    {brand.name}
+                  </h3>
+                </Link>
+              ))}
             </div>
-            <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors line-clamp-2">
-              {brand.name}
-            </h3>
-          </Link>
+          </div>
         ))}
-      </div>
+      </Carousel>
     </div>
   )
 
@@ -415,8 +285,8 @@ export default function HomeSlider() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-sm font-medium mb-4 animate-pulse-glow">
-              <span className="text-lg">📂</span>
+            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
+              <span className="text-2xl">📂</span>
               دسته‌بندی‌ها
             </div>
             <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
@@ -467,8 +337,8 @@ export default function HomeSlider() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-sm font-medium mb-4 animate-pulse-glow">
-              <span className="text-lg">🏷️</span>
+            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
+              <span className="text-2xl">🏷️</span>
               برندها
             </div>
             <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
@@ -510,8 +380,8 @@ export default function HomeSlider() {
       </section>
 
       {/* Latest Products Slider */}
-      <section className="py-16 bg-gradient-3">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 bg-gradient-3">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -519,8 +389,8 @@ export default function HomeSlider() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-sm font-medium mb-4 animate-pulse-glow">
-              <span className="text-lg">🆕</span>
+            <div className="inline-flex items-center gap-2 glass text-white px-2 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
+              <span className="text-xl">🆕</span>
               جدیدترین محصولات
             </div>
             <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
