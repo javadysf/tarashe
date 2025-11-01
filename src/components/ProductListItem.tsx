@@ -91,11 +91,11 @@ export default function ProductListItem({ product, index }: ProductListItemProps
         ease: "easeOut"
       }}
     >
-      <Card className="group overflow-hidden bg-white/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500">
+      <Card className="group overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-lg hover:shadow-2xl transition-all duration-500">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Product Image */}
-            <div className="relative w-full md:w-48 h-48 flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50/30 rounded-xl">
+            <div className="relative w-full md:w-48 h-48 flex-shrink-0 overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50/30 dark:from-gray-700 dark:to-blue-900/20 rounded-xl">
               <Link href={`/products/${product._id}`}>
                 <Image
                   src={product.images[0]?.url || '/pics/battery.jpg'}
@@ -130,18 +130,18 @@ export default function ProductListItem({ product, index }: ProductListItemProps
               <div>
                 {/* Product Title */}
                 <Link href={`/products/${product._id}`}>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300 line-clamp-2">
                     {product.name}
                   </h3>
                 </Link>
                 
                 {/* Brand */}
                 {brandName && (
-                  <div className="text-sm text-gray-500 mb-2">برند: {brandName}</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 mb-2">برند: {brandName}</div>
                 )}
 
                 {/* Description */}
-                <div className="text-gray-600 text-sm mb-4 line-clamp-3 leading-relaxed">
+                <div className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3 leading-relaxed">
                   {product.description}
                 </div>
 
@@ -149,11 +149,11 @@ export default function ProductListItem({ product, index }: ProductListItemProps
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-1">
                     {renderStars(product.rating.average)}
-                    <span className="mr-2 text-sm text-gray-600">
+                    <span className="mr-2 text-sm text-gray-600 dark:text-gray-400">
                       ({product.rating.count} نظر)
                     </span>
                   </div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-500 dark:text-gray-400">
                     امتیاز: {product.rating.average.toFixed(1)}
                   </div>
                 </div>
@@ -162,10 +162,10 @@ export default function ProductListItem({ product, index }: ProductListItemProps
               {/* Price and Actions */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="text-right">
-                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                     {formatPrice(product.price)}
                   </div>
-                  <div className="text-sm text-gray-500">تومان</div>
+                  <div className="text-sm text-gray-500 dark:text-gray-400">تومان</div>
                 </div>
                 
                 <div className="flex items-center gap-2">
@@ -173,16 +173,16 @@ export default function ProductListItem({ product, index }: ProductListItemProps
                     size="sm"
                     variant="outline"
                     onClick={() => setIsFavorite(!isFavorite)}
-                    className="border-2 border-gray-200 hover:border-red-300 hover:bg-red-50"
+                    className="border-2 border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                   >
-                    <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current text-red-500' : 'text-gray-400'}`} />
+                    <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current text-red-500' : 'text-gray-400 dark:text-gray-500'}`} />
                   </Button>
                   
                   <Button
                     size="sm"
                     variant="outline"
                     asChild
-                    className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                    className="border-2 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                   >
                     <Link href={`/products/${product._id}`}>
                       <Eye className="w-4 h-4 mr-2" />

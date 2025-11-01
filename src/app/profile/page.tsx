@@ -184,10 +184,10 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex items-center space-x-6 space-x-reverse">
             <div className="relative">
               {user.avatar ? (
@@ -203,7 +203,7 @@ export default function ProfilePage() {
                   {user.name.charAt(0)}
                 </div>
               )}
-              <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+              <label className="absolute bottom-0 right-0 bg-blue-600 dark:bg-blue-700 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors">
                 {uploadingAvatar ? (
                   <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                 ) : (
@@ -222,13 +222,13 @@ export default function ProfilePage() {
               </label>
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">{user.name}</h1>
-              <p className="text-gray-600">{user.email}</p>
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{user.name}</h1>
+              <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
               <div className="flex items-center mt-2">
                 <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
                   user.role === 'admin' 
-                    ? 'bg-purple-100 text-purple-800' 
-                    : 'bg-green-100 text-green-800'
+                    ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' 
+                    : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
                 }`}>
                   {user.role === 'admin' ? 'ادمین' : 'کاربر'}
                 </span>
@@ -238,15 +238,15 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-          <div className="border-b border-gray-200">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+          <div className="border-b border-gray-200 dark:border-gray-700">
             <nav className="flex space-x-8 space-x-reverse px-8">
               <button
                 onClick={() => setActiveTab('profile')}
                 className={`py-4 px-1 border-b-2 font-medium text-sm ${
                   activeTab === 'profile'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
                 اطلاعات شخصی

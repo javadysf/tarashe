@@ -24,10 +24,10 @@ export default function AboutContentManagement() {
   const [content, setContent] = useState<AboutContent>({
     page: 'about',
     heroTitle: 'درباره تراشه',
-    heroSubtitle: 'ما در تراشه با بیش از یک دهه تجربه، به ارائه بهترین محصولات و خدمات فناوری برای کسب‌وکارها و سازمان‌ها متعهد هستیم.',
+    heroSubtitle: 'ما در تراشه با بیش از یک ده ه تجربه، به ارائه بهترین محصولات و خدمات فناوری برای کسب‌وکارها و سازمان‌ها متعهد هستیم.',
     aboutInfo: {
       title: 'درباره تراشه',
-      subtitle: 'ما در تراشه با بیش از یک دهه تجربه، به ارائه بهترین محصولات و خدمات فناوری برای کسب‌وکارها و سازمان‌ها متعهد هستیم.',
+      subtitle: 'ما در تراشه با بیش از یک ده ه تجربه، به ارائه بهترین محصولات و خدمات فناوری برای کسب‌وکارها و سازمان‌ها متعهد هستیم.',
       mission: 'ارائه راه‌حل‌های نوآورانه و با کیفیت که به کسب‌وکارها کمک می‌کند تا در عصر دیجیتال پیشرو باشند و اهداف خود را محقق کنند.',
       vision: 'تبدیل شدن به پیشروترین شرکت فناوری در منطقه و ایجاد تحول مثبت در زندگی میلیون‌ها نفر از طریق فناوری‌های پیشرفته.',
       stats: [
@@ -217,7 +217,7 @@ export default function AboutContentManagement() {
                 value={content.heroSubtitle}
                 onChange={(e) => handleChange('heroSubtitle', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="ما در تراشه با بیش از یک دهه تجربه..."
+                placeholder="ما در تراشه با بیش از یک ده ه تجربه..."
               />
             </div>
           </div>

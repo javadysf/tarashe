@@ -4,7 +4,6 @@ import { motion } from 'framer-motion'
 import MainSlider from '@/components/MainSlider'
 import ServicesSection from '@/components/ServicesSection'
 import HomeSlider from '@/components/HomeSlider'
-import BestSellingProductsSection from '@/components/BestSellingProductsSection'
 
 export default function Home() {
   return (
@@ -32,15 +31,7 @@ export default function Home() {
         <HomeSlider />
       </motion.div>
 
-      {/* Best Selling */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.15 }}
-        viewport={{ once: true }}
-      >
-        <BestSellingProductsSection />
-      </motion.div>
+
       
       {/* Services Section */}
       <motion.div

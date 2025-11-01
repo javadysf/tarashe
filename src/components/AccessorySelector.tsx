@@ -97,13 +97,13 @@ export default function AccessorySelector({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-right text-xl font-bold text-gray-800">
+          <DialogTitle className="text-right text-xl font-bold text-gray-800 dark:text-gray-100">
             متعلقات پیشنهادی برای {productName}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          <p className="text-gray-600 text-sm text-right">
+          <p className="text-gray-600 dark:text-gray-400 text-sm text-right">
             متعلقات زیر برای این محصول پیشنهاد می‌شود. می‌توانید آن‌ها را به سبد خرید خود اضافه کنید:
           </p>
 
@@ -117,10 +117,10 @@ export default function AccessorySelector({
               return (
                 <div
                   key={accessory.accessory._id}
-                  className="bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-blue-300 transition-colors"
+                  className="bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex-shrink-0">
                       <Image
                         src={accessory.accessory.images?.[0]?.url || '/pics/battery.jpg'}
                         alt={accessory.accessory.images?.[0]?.alt || accessory.accessory.name}
@@ -130,12 +130,12 @@ export default function AccessorySelector({
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 text-sm leading-tight mb-2">
+                      <h4 className="font-semibold text-gray-900 dark:text-gray-100 text-sm leading-tight mb-2">
                         {accessory.accessory.name}
                       </h4>
                       
                       {accessory.accessory.description && (
-                        <p className="text-gray-600 text-xs mb-2 line-clamp-2">
+                        <p className="text-gray-600 dark:text-gray-400 text-xs mb-2 line-clamp-2">
                           {accessory.accessory.description}
                         </p>
                       )}
@@ -156,15 +156,15 @@ export default function AccessorySelector({
                       <div className="flex items-center gap-2 mb-3">
                         {accessory.bundleDiscount > 0 ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-gray-500 text-sm line-through">
+                            <span className="text-gray-500 dark:text-gray-400 text-sm line-through">
                               {formatPrice(originalPrice)}
                             </span>
-                            <span className="text-green-600 font-semibold text-sm">
+                            <span className="text-green-600 dark:text-green-400 font-semibold text-sm">
                               {formatPrice(discountedPrice)} تومان
                             </span>
                           </div>
                         ) : (
-                          <span className="text-green-600 font-semibold text-sm">
+                          <span className="text-green-600 dark:text-green-400 font-semibold text-sm">
                             {formatPrice(originalPrice)} تومان
                           </span>
                         )}
@@ -181,7 +181,7 @@ export default function AccessorySelector({
                           -
                         </Button>
                         
-                        <span className="w-8 text-center text-sm font-medium">
+                        <span className="w-8 text-center text-sm font-medium text-gray-900 dark:text-gray-100">
                           {quantity}
                         </span>
                         
@@ -202,13 +202,13 @@ export default function AccessorySelector({
           </div>
 
           {Object.keys(selectedAccessories).length > 0 && (
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+            <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div className="text-right">
-                  <p className="text-blue-800 font-semibold text-sm">
+                  <p className="text-blue-800 dark:text-blue-300 font-semibold text-sm">
                     مجموع قیمت متعلقات انتخاب شده:
                   </p>
-                  <p className="text-blue-600 font-bold text-lg">
+                  <p className="text-blue-600 dark:text-blue-400 font-bold text-lg">
                     {formatPrice(getTotalPrice())} تومان
                   </p>
                 </div>
@@ -223,7 +223,7 @@ export default function AccessorySelector({
             </div>
           )}
 
-          <div className="flex gap-3 pt-4 border-t">
+          <div className="flex gap-3 pt-4 border-t dark:border-gray-700">
             <Button
               onClick={() => {
                 onAddToCart([])
@@ -248,6 +248,8 @@ export default function AccessorySelector({
     </Dialog>
   )
 }
+
+
 
 
 

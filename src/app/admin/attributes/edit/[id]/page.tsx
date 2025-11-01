@@ -191,7 +191,7 @@ export default function EditAttributePage({ params }: Props) {
             {formData.type === 'select' && (
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  گزینهها *
+                  گزینه ها *
                 </label>
                 <div className="space-y-3">
                   {formData.options.map((option, index) => (

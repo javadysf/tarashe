@@ -56,7 +56,7 @@ export default function ShareButton({ productName, productUrl, productImage, pro
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
         title="اشتراک گذاری"
       >
         <Share2 className="w-5 h-5" />
@@ -72,11 +72,11 @@ export default function ShareButton({ productName, productUrl, productImage, pro
           />
           
           {/* Share Menu */}
-          <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 p-4 z-50 min-w-[200px]">
+          <div className="absolute top-full left-0 mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-4 z-50 min-w-[200px]">
             <div className="space-y-2">
               <button
                 onClick={handleCopyLink}
-                className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 <Copy className="w-5 h-5" />
                 <span>کپی لینک</span>
@@ -84,7 +84,7 @@ export default function ShareButton({ productName, productUrl, productImage, pro
 
               <button
                 onClick={handleWhatsAppShare}
-                className="w-full flex items-center gap-3 px-3 py-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors"
               >
                 <MessageCircle className="w-5 h-5" />
                 <span>واتساپ</span>
@@ -92,7 +92,7 @@ export default function ShareButton({ productName, productUrl, productImage, pro
 
               <button
                 onClick={handleTelegramShare}
-                className="w-full flex items-center gap-3 px-3 py-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
               >
                 <Send className="w-5 h-5" />
                 <span>تلگرام</span>
@@ -100,7 +100,7 @@ export default function ShareButton({ productName, productUrl, productImage, pro
 
               <button
                 onClick={handleInstagramShare}
-                className="w-full flex items-center gap-3 px-3 py-2 text-pink-600 hover:bg-pink-50 rounded-lg transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 text-pink-600 dark:text-pink-400 hover:bg-pink-50 dark:hover:bg-pink-900/20 rounded-lg transition-colors"
               >
                 <Instagram className="w-5 h-5" />
                 <span>اینستاگرام</span>
@@ -108,7 +108,7 @@ export default function ShareButton({ productName, productUrl, productImage, pro
 
               <button
                 onClick={handleTwitterShare}
-                className="w-full flex items-center gap-3 px-3 py-2 text-blue-400 hover:bg-blue-50 rounded-lg transition-colors"
+                className="w-full flex items-center gap-3 px-3 py-2 text-blue-400 dark:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
               >
                 <Twitter className="w-5 h-5" />
                 <span>توییتر</span>

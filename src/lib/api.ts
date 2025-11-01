@@ -14,7 +14,9 @@ const isNormalValidationError = (errorMessage: string): boolean => {
     'کاربری با این ایمیل قبلاً ثبت شده است',
     'دسترسی غیرمجاز - توکن نامعتبر',
     'دسترسی غیرمجاز',
-    'شما قبلاً برای این محصول نظر ثبت کردهاید'
+    'شما قبلاً برای این محصول نظر ثبت کردهاید',
+    'نمی‌توان دسته بندی را حذف کرد',
+    'ابتدا زیردسته‌ها را حذف کنید'
   ];
   
   return normalErrors.some(normalError => errorMessage.includes(normalError));
@@ -70,40 +72,43 @@ class ApiClient {
       
       // Check if response has content
       const contentType = response.headers.get('content-type');
-      let data;
+      let data: any = {}
       
       if (contentType && contentType.includes('application/json')) {
         try {
-          data = await response.json();
+          const jsonData = await response.json()
+          data = jsonData || {}
         } catch (jsonError) {
-          console.error('Failed to parse JSON response:', jsonError);
-          data = { message: 'خطا در پردازش پاسخ سرور' };
+          console.error('Failed to parse JSON response:', jsonError)
+          data = { message: 'خطا در پردازش پاسخ سرور' }
         }
       } else {
         // If not JSON, try to get text
         try {
-          const text = await response.text();
-          data = { message: text || 'خطا در درخواست' };
+          const text = await response.text()
+          data = { message: text || 'خطا در درخواست' }
         } catch (textError) {
-          console.error('Failed to parse text response:', textError);
-          data = { message: 'خطا در درخواست' };
+          console.error('Failed to parse text response:', textError)
+          data = { message: 'خطا در درخواست' }
         }
       }
 
       if (!response.ok) {
         // Only log unexpected errors, not normal validation errors or auth check failures
-        const isNormalError = data.message && isNormalValidationError(data.message);
+        const errorMessage = data?.message || data?.error || (typeof data === 'string' ? data : '')
+        const isNormalError = errorMessage && isNormalValidationError(errorMessage)
+        const is400Error = response.status === 400
         
-        // Don't log if it's a normal error OR if it's an auth check with 401/403
-        if (!isNormalError && !(isAuthCheck && (response.status === 401 || response.status === 403))) {
+        // Don't log if it's a normal error OR if it's an auth check with 401/403 OR if it's a 400 error (validation)
+        if (!isNormalError && !(isAuthCheck && (response.status === 401 || response.status === 403)) && !is400Error) {
           console.error('Request failed:', {
             url,
             status: response.status,
             statusText: response.statusText,
             data: data
-          });
+          })
         }
-        // For auth check failures, we silently handle them without any logging
+        // For auth check failures and validation errors (400), we silently handle them without any logging
         
         // Handle specific error cases
         if (response.status === 401) {
@@ -141,16 +146,37 @@ class ApiClient {
             // This is likely invalid credentials
             throw new Error('ایمیل یا رمز عبور اشتباه است');
           }
+        } else if (response.status === 400) {
+          // Extract error message from various possible locations
+          let errorMessage = 'درخواست نامعتبر'
+          
+          if (data) {
+            if (typeof data === 'string') {
+              errorMessage = data
+            } else if (data.message) {
+              errorMessage = data.message
+            } else if (data.error) {
+              errorMessage = data.error
+            } else if (typeof data === 'object' && Object.keys(data).length > 0) {
+              // Try to get any property that might contain the message
+              const firstKey = Object.keys(data)[0]
+              errorMessage = String(data[firstKey]) || errorMessage
+            }
+          }
+          
+          throw new Error(errorMessage)
         } else if (response.status === 403) {
-          throw new Error('دسترسی غیرمجاز');
+          throw new Error('دسترسی غیرمجاز')
         } else if (response.status === 404) {
-          throw new Error('منبع یافت نشد');
+          throw new Error('منبع یافت نشد')
         } else if (response.status === 409) {
-          throw new Error(data.message || 'کاربری با این ایمیل قبلاً ثبت شده است');
+          const errorMessage = data?.message || data?.error || 'کاربری با این ایمیل قبلاً ثبت شده است'
+          throw new Error(errorMessage)
         } else if (response.status === 500) {
-          throw new Error('خطا در سرور. لطفاً دوباره تلاش کنید');
+          throw new Error('خطا در سرور. لطفاً دوباره تلاش کنید')
         } else {
-          throw new Error(data.message || `خطا در درخواست (${response.status})`);
+          const errorMessage = data?.message || data?.error || (typeof data === 'string' ? data : `خطا در درخواست (${response.status})`)
+          throw new Error(errorMessage)
         }
       }
 
@@ -560,9 +586,10 @@ class ApiClient {
   }
 
   // Sliders
-  async getSliders() {
+  async getSliders(type?: 'main' | 'promo') {
     try {
-      return await this.request('/sliders');
+      const endpoint = type ? `/sliders?type=${type}` : '/sliders';
+      return await this.request(endpoint);
     } catch (error) {
       // Return empty sliders if endpoint doesn't exist or fails
       return { sliders: [] };

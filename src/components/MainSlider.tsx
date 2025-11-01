@@ -8,6 +8,7 @@ import { Carousel } from '@/components/ui/carousel'
 
 interface Slider {
   _id: string
+  type?: 'main' | 'promo'
   title: string
   subtitle?: string
   description?: string
@@ -30,7 +31,7 @@ export default function MainSlider() {
 
   const fetchSliders = async () => {
     try {
-      const response = await api.getSliders()
+      const response = await api.getSliders('main')
       const activeSliders = (response.sliders || []).filter((slider: Slider) => slider.isActive)
       setSliders(activeSliders.sort((a: Slider, b: Slider) => a.displayOrder - b.displayOrder))
     } catch (error) {

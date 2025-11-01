@@ -167,7 +167,7 @@ export default function AdminProductsPage() {
                         {product.stock}
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
-                        {product.category.name}
+                        {product?.category?.name}
                       </td>
                       <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">

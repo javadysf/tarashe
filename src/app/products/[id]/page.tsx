@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import { api } from '@/lib/api'
-import Head from 'next/head'
 import { useAuthStore } from '@/store/authStore'
 import { useCartStore } from '@/store/cartStore'
 import { toast } from 'react-toastify'
@@ -314,8 +313,8 @@ export default function ProductDetailPage() {
     })
     
     const toastContent = (
-      <div style={{ display: 'flex', flexDirection:'column',alignItems:'center', gap: '12px', padding: '2px' }}>
-        <div style={{ flex: 1, textAlign: 'right' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '2px' }}>
+        <div style={{ flex: 1, textAlign: 'right', marginBottom: '12px' }}>
           <div style={{ fontWeight: '600', color: 'white', marginBottom: '4px' }}>
             محصول به سبد اضافه شد
           </div>
@@ -338,11 +337,10 @@ export default function ProductDetailPage() {
             fontWeight: '500',
             cursor: 'pointer',
             display: 'flex',
-            alignItems: 'center',
-            gap: '6px'
+            alignItems: 'center'
           }}
         >
-          🛒 مشاهده سبد
+          🛒 <span style={{ marginRight: '6px' }}>مشاهده سبد</span>
         </button>
       </div>
     )
@@ -383,85 +381,51 @@ export default function ProductDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-500"></div>
       </div>
     )
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">محصول یافت نشد</h1>
-          <p className="text-gray-600">محصول مورد نظر وجود ندارد یا حذف شده است</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">محصول یافت نشد</h1>
+          <p className="text-gray-600 dark:text-gray-400">محصول مورد نظر وجود ندارد یا حذف شده است</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* SEO Meta + JSON-LD */}
-      <Head>
-        <title>{product.name} | تراشه</title>
-        <meta name="description" content={product.description?.slice(0, 150)} />
-        <meta property="og:title" content={`${product.name} | تراشه`} />
-        <meta property="og:description" content={product.description?.slice(0, 150)} />
-        <meta property="og:type" content="product" />
-        <meta property="og:image" content={product.images?.[0]?.url} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              '@context': 'https://schema.org',
-              '@type': 'Product',
-              name: product.name,
-              image: product.images?.map(i => i.url).filter(Boolean),
-              description: product.description,
-              brand: typeof (product.brand as any) === 'string' ? { '@type': 'Brand', name: product.brand } : { '@type': 'Brand', name: (product.brand as any)?.name },
-              category: categoryInfo?.name,
-              aggregateRating: product.rating?.average ? {
-                '@type': 'AggregateRating',
-                ratingValue: product.rating.average,
-                reviewCount: product.rating.count || reviews.length
-              } : undefined,
-              offers: {
-                '@type': 'Offer',
-                priceCurrency: 'IRR',
-                price: product.price,
-                availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
-              }
-            })
-          }}
-        />
-      </Head>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Breadcrumbs */}
-        <nav className="text-sm text-gray-500 mb-4" aria-label="Breadcrumb">
+        <nav className="text-sm text-gray-500 dark:text-gray-400 mb-4" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2 flex-wrap">
-            <li><a href="/" className="hover:text-blue-600">خانه</a></li>
+            <li><a href="/" className="hover:text-blue-600 dark:hover:text-blue-400">خانه</a></li>
             {parentCategoryInfo && (
               <>
                 <li>›</li>
-                <li><a href={`/products?category=${parentCategoryInfo._id}`} className="hover:text-blue-600">{parentCategoryInfo.name}</a></li>
+                <li><a href={`/products?category=${parentCategoryInfo._id}`} className="hover:text-blue-600 dark:hover:text-blue-400">{parentCategoryInfo.name}</a></li>
               </>
             )}
             {categoryInfo && (
               <>
                 <li>›</li>
-                <li><a href={`/products?category=${categoryInfo._id}`} className="hover:text-blue-600">{categoryInfo.name}</a></li>
+                <li><a href={`/products?category=${categoryInfo._id}`} className="hover:text-blue-600 dark:hover:text-blue-400">{categoryInfo.name}</a></li>
               </>
             )}
             <li>›</li>
-            <li className="text-gray-700">{product.name}</li>
+            <li className="text-gray-700 dark:text-gray-300">{product.name}</li>
           </ol>
         </nav>
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 p-8">
             {/* Images */}
             <div className="space-y-4">
-              <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden">
+              <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden">
                 <Image
                   src={product.images[selectedImage]?.url || '/pics/battery.jpg'}
                   alt={product.images[selectedImage]?.alt || product.name}
@@ -478,7 +442,7 @@ export default function ProductDetailPage() {
                       key={index}
                       onClick={() => setSelectedImage(index)}
                       className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
-                        selectedImage === index ? 'border-blue-500' : 'border-gray-200'
+                        selectedImage === index ? 'border-blue-500 dark:border-blue-400' : 'border-gray-200 dark:border-gray-700'
                       }`}
                     >
                       <Image
@@ -498,11 +462,11 @@ export default function ProductDetailPage() {
             <div className="space-y-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
+                  <span className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium px-3 py-1 rounded-full">
                     {product.category.name}
                   </span>
                   {brandName && (
-                    <span className="bg-gray-100 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">
+                    <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300 text-sm font-medium px-3 py-1 rounded-full">
                       {brandName}
                     </span>
                   )}
@@ -526,7 +490,7 @@ export default function ProductDetailPage() {
                       toast.error(e?.message || 'خطا در ثبت پسند')
                     }
                   }}
-                  className={`ml-auto inline-flex items-center justify-center w-10 h-10 rounded-full border ${isFavorite ? 'bg-red-500 text-white border-red-500' : 'bg-white text-gray-600 border-gray-200'} hover:shadow`}
+                  className={`ml-auto inline-flex items-center justify-center w-10 h-10 rounded-full border ${isFavorite ? 'bg-red-500 text-white border-red-500' : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600'} hover:shadow`}
                   aria-label="like"
                   title="پسندیدن"
                 >
@@ -534,10 +498,10 @@ export default function ProductDetailPage() {
                 </button>
                 </div>
                 
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{product.name}</h1>
                 
                 {product.model && (
-                  <p className="text-lg text-gray-600">مدل: {product.model}</p>
+                  <p className="text-lg text-gray-600 dark:text-gray-400">مدل: {product.model}</p>
                 )}
               </div>
 
@@ -548,7 +512,7 @@ export default function ProductDetailPage() {
                     <svg
                       key={i}
                       className={`w-5 h-5 ${
-                        i < Math.floor(product.rating.average) ? 'text-yellow-400' : 'text-gray-300'
+                        i < Math.floor(product.rating.average) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
                       }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
@@ -557,7 +521,7 @@ export default function ProductDetailPage() {
                     </svg>
                   ))}
                 </div>
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   ({product.rating.average.toFixed(1)}) • {reviews.length || product.rating.count} نظر
                 </span>
               </div>
@@ -565,18 +529,18 @@ export default function ProductDetailPage() {
               {/* Price */}
               <div className="space-y-2">
                 <div className="flex items-center gap-4">
-                  <span className="text-3xl font-bold text-blue-600">
+                  <span className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                     {formatPrice(product.price)} تومان
                   </span>
                   {product.originalPrice && (
-                    <span className="text-xl text-gray-500 line-through">
+                    <span className="text-xl text-gray-500 dark:text-gray-400 line-through">
                       {formatPrice(product.originalPrice)} تومان
                     </span>
                   )}
                 </div>
                 
                 {product.originalPrice && (
-                  <div className="text-sm text-green-600 font-medium">
+                  <div className="text-sm text-green-600 dark:text-green-400 font-medium">
                     {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% تخفیف
                   </div>
                 )}
@@ -586,8 +550,8 @@ export default function ProductDetailPage() {
               <div className="flex items-center justify-between">
                 <div className={`inline-flex px-4 py-2 rounded-full text-sm font-medium ${
                   product.stock > 0 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
+                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                    : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                 }`}>
                   {product.stock > 0 ? `موجود در انبار (${product.stock} عدد)` : 'ناموجود'}
                 </div>
@@ -604,18 +568,18 @@ export default function ProductDetailPage() {
               {product.stock > 0 && (
                 <div className="space-y-4">
                   <div className="flex items-center gap-4">
-                    <label className="text-sm font-medium text-gray-700">تعداد:</label>
-                    <div className="flex items-center border border-gray-300 rounded-lg">
+                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">تعداد:</label>
+                    <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg">
                       <button
                         onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                        className="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                       >
                         -
                       </button>
-                      <span className="px-4 py-2 border-x border-gray-300">{quantity}</span>
+                      <span className="px-4 py-2 border-x border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100">{quantity}</span>
                       <button
                         onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
-                        className="px-3 py-2 text-gray-600 hover:text-gray-800"
+                        className="px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                       >
                         +
                       </button>
@@ -624,7 +588,7 @@ export default function ProductDetailPage() {
 
                   <button
                     onClick={handleAddToCart}
-                    className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors font-medium text-lg"
+                    className="w-full bg-blue-600 dark:bg-blue-700 text-white py-3 px-6 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors font-medium text-lg"
                   >
                     افزودن به سبد خرید
                   </button>
@@ -633,16 +597,16 @@ export default function ProductDetailPage() {
 
 
               {/* Description */}
-              <div className="border-t pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">توضیحات محصول</h3>
-                <p className="text-gray-600 leading-relaxed">{product.description}</p>
+              <div className="border-t dark:border-gray-700 pt-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">توضیحات محصول</h3>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">{product.description}</p>
               </div>
 
               {/* Dynamic Attributes - Table */}
               {product.attributes && Object.keys(product.attributes).length > 0 && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">جدول مشخصات</h3>
-                  <div className="overflow-hidden rounded-xl border border-gray-200">
+                <div className="border-t dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">جدول مشخصات</h3>
+                  <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700">
                     <table className="w-full text-sm">
                       <tbody>
                         {Object.entries(product.attributes).map(([key, value]: [string, any]) => {
@@ -662,9 +626,9 @@ export default function ProductDetailPage() {
                           
                           console.log(`Attribute key: ${key}, isObjectId: ${isObjectId}, name: ${attributeName}, value: ${value}`)
                           return (
-                            <tr key={key} className="odd:bg-white even:bg-gray-50">
-                              <td className="w-1/3 text-gray-600 px-4 py-3 font-medium">{attributeName}</td>
-                              <td className="px-4 py-3 text-gray-900">{value}</td>
+                            <tr key={key} className="odd:bg-white dark:odd:bg-gray-800 even:bg-gray-50 dark:even:bg-gray-700/50">
+                              <td className="w-1/3 text-gray-600 dark:text-gray-400 px-4 py-3 font-medium">{attributeName}</td>
+                              <td className="px-4 py-3 text-gray-900 dark:text-gray-100">{value}</td>
                             </tr>
                           )
                         })}
@@ -676,13 +640,13 @@ export default function ProductDetailPage() {
 
               {/* Specifications */}
               {product.specifications && product.specifications.length > 0 && (
-                <div className="border-t pt-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-3">مشخصات فنی</h3>
+                <div className="border-t dark:border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">مشخصات فنی</h3>
                   <div className="space-y-2">
                     {product.specifications.map((spec, index) => (
-                      <div key={index} className="flex justify-between py-2 border-b border-gray-100">
-                        <span className="text-gray-600">{spec.key}:</span>
-                        <span className="font-medium text-gray-900">{spec.value}</span>
+                      <div key={index} className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span className="text-gray-600 dark:text-gray-400">{spec.key}:</span>
+                        <span className="font-medium text-gray-900 dark:text-gray-100">{spec.value}</span>
                       </div>
                     ))}
                   </div>
@@ -693,23 +657,23 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Reviews Section */}
-        <div className="bg-white rounded-2xl shadow-lg mt-8 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">نظرات کاربران</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mt-8 p-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">نظرات کاربران</h2>
           
           {/* Add Review Form */}
           {user && (
-            <div className="bg-gray-50 rounded-xl p-6 mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">نظر خود را بنویسید</h3>
+            <div className="bg-gray-50 dark:bg-gray-700/30 rounded-xl p-6 mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">نظر خود را بنویسید</h3>
               <form onSubmit={handleSubmitReview} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">امتیاز:</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">امتیاز:</label>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         type="button"
                         onClick={() => setNewReview({...newReview, rating: star})}
-                        className={`w-8 h-8 ${star <= newReview.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                        className={`w-8 h-8 ${star <= newReview.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
                       >
                         <svg fill="currentColor" viewBox="0 0 20 20">
                           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -719,12 +683,12 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">نظر:</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نظر:</label>
                   <textarea
                     value={newReview.comment}
                     onChange={(e) => setNewReview({...newReview, comment: e.target.value})}
                     rows={4}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     placeholder="نظر خود را بنویسید..."
                     required
                   />
@@ -732,7 +696,7 @@ export default function ProductDetailPage() {
                 <button
                   type="submit"
                   disabled={submittingReview}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="bg-blue-600 dark:bg-blue-700 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors disabled:opacity-50"
                 >
                   {submittingReview ? 'در حال ثبت...' : 'ثبت نظر'}
                 </button>
@@ -744,21 +708,21 @@ export default function ProductDetailPage() {
           <div className="space-y-6">
             {reviews.length > 0 ? (
               reviews.map((review) => (
-                <div key={review._id} className="border-b border-gray-200 pb-6">
+                <div key={review._id} className="border-b border-gray-200 dark:border-gray-700 pb-6">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <span className="text-blue-600 font-semibold">
+                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 dark:text-blue-400 font-semibold">
                           {review.user.name.charAt(0)}
                         </span>
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">{review.user.name}</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{review.user.name}</h4>
                         <div className="flex items-center gap-1">
                           {[...Array(5)].map((_, i) => (
                             <svg
                               key={i}
-                              className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
+                              className={`w-4 h-4 ${i < review.rating ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'}`}
                               fill="currentColor"
                               viewBox="0 0 20 20"
                             >
@@ -768,11 +732,11 @@ export default function ProductDetailPage() {
                         </div>
                       </div>
                     </div>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 dark:text-gray-400">
                       {new Date(review.createdAt).toLocaleDateString('fa-IR')}
                     </span>
                   </div>
-                  <p className="text-gray-700 leading-relaxed mb-3">{review.comment}</p>
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">{review.comment}</p>
                   
                   {/* Like/Dislike buttons */}
                   {user && (
@@ -789,7 +753,7 @@ export default function ProductDetailPage() {
                             toast.error(error.message || 'خطا در لایک')
                           }
                         }}
-                        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors cursor-pointer"
+                        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors cursor-pointer"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
@@ -809,7 +773,7 @@ export default function ProductDetailPage() {
                             toast.error(error.message || 'خطا در دیسلایک')
                           }
                         }}
-                        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        className="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
                       >
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.106-1.79l-.05-.025A4 4 0 0011.057 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
@@ -823,17 +787,17 @@ export default function ProductDetailPage() {
                   {(review as any).replies && (review as any).replies.length > 0 && (
                     <div className="mr-8 mt-4 space-y-3">
                       {(review as any).replies.map((reply: any) => (
-                        <div key={reply._id} className="bg-blue-50 p-3 rounded-lg">
+                        <div key={reply._id} className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
                           <div className="flex items-center gap-2 mb-2">
-                            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                            <div className="w-6 h-6 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
                               <span className="text-white text-xs font-semibold">
                                 {reply.user.name.charAt(0)}
                               </span>
                             </div>
-                            <span className="text-sm font-medium text-blue-700">{reply.user.name}</span>
-                            <span className="text-xs text-blue-600 bg-blue-200 px-2 py-1 rounded-full">پاسخ ادمین</span>
+                            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{reply.user.name}</span>
+                            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">پاسخ ادمین</span>
                           </div>
-                          <p className="text-sm text-gray-700">{reply.comment}</p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">{reply.comment}</p>
                         </div>
                       ))}
                     </div>
@@ -842,10 +806,10 @@ export default function ProductDetailPage() {
               ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">هنوز نظری ثبت نشده است</p>
+                <p className="text-gray-500 dark:text-gray-400">هنوز نظری ثبت نشده است</p>
                 {!user && (
-                  <p className="text-sm text-gray-400 mt-2">
-                    برای ثبت نظر <a href="/auth/login" className="text-blue-600 hover:underline">وارد شوید</a>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                    برای ثبت نظر <a href="/auth/login" className="text-blue-600 dark:text-blue-400 hover:underline">وارد شوید</a>
                   </p>
                 )}
               </div>
@@ -855,8 +819,8 @@ export default function ProductDetailPage() {
 
         {/* Accessories Section */}
         {accessories.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg mt-8 p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">متعلقات این محصول</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mt-8 p-8">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">متعلقات این محصول</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {accessories.slice(0, 4).map((accessory) => {
@@ -865,9 +829,9 @@ export default function ProductDetailPage() {
                 const discountedPrice = originalPrice - discountAmount
                 
                 return (
-                  <div key={accessory.accessory._id} className="group border border-gray-200 rounded-xl p-4 hover:shadow-lg transition-all duration-300">
+                  <div key={accessory.accessory._id} className="group border border-gray-200 dark:border-gray-700 rounded-xl p-4 hover:shadow-lg transition-all duration-300">
                     <a href={`/products/${accessory.accessory._id}`} className="block">
-                      <div className="bg-gray-100 rounded-xl overflow-hidden mb-4 aspect-square">
+                      <div className="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden mb-4 aspect-square">
                         <Image
                           src={accessory.accessory.images[0]?.url || '/pics/battery.jpg'}
                           alt={accessory.accessory.name}
@@ -878,32 +842,32 @@ export default function ProductDetailPage() {
                       </div>
                       
                       <div className="space-y-2">
-                        <h3 className="font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                        <h3 className="font-semibold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                           {accessory.accessory.name}
                         </h3>
                         
                         <div className="flex items-center gap-2">
                           {accessory.bundleDiscount > 0 ? (
                             <>
-                              <span className="text-lg font-bold text-blue-600">
+                              <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                                 {formatPrice(discountedPrice)} تومان
                               </span>
-                              <span className="text-sm text-gray-500 line-through">
+                              <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
                                 {formatPrice(originalPrice)}
                               </span>
-                              <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full">
+                              <span className="text-xs bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2 py-1 rounded-full">
                                 {accessory.bundleDiscount}% تخفیف
                               </span>
                             </>
                           ) : (
-                            <span className="text-lg font-bold text-blue-600">
+                            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                               {formatPrice(originalPrice)} تومان
                             </span>
                           )}
                         </div>
                         
                         {accessory.isSuggested && (
-                          <div className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          <div className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
                             پیشنهادی
                           </div>
                         )}
@@ -922,7 +886,7 @@ export default function ProductDetailPage() {
                         })
                         toast.success('متعلق به سبد اضافه شد')
                       }}
-                      className="w-full mt-3 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      className="w-full mt-3 bg-blue-600 dark:bg-blue-700 text-white py-2 px-4 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors text-sm font-medium"
                     >
                       افزودن به سبد
                     </button>
@@ -935,7 +899,7 @@ export default function ProductDetailPage() {
               <div className="text-center mt-6">
                 <button
                   onClick={() => setShowAccessorySelector(true)}
-                  className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  className="inline-flex items-center gap-2 bg-blue-600 dark:bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors font-medium"
                 >
                   مشاهده همه متعلقات ({accessories.length})
                 </button>
@@ -945,18 +909,16 @@ export default function ProductDetailPage() {
         )}
 
         {/* Related Products Section */}
-        <div className="bg-white rounded-2xl shadow-lg mt-8 p-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">محصولات مشابه</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mt-8 p-8">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">محصولات مشابه</h2>
           
           {relatedProducts.length > 0 ? (
-          <div className="bg-white rounded-2xl shadow-lg mt-8 p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">محصولات مشابه</h2>
-            
+            <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <div key={relatedProduct._id} className="group">
                   <a href={`/products/${relatedProduct._id}`} className="block">
-                    <div className="bg-gray-100 rounded-xl overflow-hidden mb-4 aspect-square">
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden mb-4 aspect-square">
                       <Image
                         src={relatedProduct.images[0]?.url || '/pics/battery.jpg'}
                         alt={relatedProduct.name}
@@ -967,7 +929,7 @@ export default function ProductDetailPage() {
                     </div>
                     
                     <div className="space-y-2">
-                      <h3 className="font-semibold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                      <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
                         {relatedProduct.name}
                       </h3>
                       
@@ -976,7 +938,7 @@ export default function ProductDetailPage() {
                           <svg
                             key={i}
                             className={`w-4 h-4 ${
-                              i < Math.floor(relatedProduct.rating.average) ? 'text-yellow-400' : 'text-gray-300'
+                              i < Math.floor(relatedProduct.rating.average) ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600'
                             }`}
                             fill="currentColor"
                             viewBox="0 0 20 20"
@@ -984,15 +946,15 @@ export default function ProductDetailPage() {
                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                           </svg>
                         ))}
-                        <span className="text-sm text-gray-500 mr-1">({relatedProduct.rating.count})</span>
+                        <span className="text-sm text-gray-500 dark:text-gray-400 mr-1">({relatedProduct.rating.count})</span>
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-blue-600">
+                        <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                           {formatPrice(relatedProduct.price)} تومان
                         </span>
                         {relatedProduct.originalPrice && (
-                          <span className="text-sm text-gray-500 line-through">
+                          <span className="text-sm text-gray-500 dark:text-gray-400 line-through">
                             {formatPrice(relatedProduct.originalPrice)}
                           </span>
                         )}
@@ -1000,8 +962,8 @@ export default function ProductDetailPage() {
                       
                       <div className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
                         relatedProduct.stock > 0 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                          : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                       }`}>
                         {relatedProduct.stock > 0 ? 'موجود' : 'ناموجود'}
                       </div>
@@ -1014,7 +976,7 @@ export default function ProductDetailPage() {
             <div className="text-center mt-8">
               <a
                 href={`/products?category=${product?.category?._id}`}
-                className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="inline-flex items-center gap-2 bg-blue-600 dark:bg-blue-700 text-white px-6 py-3 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors font-medium"
               >
                 مشاهده همه محصولات {product?.category.name}
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1022,10 +984,10 @@ export default function ProductDetailPage() {
                 </svg>
               </a>
             </div>
-          </div>
+            </>
           ) : (
             <div className="text-center py-8">
-              <p className="text-gray-500">محصول مشابهی یافت نشد</p>
+              <p className="text-gray-500 dark:text-gray-400">محصول مشابهی یافت نشد</p>
             </div>
           )}
         </div>

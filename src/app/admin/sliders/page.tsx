@@ -6,6 +6,7 @@ import ImageUpload from '@/components/ImageUpload'
 
 interface Slider {
   _id: string
+  type: 'main' | 'promo'
   title: string
   subtitle: string
   backgroundImage: string
@@ -27,7 +28,9 @@ export default function SliderManagement() {
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
   const [editingSlider, setEditingSlider] = useState<Slider | null>(null)
+  const [activeTab, setActiveTab] = useState<'main' | 'promo'>('main')
   const [formData, setFormData] = useState({
+    type: 'main' as 'main' | 'promo',
     title: '',
     subtitle: '',
     backgroundImage: '',
@@ -108,6 +111,7 @@ export default function SliderManagement() {
   const handleEdit = (slider: Slider) => {
     setEditingSlider(slider)
     setFormData({
+      type: slider.type,
       title: slider.title,
       subtitle: slider.subtitle,
       backgroundImage: slider.backgroundImage,
@@ -152,6 +156,7 @@ export default function SliderManagement() {
 
   const resetForm = () => {
     setFormData({
+      type: activeTab,
       title: '',
       subtitle: '',
       backgroundImage: '',
@@ -185,6 +190,8 @@ export default function SliderManagement() {
     )
   }
 
+  const filteredSliders = sliders.filter(slider => slider.type === activeTab)
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -211,6 +218,30 @@ export default function SliderManagement() {
         </div>
       </div>
 
+      {/* Tabs */}
+      <div className="mb-6 flex gap-4 border-b border-gray-200">
+        <button
+          onClick={() => setActiveTab('main')}
+          className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+            activeTab === 'main'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          اسلایدر اصلی ({sliders.filter(s => s.type === 'main').length})
+        </button>
+        <button
+          onClick={() => setActiveTab('promo')}
+          className={`px-6 py-3 font-semibold transition-colors border-b-2 ${
+            activeTab === 'promo'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          بنر صفحه اول ({sliders.filter(s => s.type === 'promo').length})
+        </button>
+      </div>
+
       {showForm && (
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">
@@ -218,7 +249,22 @@ export default function SliderManagement() {
           </h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  نوع اسلایدر
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as 'main' | 'promo' }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                >
+                  <option value="main">اسلایدر اصلی</option>
+                  <option value="promo">بنر صفحه اول</option>
+                </select>
+              </div>
+              
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   عنوان اصلی
@@ -378,7 +424,7 @@ export default function SliderManagement() {
       )}
 
       <div className="grid gap-6">
-        {sliders.length === 0 ? (
+        {filteredSliders.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">🎠</div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">هیچ اسلایدری یافت نشد</h3>
@@ -395,7 +441,7 @@ export default function SliderManagement() {
             </button>
           </div>
         ) : (
-          sliders.map((slider) => (
+          filteredSliders.map((slider) => (
             <div key={slider._id} className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex max-sm:flex-col max-sm:gap-8 items-center justify-between mb-4">
                 <div className="flex  items-center gap-3">

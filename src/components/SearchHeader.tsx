@@ -32,17 +32,17 @@ export default function SearchHeader({
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border-0 p-4 md:p-6 mb-8"
+      className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border-0 p-4 md:p-6 mb-8"
     >
       {/* Header */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
         <div>
-          <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
             محصولات
           </h1>
-          <div className="text-sm md:text-base text-gray-600 flex items-center gap-2">
+          <div className="text-sm md:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
             مجموعه کاملی از بهترین محصولات
-            <Badge variant="secondary" className="bg-blue-100 text-blue-700 text-xs md:text-sm">
+            <Badge variant="secondary" className="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs md:text-sm">
               {productsCount} محصول
             </Badge>
           </div>
@@ -75,13 +75,13 @@ export default function SearchHeader({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Search Box */}
         <div className="relative lg:col-span-2">
-          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
           <Input
             type="text"
             placeholder="جستجو در محصولات..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pr-10 h-12 text-base bg-white/80 border-2 border-gray-200 focus:border-blue-500 transition-colors"
+            className="pr-10 h-12 text-base bg-white/80 dark:bg-gray-900/80 border-2 border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
           />
           {searchTerm && (
             <motion.div
@@ -93,7 +93,7 @@ export default function SearchHeader({
                 variant="ghost"
                 size="sm"
                 onClick={() => setSearchTerm('')}
-                className="h-6 w-6 p-0 hover:bg-gray-100 rounded-full"
+                className="h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
               >
                 ×
               </Button>
@@ -103,9 +103,9 @@ export default function SearchHeader({
 
         {/* Sort Options */}
         <div className="relative">
-          <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+          <SlidersHorizontal className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" />
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="pr-10 h-12 bg-white/80 border-2 border-gray-200">
+            <SelectTrigger className="pr-10 h-12 bg-white/80 dark:bg-gray-900/80 border-2 border-gray-200 dark:border-gray-700">
               <SelectValue placeholder="مرتب‌سازی" />
             </SelectTrigger>
             <SelectContent>
@@ -125,9 +125,9 @@ export default function SearchHeader({
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
-          className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200"
+          className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800"
         >
-          <div className="text-sm text-blue-700">
+          <div className="text-sm text-blue-700 dark:text-blue-300">
             نتایج جستجو برای: <span className="font-semibold">"{searchTerm}"</span>
             {productsCount > 0 ? (
               <span> - {productsCount} محصول یافت شد</span>

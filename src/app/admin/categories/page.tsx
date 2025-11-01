@@ -115,9 +115,23 @@ export default function CategoriesPage() {
     try {
       await api.deleteCategory(id)
       setCategories(categories.filter(cat => cat._id !== id))
-      toast.success('دسته بندی با موفقیت حذف شد')
+      toast.success('✅ دسته بندی با موفقیت حذف شد')
     } catch (error: any) {
-      toast.error(error.message || 'خطا در حذف دسته بندی')
+      let errorMessage = 'خطا در حذف دسته بندی'
+      
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      }
+      
+      toast.error(`❌ ${errorMessage}`, {
+        autoClose: 5000,
+      })
     } finally {
       setDeleting(null)
     }

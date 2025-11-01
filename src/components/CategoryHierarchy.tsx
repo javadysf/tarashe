@@ -146,8 +146,8 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
-        <div className="h-32 bg-gray-100 rounded-xl animate-pulse" />
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
+        <div className="h-32 bg-gray-100 dark:bg-gray-700 rounded-xl animate-pulse" />
       </div>
     )
   }
@@ -155,23 +155,23 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
   const breadcrumb = getBreadcrumb()
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 mb-8">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-8">
       {/* Breadcrumb */}
       {breadcrumb.length > 0 && (
-        <div className="flex items-center gap-2 mb-6 text-sm text-gray-600">
+        <div className="flex items-center gap-2 mb-6 text-sm text-gray-600 dark:text-gray-400">
           <Link 
             href="/products" 
-            className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+            className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
           >
             <Home className="w-4 h-4" />
             همه محصولات
           </Link>
           {breadcrumb.map((item, index) => (
             <div key={item.id} className="flex items-center gap-2">
-              <span className="text-gray-300">›</span>
+              <span className="text-gray-300 dark:text-gray-600">›</span>
               <button
                 onClick={() => onCategorySelect(item.id)}
-                className="hover:text-blue-600 transition-colors"
+                className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 {item.name}
               </button>
@@ -191,7 +191,7 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
                 onCategorySelect('')
               }
             }}
-            className="flex items-center gap-2 text-blue-600 hover:text-blue-700 transition-colors"
+            className="flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
             {parentCategory ? `بازگشت به ${parentCategory.name}` : 'بازگشت به همه دسته‌ها'}
@@ -207,15 +207,15 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
             <>
               <button
                 onClick={nextSlide}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 shadow-lg rounded-full p-2 transition-all duration-200"
               >
-                <ChevronRight className="w-5 h-5 text-gray-600" />
+                <ChevronRight className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
               <button
                 onClick={prevSlide}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 transition-all duration-200"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/90 dark:bg-gray-800/90 hover:bg-white dark:hover:bg-gray-800 shadow-lg rounded-full p-2 transition-all duration-200"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               </button>
             </>
           )}
@@ -234,7 +234,7 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
                   onClick={() => onCategorySelect(category._id)}
                   className="group flex flex-col items-center p-2 transition-all duration-200"
                 >
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100 mb-3 shadow-lg group-hover:shadow-xl transition-all duration-200">
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden bg-gray-100 dark:bg-gray-700 mb-3 shadow-lg group-hover:shadow-xl transition-all duration-200">
                     <Image
                       src={imageUrl}
                       alt={category.image?.alt || category.name}
@@ -247,7 +247,7 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
                     />
                     <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors duration-200 rounded-full" />
                   </div>
-                  <span className="text-sm font-bold text-gray-900 text-center group-hover:text-blue-600 transition-colors leading-tight line-clamp-2">
+                  <span className="text-sm font-bold text-gray-900 dark:text-gray-100 text-center group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight line-clamp-2">
                     {category.name}
                   </span>
                 </button>
@@ -264,8 +264,8 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
                   onClick={() => goToSlide(index)}
                   className={`w-2 h-2 rounded-full transition-all duration-200 ${
                     index === currentSlide
-                      ? 'bg-blue-600 w-6'
-                      : 'bg-gray-300 hover:bg-gray-400'
+                      ? 'bg-blue-600 dark:bg-blue-500 w-6'
+                      : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                   }`}
                 />
               ))}

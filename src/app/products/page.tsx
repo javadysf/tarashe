@@ -8,7 +8,6 @@ import ProductCard from '@/components/ProductCard'
 import ProductListItem from '@/components/ProductListItem'
 import FilterSidebar from '@/components/FilterSidebar'
 import SearchHeader from '@/components/SearchHeader'
-import ProductStats from '@/components/ProductStats'
 import CategoryHierarchy from '@/components/CategoryHierarchy'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Button } from '@/components/ui/button'
@@ -269,7 +268,7 @@ export default function ProductsPage() {
   }
 
   const LoadingSkeleton = () => (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
@@ -294,15 +293,15 @@ export default function ProductsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="text-center p-8 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl"
+          className="text-center p-8 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl"
         >
-          <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-bold text-gray-900 mb-2">{error}</h3>
-          <p className="text-gray-600 mb-6">لطفاً دوباره تلاش کنید</p>
+          <Package className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+          <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">{error}</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">لطفاً دوباره تلاش کنید</p>
           <Button onClick={retryFetch} className="flex items-center gap-2">
             <RefreshCw className="w-4 h-4" />
             تلاش مجدد
@@ -313,7 +312,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search Header */}
         <SearchHeader
@@ -389,18 +388,18 @@ export default function ProductsPage() {
                   transition={{ duration: 0.3 }}
                   className="text-center py-16"
                 >
-                  <div className="w-24 h-24 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Package className="w-12 h-12 text-gray-400" />
+                  <div className="w-24 h-24 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Package className="w-12 h-12 text-gray-400 dark:text-gray-500" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">محصولی یافت نشد</h3>
-                  <p className="text-gray-600 mb-6">لطفاً فیلترهای خود را تغییر دهید یا عبارت جستجوی دیگری امتحان کنید</p>
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">محصولی یافت نشد</h3>
+                  <p className="text-gray-600 dark:text-gray-400 mb-6">لطفاً فیلترهای خود را تغییر دهید یا عبارت جستجوی دیگری امتحان کنید</p>
                   <Button
                     onClick={() => {
                       setFilters({category: 'all', brand: [], minPrice: 0, maxPrice: 10000000, minRating: 0, attributes: {}})
                       setSearchTerm('')
                     }}
                     variant="outline"
-                    className="border-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                    className="border-2 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                   >
                     پاک کردن همه فیلترها
                   </Button>

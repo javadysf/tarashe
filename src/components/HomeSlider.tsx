@@ -42,14 +42,29 @@ export default function HomeSlider() {
   const [categories, setCategories] = useState<Category[]>([])
   const [latestProducts, setLatestProducts] = useState<Product[]>([])
   const [discountedProducts, setDiscountedProducts] = useState<Product[]>([])
+  const [bestSellingProducts, setBestSellingProducts] = useState<Product[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
   const [loading, setLoading] = useState(true)
-  
+  const [promoBanners, setPromoBanners] = useState<any[]>([])
 
 
   useEffect(() => {
     fetchAllData()
+    fetchPromoBanners()
   }, [])
+
+  const fetchPromoBanners = async () => {
+    try {
+      // Get first 2 active promo banners
+      const slidersResponse = await api.getSliders('promo')
+      const activeSliders = (slidersResponse.sliders || []).filter((s: any) => s.isActive)
+      const sortedSliders = activeSliders.sort((a: any, b: any) => a.displayOrder - b.displayOrder)
+      setPromoBanners(sortedSliders.slice(0, 2))
+    } catch (error) {
+      console.error('Error fetching promo banners:', error)
+      setPromoBanners([])
+    }
+  }
 
   const fetchAllData = async () => {
     try {
@@ -84,6 +99,15 @@ export default function HomeSlider() {
       } catch (error) {
         console.error('Error fetching discounted products:', error)
         setDiscountedProducts([])
+      }
+      
+      // Fetch best-selling products
+      try {
+        const bestSellingResponse = await api.getProducts({ sort: 'bestselling', limit: 10 })
+        setBestSellingProducts(bestSellingResponse.products || [])
+      } catch (error) {
+        console.error('Error fetching best-selling products:', error)
+        setBestSellingProducts([])
       }
       
     } catch (error) {
@@ -143,23 +167,23 @@ export default function HomeSlider() {
     if (categories.length === 0) return null
     
     return (
-      <div className="sm:px-12">
+      <div className="sm:px-4">
         <Carousel>
           {chunkArray(categories, 10).map((catChunk, idx) => (
-            <div key={idx} className="w-full">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div key={idx} className="w-full py-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-6 md:gap-6">
                 {catChunk.map((category) => (
                   <Link
                     key={category._id}
                     href={`/products?category=${encodeURIComponent(category._id)}`}
-                    className="group relative glass rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center block"
+                    className="group flex flex-col items-center gap-2 hover:scale-105 transition-all duration-300"
                   >
-                    <div className="relative w-32 h-32 sm:w-32 sm:h-32 mx-auto mb-2 rounded-full overflow-hidden bg-white ring-[0.5px] ring-white/30 shadow-lg shadow-white/20">
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-full overflow-hidden bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border-2 border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
                       <Image
                         src={getCategoryImage(category)}
                         alt={category.image?.alt || category.name}
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="object-cover transition-transform duration-300"
                         loading="lazy"
                         unoptimized={category.image?.url?.startsWith('/uploads')}
                         onError={(e) => {
@@ -169,8 +193,9 @@ export default function HomeSlider() {
                           }
                         }}
                       />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-full"></div>
                     </div>
-                    <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors line-clamp-2">
+                    <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-yellow-300 transition-colors text-center line-clamp-2 max-w-[100px] sm:max-w-[120px]">
                       {category.name}
                     </h3>
                   </Link>
@@ -190,7 +215,7 @@ export default function HomeSlider() {
           <div key={idx} className="w-full">
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2">
               {prodChunk.map((product, i) => (
-                <div key={product._id} className="w-full sm:max-w-[260px] mx-auto sm:h-[420px]">
+                <div key={product._id} className="w-full sm:max-w-[280px] mx-auto sm:h-[490px]">
                   <ProductCard product={product} index={i} className="h-full" />
                 </div>
               ))}
@@ -208,7 +233,25 @@ export default function HomeSlider() {
           <div key={idx} className="w-full">
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-3">
               {prodChunk.map((product, i) => (
-                <div key={product._id} className="w-full max-w-[160px] sm:max-w-[200px] mx-auto h-[320px] md:h-[420px]">
+                <div key={product._id} className="w-full sm:max-w-[270px] mx-auto sm:h-[490px]">
+                  <ProductCard product={product} index={i} className="h-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </Carousel>
+    </div>
+  )
+
+  const renderBestSellingProductsSlider = () => (
+    <div className="sm:px-8">
+      <Carousel>
+        {chunkArray(bestSellingProducts, 4).map((prodChunk, idx) => (
+          <div key={idx} className="w-full">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-2">
+              {prodChunk.map((product, i) => (
+                <div key={product._id} className="w-full sm:max-w-[280px] mx-auto sm:h-[490px]">
                   <ProductCard product={product} index={i} className="h-full" />
                 </div>
               ))}
@@ -302,7 +345,7 @@ export default function HomeSlider() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
-            className="mb-8"
+            className="mb-4"
           >
             {renderCategoriesSlider()}
           </motion.div>
@@ -326,6 +369,95 @@ export default function HomeSlider() {
           </motion.div>
         </div>
       </section>
+
+      {/* Promo Banners Section */}
+      {promoBanners.length > 0 && (
+        <section className="py-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="grid grid-cols-1 md:grid-cols-2 gap-6"
+            >
+              {promoBanners.map((banner, index) => (
+                <Link
+                  key={banner._id}
+                  href={banner.buttonLink || '/products'}
+                  className="group relative h-[280px] rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]"
+                >
+                  <Image
+                    src={banner.backgroundImage || '/pics/battery.jpg'}
+                    alt={banner.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    unoptimized={banner.backgroundImage?.startsWith('/uploads')}
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      if (!target.src.includes('/pics/battery.jpg')) {
+                        target.src = '/pics/battery.jpg'
+                      }
+                    }}
+                  />
+                  <div
+                    className="absolute inset-0 bg-gradient-to-br from-black/60 via-black/40 to-transparent"
+                    style={{
+                      backgroundColor: `rgba(0, 0, 0, ${banner.overlayOpacity || 0.5})`
+                    }}
+                  />
+                  <div className="absolute inset-0 flex flex-col justify-end p-8">
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      viewport={{ once: true }}
+                    >
+                      {banner.subtitle && (
+                        <p
+                          className="text-sm font-semibold mb-2 uppercase tracking-wider drop-shadow-lg"
+                          style={{ color: banner.textColor || '#fbbf24' }}
+                        >
+                          {banner.subtitle}
+                        </p>
+                      )}
+                      <h3
+                        className="text-2xl md:text-3xl font-bold mb-4 drop-shadow-lg group-hover:translate-x-2 transition-transform duration-300"
+                        style={{ color: banner.textColor || '#ffffff' }}
+                      >
+                        {banner.title}
+                      </h3>
+                      {banner.description && (
+                        <p
+                          className="text-sm md:text-base mb-4 max-w-md drop-shadow-md line-clamp-2"
+                          style={{ color: banner.textColor || '#ffffff' }}
+                        >
+                          {banner.description}
+                        </p>
+                      )}
+                      {banner.buttonText && (
+                        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform group-hover:scale-105 shadow-lg"
+                          style={{ 
+                            backgroundColor: banner.buttonColor || '#3b82f6',
+                            color: '#ffffff'
+                          }}
+                        >
+                          <span>{banner.buttonText}</span>
+                          <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                          </svg>
+                        </div>
+                      )}
+                    </motion.div>
+                  </div>
+                  {/* Decorative gradient overlay */}
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-yellow-400/20 to-transparent rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
+                </Link>
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Brands Slider */}
       <section className="py-16 bg-gradient-8">
@@ -475,6 +607,58 @@ export default function HomeSlider() {
               className="inline-flex items-center gap-2 bg-gradient-2 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
             >
               <span>مشاهده همه تخفیف‌ها</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </Link>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Best Selling Products Slider */}
+      <section className="py-12 bg-gradient-3">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            viewport={{ once: true }}
+            className="text-center mb-8"
+          >
+            <div className="inline-flex items-center gap-2 glass text-white px-2 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
+              <span className="text-xl">⭐</span>
+              محصولات پرفروش
+            </div>
+            <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+              پرفروش‌ترین محصولات
+            </h2>
+            <p className="text-lg text-white/90 drop-shadow-md">
+              محصولات محبوب و پرفروش مشتریان
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            viewport={{ once: true }}
+            className="mb-8"
+          >
+            {renderBestSellingProductsSlider()}
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <Link
+              href="/products?sort=bestselling"
+              className="inline-flex items-center gap-2 bg-gradient-4 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
+            >
+              <span>مشاهده همه محصولات پرفروش</span>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>

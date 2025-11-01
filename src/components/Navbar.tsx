@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { User } from 'lucide-react'
 import Image from 'next/image'
 import logo from "../../public/pics/logo.jpg"
-import CartButton from './CartButton'
 import { useAuthStore } from '@/store/authStore'
 import SearchWithCategories from './SearchWithCategories'
 import ThemeToggle from './ThemeToggle'
@@ -137,7 +136,7 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center space-x-2 text-sm space-x-reverse px-3 py-2 rounded-lg font-medium transition-all duration-300 group ${
+                  className={`flex items-center space-x-2 text-md space-x-reverse px-3 py-2 rounded-lg font-medium transition-all duration-300 group ${
                     isActive(item.href)
                       ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 shadow-sm'
                       : 'text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10'
@@ -152,7 +151,7 @@ export default function Navbar() {
             </div>
 
             {/* Right Side */}
-            <div className="hidden md:flex items-center space-x-4 space-x-reverse">
+            <div className="hidden sm:mr-16 md:flex items-center space-x-4 space-x-reverse">
               <ThemeToggle />
             </div>
           </div>

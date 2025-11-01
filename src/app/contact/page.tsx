@@ -67,14 +67,14 @@ export default function Contact() {
 
   if (loading) {
     return (
-      <div className="py-16">
+      <div className="py-16 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="animate-pulse">
-            <div className="h-12 bg-gray-200 rounded w-1/3 mx-auto mb-6"></div>
-            <div className="h-6 bg-gray-200 rounded w-2/3 mx-auto mb-16"></div>
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mx-auto mb-6"></div>
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-2/3 mx-auto mb-16"></div>
             <div className="grid lg:grid-cols-2 gap-12">
-              <div className="h-96 bg-gray-200 rounded"></div>
-              <div className="h-96 bg-gray-200 rounded"></div>
+              <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div className="h-96 bg-gray-200 dark:bg-gray-700 rounded"></div>
             </div>
           </div>
         </div>
@@ -127,13 +127,13 @@ export default function Contact() {
   ]
 
   return (
-    <div className="py-16">
+    <div className="py-16 bg-white dark:bg-gray-900">
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16">
-        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-4 sm:mb-6">
+        <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">
           {content?.heroTitle || 'تماس با ما'}
         </h1>
-        <p className="text-base sm:text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+        <p className="text-base sm:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
           {content?.heroSubtitle || 'ما همیشه آماده پاسخگویی به سوالات شما هستیم. با ما در تماس باشید.'}
         </p>
       </section>
@@ -141,11 +141,11 @@ export default function Contact() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-6 sm:gap-12">
           {/* Contact Form */}
-          <div className="bg-white p-4 sm:p-8 rounded-lg shadow-lg">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">فرم تماس</h2>
+          <div className="bg-white dark:bg-gray-800 p-4 sm:p-8 rounded-lg shadow-lg">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">فرم تماس</h2>
             
             {submitted && (
-              <div className="bg-green-50 border border-green-200 text-green-800 px-4 py-3 rounded-lg mb-6">
+              <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 text-green-800 dark:text-green-300 px-4 py-3 rounded-lg mb-6">
                 پیام شما با موفقیت ارسال شد. به زودی با شما تماس خواهیم گرفت.
               </div>
             )}
@@ -153,7 +153,7 @@ export default function Contact() {
             <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
               <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     نام و نام خانوادگی *
                   </label>
                   <input
@@ -163,12 +163,12 @@ export default function Contact() {
                     required
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     placeholder="نام خود را وارد کنید"
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     ایمیل *
                   </label>
                   <input
@@ -178,7 +178,7 @@ export default function Contact() {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     placeholder="example@email.com"
                   />
                 </div>
@@ -186,7 +186,7 @@ export default function Contact() {
 
               <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     شماره تماس
                   </label>
                   <input
@@ -195,12 +195,12 @@ export default function Contact() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                     placeholder="09123456789"
                   />
                 </div>
                 <div>
-                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     موضوع *
                   </label>
                   <select
@@ -209,7 +209,7 @@ export default function Contact() {
                     required
                     value={formData.subject}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">انتخاب کنید</option>
                     <option value="general">سوال عمومی</option>
@@ -221,7 +221,7 @@ export default function Contact() {
               </div>
 
               <div>
-                <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="message" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   پیام *
                 </label>
                 <textarea
@@ -231,7 +231,7 @@ export default function Contact() {
                   rows={5}
                   value={formData.message}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100"
                   placeholder="پیام خود را بنویسید..."
                 />
               </div>
@@ -239,7 +239,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-blue-600 dark:bg-blue-700 text-white py-3 px-6 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-800 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? 'در حال ارسال...' : 'ارسال پیام'}
               </button>
@@ -248,19 +248,19 @@ export default function Contact() {
 
           {/* Contact Info */}
           <div>
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6">اطلاعات تماس</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4 sm:mb-6">اطلاعات تماس</h2>
             <div className="space-y-4 sm:space-y-6">
               {contactInfo.map((item, index) => (
-                <div key={index} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg">
-                  <div className="text-blue-600 mt-1">
+                <div key={index} className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                  <div className="text-blue-600 dark:text-blue-400 mt-1">
                     {item.icon}
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">{item.title}</h3>
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-1 text-sm sm:text-base">{item.title}</h3>
                     {item.link.startsWith('#') ? (
-                      <p className="text-gray-600 text-sm sm:text-base">{item.info}</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">{item.info}</p>
                     ) : (
-                      <a href={item.link} className="text-gray-600 hover:text-blue-600 transition-colors text-sm sm:text-base">
+                      <a href={item.link} className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm sm:text-base">
                         {item.info}
                       </a>
                     )}
@@ -271,18 +271,18 @@ export default function Contact() {
 
             {/* Map Section */}
             <div className="mt-8">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-3 sm:mb-4">موقعیت ما</h3>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 sm:mb-4">موقعیت ما</h3>
               {content?.contactInfo?.mapEmbedCode ? (
                 <div 
                   className="w-full h-64 rounded-lg overflow-hidden"
                   dangerouslySetInnerHTML={{ __html: content.contactInfo.mapEmbedCode }}
                 />
               ) : (
-                <div className="bg-gray-200 h-48 sm:h-64 rounded-lg flex items-center justify-center">
+                <div className="bg-gray-200 dark:bg-gray-700 h-48 sm:h-64 rounded-lg flex items-center justify-center">
                   <div className="text-center">
                     <div className="text-4xl mb-2">🗺️</div>
-                    <p className="text-gray-500 mb-2 text-sm sm:text-base">نقشه محل شرکت</p>
-                    <p className="text-xs sm:text-sm text-gray-400">
+                    <p className="text-gray-500 dark:text-gray-400 mb-2 text-sm sm:text-base">نقشه محل شرکت</p>
+                    <p className="text-xs sm:text-sm text-gray-400 dark:text-gray-500">
                       {content?.contactInfo?.mapAddress || 'آدرس: تهران، خیابان ولیعصر، پلاک 123'}
                     </p>
                   </div>

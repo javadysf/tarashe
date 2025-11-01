@@ -25,11 +25,11 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
         className={cn("relative flex w-full touch-none select-none items-center", className)}
         {...props}
       >
-        <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-gray-200">
+        <div className="relative h-2 w-full grow overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
           <div
-            className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500"
+            className="absolute h-full bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-600 dark:to-purple-600"
             style={{
-              left: `${getPercentage(Math.min(value[0], value[1]))}%`,
+              right: `${getPercentage(Math.min(value[0], value[1]))}%`,
               width: `${Math.abs(getPercentage(value[1]) - getPercentage(value[0]))}%`,
             }}
           />
@@ -43,7 +43,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             step={step}
             value={val}
             onChange={(e) => handleChange(index, Number(e.target.value))}
-            className="absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-500"
+            className="absolute h-2 w-full cursor-pointer appearance-none bg-transparent [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:dark:bg-gray-800 [&::-webkit-slider-thumb]:shadow-lg [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-blue-500 [&::-webkit-slider-thumb]:dark:border-blue-400"
           />
         ))}
       </div>

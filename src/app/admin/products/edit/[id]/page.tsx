@@ -519,7 +519,7 @@ export default function EditProductPage() {
 
                           {newAttribute.type === 'select' && (
                             <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-1">گزینهها</label>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">گزینه ها</label>
                               <div className="space-y-2">
                                 {newAttribute.options.map((option, index) => (
                                   <div key={index} className="flex gap-2">
