@@ -111,7 +111,7 @@ export default function ProductListItem({ product, index }: ProductListItemProps
                 variant="secondary" 
                 className="absolute top-3 right-3 bg-blue-600 text-white border-0 shadow-lg text-xs"
               >
-                {product.category.name}
+                {product?.category?.name}
               </Badge>
 
               {/* Stock Badge */}

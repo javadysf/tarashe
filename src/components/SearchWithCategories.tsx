@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { api } from '@/lib/api'
 import GlobalSearch from './GlobalSearch'
 import CartButton from './CartButton'
+import MobileCategoryMenu from './MobileCategoryMenu'
 
 interface Category {
   _id: string
@@ -63,8 +64,14 @@ export default function SearchWithCategories() {
 
   return (
     <div className="flex items-center  gap-2 md:gap-4 w-full max-w-6xl">
-      {/* Categories Menu */}
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
+      {/* Mobile Categories Menu */}
+      <div className="md:hidden">
+        <MobileCategoryMenu />
+      </div>
+
+      {/* Desktop Categories Menu */}
+      <div className="hidden md:block">
+        <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <button 
             onMouseEnter={() => {
@@ -100,84 +107,19 @@ export default function SearchWithCategories() {
             const timeout = setTimeout(() => setIsOpen(false), 200)
             setHideTimeout(timeout)
           }}
+          onPointerDownOutside={(e) => {
+            // Prevent closing when clicking on the arrow button
+            const target = e.target as HTMLElement
+            if (target.closest('button[aria-label]') || target.closest('.chevron-down')) {
+              e.preventDefault()
+            }
+          }}
         >
           {loading ? (
             <div className="flex items-center justify-center p-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-            <>
-              {/* Mobile Design */}
-              <div className="md:hidden p-4">
-                <div className="mb-4 pb-3 border-b-2 border-blue-100 dark:border-blue-800">
-                  <h3 className="text-lg font-bold text-right text-gray-900 dark:text-gray-100 flex items-center gap-2">
-                    <Grid3X3 className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                    دسته‌بندی کالاها
-                  </h3>
-                </div>
-                <div className="space-y-2 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                  {parents.map((parent) => (
-                    <div key={parent._id} className="border-2 border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden hover:border-blue-300 dark:hover:border-blue-600 transition-all shadow-md">
-                      <div className="relative flex">
-                        <Link
-                          href={`/products?category=${encodeURIComponent(parent._id)}`}
-                          onClick={() => setIsOpen(false)}
-                          className="flex-1 flex items-center gap-2 p-3 bg-gradient-to-l from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 hover:from-blue-50 hover:to-white dark:hover:from-blue-900 dark:hover:to-gray-800 transition-all"
-                        >
-                          {parent.image?.url && (
-                            <img 
-                              src={parent.image.url} 
-                              alt={parent.image.alt || parent.name}
-                              className="w-8 h-8 rounded object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600"
-                              onError={(e) => { e.currentTarget.style.display = 'none' }}
-                            />
-                          )}
-                          <span className="text-base font-bold text-gray-800 dark:text-gray-100">{parent.name}</span>
-                        </Link>
-                        <button
-                          onClick={() => setActiveParentId(activeParentId === parent._id ? null : parent._id)}
-                          className="p-3 hover:bg-blue-50 dark:hover:bg-blue-900 transition-all"
-                        >
-                          <ChevronDown className={`w-6 h-6 transition-transform duration-300 ${activeParentId === parent._id ? 'rotate-180 text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`} />
-                        </button>
-                      </div>
-                      {activeParentId === parent._id && (
-                        <div className="bg-white dark:bg-gray-800">
-                          {(childrenByParent[parent._id] || []).map((sub) => (
-                            <div key={sub._id} className="border-t-2 border-gray-100 dark:border-gray-700">
-                              <Link
-                                href={`/products?category=${encodeURIComponent(sub._id)}`}
-                                onClick={() => setIsOpen(false)}
-                                className="block p-3 text-right font-bold text-blue-600 dark:text-blue-400 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900 dark:to-gray-800 hover:from-blue-100 hover:to-white dark:hover:from-blue-800 dark:hover:to-gray-700 transition-all border-b border-blue-100 dark:border-blue-800 shadow-sm"
-                              >
-                                <span className="text-sm flex items-center gap-2">
-                                  <div className="w-2 h-2 rounded-full bg-blue-500 dark:bg-blue-400"></div>
-                                  {sub.name}
-                                </span>
-                              </Link>
-                              {(childrenByParent[sub._id] || []).map((child) => (
-                                <Link
-                                  key={child._id}
-                                  href={`/products?category=${encodeURIComponent(child._id)}`}
-                                  onClick={() => setIsOpen(false)}
-                                  className="block p-2 pr-10 text-right text-gray-700 dark:text-gray-300 hover:bg-blue-50 dark:hover:bg-blue-900 hover:text-blue-600 dark:hover:text-blue-400 transition-all text-xs border-b border-gray-50 dark:border-gray-700 font-medium"
-                                >
-                                  <span className="flex items-center gap-1.5">
-                                    <div className="w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-500"></div>
-                                    {child.name}
-                                  </span>
-                                </Link>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Desktop Design */}
               <div className="hidden md:grid gap-4 p-6 lg:grid-cols-[280px_1fr]">
               {/* Categories Sidebar */}
               <div className="border-l-2 border-gray-100 dark:border-gray-700 pr-4">
@@ -288,10 +230,10 @@ export default function SearchWithCategories() {
                 )}
               </div>
               </div>
-            </>
           )}
         </PopoverContent>
       </Popover>
+      </div>
       
       <div className="flex-1">
         <GlobalSearch />

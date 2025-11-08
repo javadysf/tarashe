@@ -198,10 +198,10 @@ class ApiClient {
   }
 
   // Auth
-  async login(email: string, password: string) {
+  async login(phone: string, password: string) {
     return this.request('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ phone, password }),
     });
   }
 
@@ -223,6 +223,48 @@ class ApiClient {
     return this.request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
+    });
+  }
+
+  async sendSmsCode(userData: any) {
+    return this.request('/auth/send-sms-code', {
+      method: 'POST',
+      body: JSON.stringify(userData),
+    });
+  }
+
+  async verifySmsCode(phone: string, code: string) {
+    return this.request('/auth/verify-sms-code', {
+      method: 'POST',
+      body: JSON.stringify({ phone, code }),
+    });
+  }
+
+  async resendSmsCode(phone: string) {
+    return this.request('/auth/resend-sms-code', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  }
+
+  async forgotPassword(phone: string) {
+    return this.request('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ phone }),
+    });
+  }
+
+  async verifyResetCode(phone: string, code: string) {
+    return this.request('/auth/verify-reset-code', {
+      method: 'POST',
+      body: JSON.stringify({ phone, code }),
+    });
+  }
+
+  async resetPassword(resetToken: string, newPassword: string) {
+    return this.request('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ resetToken, newPassword }),
     });
   }
 
@@ -488,6 +530,10 @@ class ApiClient {
   // Admin Stats
   async getAdminStats() {
     return this.request('/admin/stats');
+  }
+
+  async getSalesStats(period: string = 'week') {
+    return this.request(`/orders/stats/sales?period=${period}`);
   }
 
   // Attributes

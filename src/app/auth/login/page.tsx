@@ -10,7 +10,7 @@ import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    email: '',
+    phone: '',
     password: ''
   })
   const [error, setError] = useState('')
@@ -36,8 +36,8 @@ export default function LoginPage() {
     setIsSubmitting(true)
 
     // Validation
-    if (!formData.email.trim()) {
-      setError('لطفاً ایمیل خود را وارد کنید')
+    if (!formData.phone.trim()) {
+      setError('لطفاً شماره تلفن خود را وارد کنید')
       setIsSubmitting(false)
       return
     }
@@ -48,14 +48,18 @@ export default function LoginPage() {
       return
     }
 
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      setError('لطفاً یک ایمیل معتبر وارد کنید')
+    // Accept both phone and email formats
+    const isPhone = /^09\d{9}$/.test(formData.phone)
+    const isEmail = /\S+@\S+\.\S+/.test(formData.phone)
+    
+    if (!isPhone && !isEmail) {
+      setError('لطفاً شماره تلفن یا ایمیل معتبر وارد کنید')
       setIsSubmitting(false)
       return
     }
 
     try {
-      const result = await login(formData.email, formData.password)
+      const result = await login(formData.phone, formData.password)
       
       setSuccess('با موفقیت وارد شدید! در حال انتقال...')
       
@@ -142,18 +146,18 @@ export default function LoginPage() {
           
           <div className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                ایمیل
+              <label htmlFor="phone" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                شماره تلفن یا ایمیل
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                id="phone"
+                name="phone"
+                type="text"
                 required
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                value={formData.phone}
+                onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
-                placeholder="ایمیل خود را وارد کنید"
+                placeholder="09123456789 یا admin@example.com"
               />
             </div>
             
@@ -204,7 +208,15 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="text-center pt-4">
+          <div className="text-center pt-4 space-y-3">
+            <div>
+              <Link 
+                href="/auth/forgot-password" 
+                className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              >
+                رمز عبور خود را فراموش کرده‌اید؟
+              </Link>
+            </div>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               حساب کاربری ندارید؟{' '}
               <Link 

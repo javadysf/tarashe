@@ -68,7 +68,7 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
               onClick={prev}
               aria-label="Previous"
               type="button"
-              className=" absolute max-sm:w-12 max-sm:h-12 left-4 top-1/2 -translate-y-1/2 bg-blue-400 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-colors pointer-events-auto"
+              className=" absolute max-sm:w-12 max-sm:h-12 left-4 top-1/2 -translate-y-1/2 bg-blue-400 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-colors pointer-events-auto z-40"
             >
               <ChevronLeft className="w-8 h-8" />
             </button>
@@ -76,7 +76,7 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
               onClick={next}
               aria-label="Next"
               type="button"
-              className="absolute right-4 top-1/2 max-sm:w-12 max-sm:h-12 -translate-y-1/2  bg-blue-400 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-colors pointer-events-auto"
+              className="absolute right-4 top-1/2 max-sm:w-12 max-sm:h-12 -translate-y-1/2  bg-blue-400 backdrop-blur-sm text-white p-2 rounded-full hover:bg-white/30 transition-colors pointer-events-auto z-40"
             >
               <ChevronRight className="w-8 h-8" />
             </button>

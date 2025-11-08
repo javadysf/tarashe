@@ -63,6 +63,8 @@ export default function ProductsPage() {
   const [categoryAttributes, setCategoryAttributes] = useState<any[]>([])
   const [attributeValues, setAttributeValues] = useState<{ [key: string]: string[] }>({})
   const [currentCategoryId, setCurrentCategoryId] = useState<string | undefined>(undefined)
+  const [displayedCount, setDisplayedCount] = useState(12)
+  const ITEMS_PER_PAGE = 12
 
   useEffect(() => {
     // Read category and brand from URL on mount/URL change and fetch accordingly
@@ -108,6 +110,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     applyFiltersAndSort()
+    setDisplayedCount(ITEMS_PER_PAGE) // Reset to first page when filters change
   }, [products, filters, sortBy, searchTerm])
 
   useEffect(() => {
@@ -363,7 +366,7 @@ export default function ProductsPage() {
                       : 'space-y-6'
                   }`}
                 >
-                  {filteredProducts.map((product, index) => (
+                  {filteredProducts.slice(0, displayedCount).map((product, index) => (
                     viewMode === 'grid' ? (
                       <ProductCard
                         key={product._id}
@@ -406,6 +409,23 @@ export default function ProductsPage() {
                 </motion.div>
               )}
             </AnimatePresence>
+
+            {/* Load More Button */}
+            {filteredProducts.length > displayedCount && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="flex justify-center mt-12"
+              >
+                <Button
+                  onClick={() => setDisplayedCount(prev => prev + ITEMS_PER_PAGE)}
+                  className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-8 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 font-semibold"
+                >
+                  نمایش بیشتر
+                </Button>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
