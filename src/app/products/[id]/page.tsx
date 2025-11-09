@@ -29,7 +29,7 @@ interface Product {
 
 interface Review {
   _id: string
-  user: { name: string }
+  user: { name: string } | null
   rating: number
   comment: string
   createdAt: string
@@ -713,11 +713,11 @@ export default function ProductDetailPage() {
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
                         <span className="text-blue-600 dark:text-blue-400 font-semibold">
-                          {review.user.name.charAt(0)}
+                          {review.user?.name?.charAt(0) || '?'}
                         </span>
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{review.user.name}</h4>
+                        <h4 className="font-medium text-gray-900 dark:text-gray-100">{review.user?.name || 'کاربر ناشناس'}</h4>
                         <div className="flex items-center gap-1">
                           {[...Array(5)].map((_, i) => (
                             <svg
@@ -791,10 +791,10 @@ export default function ProductDetailPage() {
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-6 h-6 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
                               <span className="text-white text-xs font-semibold">
-                                {reply.user.name.charAt(0)}
+                                {reply.user?.name?.charAt(0) || '?'}
                               </span>
                             </div>
-                            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{reply.user.name}</span>
+                            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{reply.user?.name || 'کاربر ناشناس'}</span>
                             <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded-full">پاسخ ادمین</span>
                           </div>
                           <p className="text-sm text-gray-700 dark:text-gray-300">{reply.comment}</p>

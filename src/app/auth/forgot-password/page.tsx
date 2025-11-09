@@ -7,6 +7,7 @@ import { api } from '@/lib/api'
 import ErrorMessage from '@/components/ErrorMessage'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, ArrowLeft, Smartphone, Key } from 'lucide-react'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function ForgotPasswordPage() {
   const [step, setStep] = useState<'email' | 'verification' | 'reset'>('email')
@@ -295,35 +296,29 @@ export default function ForgotPasswordPage() {
                 {error && <ErrorMessage type="error" message={error} onClose={() => setError('')} />}
                 {success && <ErrorMessage type="success" message={success} onClose={() => setSuccess('')} />}
 
-                <div>
-                  <label htmlFor="newPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                    رمز عبور جدید
-                  </label>
-                  <input
-                    id="newPassword"
-                    type="password"
-                    required
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 text-gray-900 placeholder-gray-400"
-                    placeholder="رمز عبور جدید را وارد کنید"
-                  />
-                </div>
+                <PasswordInput
+                  id="newPassword"
+                  name="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="رمز عبور جدید را وارد کنید"
+                  required
+                  label="رمز عبور جدید"
+                  autoComplete="new-password"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 text-gray-900 placeholder-gray-400"
+                />
 
-                <div>
-                  <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700 mb-2">
-                    تکرار رمز عبور
-                  </label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 text-gray-900 placeholder-gray-400"
-                    placeholder="رمز عبور را دوباره وارد کنید"
-                  />
-                </div>
+                <PasswordInput
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="رمز عبور را دوباره وارد کنید"
+                  required
+                  label="تکرار رمز عبور"
+                  autoComplete="new-password"
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 text-gray-900 placeholder-gray-400"
+                />
 
                 <button
                   type="submit"

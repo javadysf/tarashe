@@ -6,14 +6,16 @@ import { api } from '@/lib/api'
 
 interface Order {
   _id: string
-  user: { name: string; email: string }
+  user: { name: string; lastName?: string; email: string; phone?: string; address?: any; postalCode?: string }
   totalAmount: number
   status: string
   createdAt: string
   items: { product: { name: string }; quantity: number }[]
   shippingAddress?: {
-    address: string
+    street?: string
+    address?: string
     city: string
+    state?: string
     postalCode: string
     phone: string
   }
@@ -92,10 +94,22 @@ export default function AdminOrdersPage() {
 
   const updateOrderStatus = async (orderId: string, status: string) => {
     try {
-      await api.updateOrderStatus(orderId, status)
+      const response = await api.updateOrderStatus(orderId, status)
+      // Update orders list
       setOrders(orders.map(order => 
         order._id === orderId ? { ...order, status } : order
       ))
+      // Update selected order in modal if it's the same order
+      if (selectedOrder && selectedOrder._id === orderId) {
+        // Fetch fresh order data to get updated user info
+        try {
+          const freshOrder = await api.getOrder(orderId)
+          setSelectedOrder(freshOrder)
+        } catch (error) {
+          // Fallback to updating status only
+          setSelectedOrder({...selectedOrder, status})
+        }
+      }
     } catch (error) {
       alert('خطا در بروزرسانی وضعیت')
     }
@@ -130,7 +144,13 @@ export default function AdminOrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">مدیریت سفارشات</h1>
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl font-bold mb-2">مدیریت سفارشات</h1>
+          <p className="text-sm text-gray-600 flex items-center gap-1">
+            <span>💡</span>
+            <span>برای مشاهده جزئیات کامل سفارش، روی شماره سفارش کلیک کنید</span>
+          </p>
+        </div>
 
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-3 sm:p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-2 sm:gap-3">
@@ -188,18 +208,30 @@ export default function AdminOrdersPage() {
                   <tr key={order._id}>
                     <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900">
                       <button
-                        onClick={() => {
-                          setSelectedOrder(order)
-                          setShowModal(true)
+                        onClick={async () => {
+                          // Fetch fresh order data when clicking
+                          try {
+                            const freshOrder = await api.getOrder(order._id)
+                            setSelectedOrder(freshOrder)
+                            setShowModal(true)
+                          } catch (error) {
+                            // Fallback to cached order if fetch fails
+                            setSelectedOrder(order)
+                            setShowModal(true)
+                          }
                         }}
                         className="text-blue-600 hover:text-blue-800 hover:underline text-xs sm:text-sm"
+                        title="کلیک کنید برای مشاهده جزئیات سفارش"
                       >
                         #{order._id.slice(-6)}
                       </button>
+                      <div className="text-[10px] text-gray-400 mt-0.5">کلیک برای جزئیات</div>
                     </td>
                     <td className="px-3 sm:px-6 py-4 text-sm text-gray-500 hidden sm:table-cell">
                       <div>
-                        <div className="font-medium truncate max-w-32">{order?.user?.name}</div>
+                        <div className="font-medium truncate max-w-32">
+                          {order?.user?.name} {order?.user?.lastName || ''}
+                        </div>
                         <div className="text-gray-400 text-xs truncate max-w-32">{order?.user?.email}</div>
                       </div>
                     </td>
@@ -277,24 +309,54 @@ export default function AdminOrdersPage() {
                 <div className="mb-6">
                   <h3 className="text-lg font-semibold mb-3">اطلاعات مشتری</h3>
                   <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                    <p><span className="font-medium">نام:</span> {selectedOrder?.user?.name}</p>
+                    <p><span className="font-medium">نام و نام خانوادگی:</span> {selectedOrder?.user?.name} {selectedOrder?.user?.lastName || ''}</p>
                     <p><span className="font-medium">ایمیل:</span> {selectedOrder?.user?.email}</p>
-                    {(selectedOrder.phone || selectedOrder.shippingAddress?.phone) && (
-                      <p><span className="font-medium">شماره تماس:</span> {selectedOrder.phone || selectedOrder.shippingAddress?.phone}</p>
+                    {(selectedOrder?.user?.phone || selectedOrder.phone || selectedOrder.shippingAddress?.phone) && (
+                      <p><span className="font-medium">شماره تماس:</span> {selectedOrder?.user?.phone || selectedOrder.phone || selectedOrder.shippingAddress?.phone}</p>
+                    )}
+                    {selectedOrder?.user?.postalCode && (
+                      <p><span className="font-medium">کد پستی:</span> {selectedOrder.user.postalCode}</p>
                     )}
                   </div>
                 </div>
                 
                 {/* Shipping Address */}
-                {(selectedOrder.address || selectedOrder.shippingAddress) && (
+                {(selectedOrder.address || selectedOrder.shippingAddress || selectedOrder?.user?.address) && (
                   <div className="mb-6">
                     <h3 className="text-lg font-semibold mb-3">آدرس ارسال</h3>
                     <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                       {selectedOrder.shippingAddress ? (
                         <>
-                          <p><span className="font-medium">آدرس:</span> {selectedOrder.shippingAddress.address}</p>
-                          <p><span className="font-medium">شهر:</span> {selectedOrder.shippingAddress.city}</p>
-                          <p><span className="font-medium">کد پستی:</span> {selectedOrder.shippingAddress.postalCode}</p>
+                          {selectedOrder.shippingAddress.street && (
+                            <p><span className="font-medium">خیابان:</span> {selectedOrder.shippingAddress.street}</p>
+                          )}
+                          {selectedOrder.shippingAddress.address && (
+                            <p><span className="font-medium">آدرس:</span> {selectedOrder.shippingAddress.address}</p>
+                          )}
+                          {selectedOrder.shippingAddress.city && (
+                            <p><span className="font-medium">شهر:</span> {selectedOrder.shippingAddress.city}</p>
+                          )}
+                          {selectedOrder.shippingAddress.state && (
+                            <p><span className="font-medium">استان:</span> {selectedOrder.shippingAddress.state}</p>
+                          )}
+                          {selectedOrder.shippingAddress.postalCode && (
+                            <p><span className="font-medium">کد پستی:</span> {selectedOrder.shippingAddress.postalCode}</p>
+                          )}
+                        </>
+                      ) : selectedOrder?.user?.address ? (
+                        <>
+                          {selectedOrder.user.address.street && (
+                            <p><span className="font-medium">خیابان:</span> {selectedOrder.user.address.street}</p>
+                          )}
+                          {selectedOrder.user.address.city && (
+                            <p><span className="font-medium">شهر:</span> {selectedOrder.user.address.city}</p>
+                          )}
+                          {selectedOrder.user.address.state && (
+                            <p><span className="font-medium">استان:</span> {selectedOrder.user.address.state}</p>
+                          )}
+                          {selectedOrder.user.address.postalCode && (
+                            <p><span className="font-medium">کد پستی:</span> {selectedOrder.user.address.postalCode}</p>
+                          )}
                         </>
                       ) : (
                         <p><span className="font-medium">آدرس:</span> {selectedOrder.address}</p>

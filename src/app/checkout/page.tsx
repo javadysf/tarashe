@@ -41,6 +41,7 @@ export default function CheckoutPage() {
   })
   const [selectedProvince, setSelectedProvince] = useState('')
   const [availableCities, setAvailableCities] = useState<string[]>([])
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     checkAuth()
@@ -58,13 +59,13 @@ export default function CheckoutPage() {
         postalCode: user.address?.postalCode || user.postalCode || ''
       }))
       
-      // Set province and cities if user has address
+      // Set province if user has address
       const userState = user.address?.state || user.state
       if (userState) {
         const province = iranProvinces.find(p => p.name === userState)
         if (province) {
           setSelectedProvince(province.id.toString())
-          setAvailableCities(province.cities)
+          // No need to set availableCities anymore since city is now a text input
         }
       }
     }
@@ -76,6 +77,53 @@ export default function CheckoutPage() {
     if (province) {
       setAvailableCities(province.cities)
       setFormData(prev => ({ ...prev, state: province.name, city: '' }))
+      // Clear city error when province changes
+      if (errors.city) {
+        setErrors(prev => {
+          const newErrors = { ...prev }
+          delete newErrors.city
+          return newErrors
+        })
+      }
+    }
+  }
+
+  const validateField = (name: string, value: string): string => {
+    switch (name) {
+      case 'name':
+        if (!value.trim()) return 'نام گیرنده الزامی است'
+        if (value.trim().length < 2) return 'نام باید حداقل 2 کاراکتر باشد'
+        return ''
+      case 'phone':
+        if (!value.trim()) return 'شماره تماس الزامی است'
+        if (!/^09\d{9}$/.test(value)) return 'شماره تماس باید به فرمت 09123456789 باشد'
+        return ''
+      case 'street':
+        if (!value.trim()) return 'آدرس کامل الزامی است'
+        if (value.trim().length < 10) return 'آدرس باید حداقل 10 کاراکتر باشد'
+        return ''
+      case 'city':
+        if (!value.trim()) return 'نام شهر الزامی است'
+        if (value.trim().length < 2) return 'نام شهر باید حداقل 2 کاراکتر باشد'
+        return ''
+      case 'postalCode':
+        if (!value.trim()) return 'کد پستی الزامی است'
+        if (!/^\d{10}$/.test(value)) return 'کد پستی باید 10 رقم باشد'
+        return ''
+      default:
+        return ''
+    }
+  }
+
+  const handleFieldChange = (name: string, value: string) => {
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
     }
   }
 
@@ -90,6 +138,31 @@ export default function CheckoutPage() {
     
     if (!user) {
       router.push('/auth/login')
+      return
+    }
+
+    // Validate all fields except notes
+    const newErrors: Record<string, string> = {}
+    const fieldsToValidate = ['name', 'phone', 'street', 'city', 'postalCode']
+    
+    fieldsToValidate.forEach(field => {
+      const error = validateField(field, formData[field as keyof typeof formData])
+      if (error) {
+        newErrors[field] = error
+      }
+    })
+    
+    // Validate state separately (it's from selectedProvince)
+    if (!selectedProvince || !formData.state) {
+      newErrors.state = 'انتخاب استان الزامی است'
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors)
+      // Scroll to first error
+      const firstErrorField = Object.keys(newErrors)[0]
+      const element = document.getElementById(firstErrorField) || document.querySelector(`[name="${firstErrorField}"]`)
+      element?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
 
@@ -225,13 +298,21 @@ export default function CheckoutPage() {
                           نام گیرنده *
                         </Label>
                         <Input
+                          id="name"
+                          name="name"
                           type="text"
                           required
                           value={formData.name}
-                          onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          className="h-12 text-base"
+                          onChange={(e) => handleFieldChange('name', e.target.value)}
+                          className={`h-12 text-base ${errors.name ? 'border-red-500 focus:ring-red-500' : ''}`}
                           placeholder="نام و نام خانوادگی"
                         />
+                        {errors.name && (
+                          <p className="text-sm text-red-600 flex items-center gap-1">
+                            <span>⚠️</span>
+                            {errors.name}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
@@ -240,14 +321,23 @@ export default function CheckoutPage() {
                           شماره تماس *
                         </Label>
                         <Input
+                          id="phone"
+                          name="phone"
                           type="tel"
                           required
                           pattern="09[0-9]{9}"
                           value={formData.phone}
-                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          className="h-12 text-base"
+                          onChange={(e) => handleFieldChange('phone', e.target.value.replace(/[^0-9]/g, ''))}
+                          className={`h-12 text-base ${errors.phone ? 'border-red-500 focus:ring-red-500' : ''}`}
                           placeholder="09123456789"
+                          maxLength={11}
                         />
+                        {errors.phone && (
+                          <p className="text-sm text-red-600 flex items-center gap-1">
+                            <span>⚠️</span>
+                            {errors.phone}
+                          </p>
+                        )}
                       </div>
                     </div>
 
@@ -257,20 +347,31 @@ export default function CheckoutPage() {
                         آدرس کامل *
                       </Label>
                       <Textarea
+                        id="street"
+                        name="street"
                         required
                         rows={4}
                         value={formData.street}
-                        onChange={(e) => setFormData({...formData, street: e.target.value})}
-                        className="resize-none text-base"
+                        onChange={(e) => handleFieldChange('street', e.target.value)}
+                        className={`resize-none text-base ${errors.street ? 'border-red-500 focus:ring-red-500' : ''}`}
                         placeholder="آدرس کامل شامل خیابان، کوچه، پلاک و جزئیات..."
                       />
+                      {errors.street && (
+                        <p className="text-sm text-red-600 flex items-center gap-1">
+                          <span>⚠️</span>
+                          {errors.street}
+                        </p>
+                      )}
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold">استان *</Label>
-                        <Select value={selectedProvince} onValueChange={handleProvinceChange}>
-                          <SelectTrigger className="h-12">
+                        <Select 
+                          value={selectedProvince} 
+                          onValueChange={handleProvinceChange}
+                        >
+                          <SelectTrigger className={`h-12 ${errors.state ? 'border-red-500' : ''}`}>
                             <SelectValue placeholder="انتخاب استان" />
                           </SelectTrigger>
                           <SelectContent>
@@ -281,39 +382,54 @@ export default function CheckoutPage() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {errors.state && (
+                          <p className="text-sm text-red-600 flex items-center gap-1">
+                            <span>⚠️</span>
+                            {errors.state}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold">شهر *</Label>
-                        <Select 
-                          value={formData.city} 
-                          onValueChange={(value) => setFormData({...formData, city: value})}
-                          disabled={!selectedProvince}
-                        >
-                          <SelectTrigger className="h-12">
-                            <SelectValue placeholder="انتخاب شهر" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableCities.map(city => (
-                              <SelectItem key={city} value={city}>
-                                {city}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <Input
+                          id="city"
+                          name="city"
+                          type="text"
+                          required
+                          value={formData.city}
+                          onChange={(e) => handleFieldChange('city', e.target.value)}
+                          className={`h-12 text-base ${errors.city ? 'border-red-500 focus:ring-red-500' : ''}`}
+                          placeholder="نام شهر را وارد کنید"
+                        />
+                        {errors.city && (
+                          <p className="text-sm text-red-600 flex items-center gap-1">
+                            <span>⚠️</span>
+                            {errors.city}
+                          </p>
+                        )}
                       </div>
 
                       <div className="space-y-2">
                         <Label className="text-sm font-semibold">کد پستی *</Label>
                         <Input
+                          id="postalCode"
+                          name="postalCode"
                           type="text"
                           required
                           pattern="[0-9]{10}"
                           value={formData.postalCode}
-                          onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
-                          className="h-12 text-base"
+                          onChange={(e) => handleFieldChange('postalCode', e.target.value.replace(/[^0-9]/g, ''))}
+                          className={`h-12 text-base ${errors.postalCode ? 'border-red-500 focus:ring-red-500' : ''}`}
                           placeholder="1234567890"
+                          maxLength={10}
                         />
+                        {errors.postalCode && (
+                          <p className="text-sm text-red-600 flex items-center gap-1">
+                            <span>⚠️</span>
+                            {errors.postalCode}
+                          </p>
+                        )}
                       </div>
                     </div>
 

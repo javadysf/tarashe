@@ -75,8 +75,10 @@ const services: Service[] = [
 
 export default function ServicesSection() {
   return (
-    <section className="py-16 bg-gradient-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 bg-gradient-8 relative">
+      {/* Fade overlay at bottom - softer */}
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">خدمات ما</h2>
           <p className="text-xl text-white/90 max-w-3xl mx-auto drop-shadow-md">

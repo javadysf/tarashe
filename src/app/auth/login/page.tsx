@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import ErrorMessage from '@/components/ErrorMessage'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff } from 'lucide-react'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
@@ -17,7 +17,6 @@ export default function LoginPage() {
   const [success, setSuccess] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [redirectPath, setRedirectPath] = useState<string | null>(null)
-  const [showPassword, setShowPassword] = useState(false)
   const { login, isLoading } = useAuthStore()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -75,11 +74,14 @@ export default function LoginPage() {
       // Only log unexpected errors, not normal validation errors
       const isNormalError = error.message && (
         error.message.includes('ایمیل یا رمز عبور اشتباه است') ||
+        error.message.includes('شماره تلفن یا رمز عبور اشتباه است') ||
         error.message.includes('حساب کاربری غیرفعال است') ||
         error.message.includes('اطلاعات وارد شده صحیح نیست')
       );
       
-      if (!isNormalError) {
+      // Silently handle normal errors - don't log them to console
+      // Only log unexpected errors for debugging
+      if (!isNormalError && process.env.NODE_ENV === 'development') {
         console.error('Unexpected login error:', error);
       }
       
@@ -161,34 +163,16 @@ export default function LoginPage() {
               />
             </div>
             
-            <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                رمز عبور
-              </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  name="password"
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                  className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
-                  placeholder="رمز عبور خود را وارد کنید"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-            </div>
+            <PasswordInput
+              id="password"
+              name="password"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              placeholder="رمز عبور خود را وارد کنید"
+              required
+              label="رمز عبور"
+              autoComplete="current-password"
+            />
           </div>
 
           <div className="space-y-4">

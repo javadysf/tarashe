@@ -6,20 +6,22 @@ import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
 import ErrorMessage from '@/components/ErrorMessage'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Eye, EyeOff, ArrowRight, ArrowLeft, Smartphone } from 'lucide-react'
+import { ArrowRight, ArrowLeft, Smartphone } from 'lucide-react'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function RegisterPage() {
   const [step, setStep] = useState<'form' | 'verification'>('form')
   const [formData, setFormData] = useState({
     name: '',
+    lastName: '',
     password: '',
+    confirmPassword: '',
     phone: ''
   })
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', ''])
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showPassword, setShowPassword] = useState(false)
   const [countdown, setCountdown] = useState(0)
   const { sendSmsCode, verifySmsCode, resendSmsCode, isLoading } = useAuthStore()
   const router = useRouter()
@@ -45,6 +47,12 @@ export default function RegisterPage() {
       return
     }
 
+    if (!formData.lastName.trim()) {
+      setError('لطفاً نام خانوادگی خود را وارد کنید')
+      setIsSubmitting(false)
+      return
+    }
+
 
 
     if (!formData.password.trim()) {
@@ -55,6 +63,12 @@ export default function RegisterPage() {
 
     if (formData.password.length < 6) {
       setError('رمز عبور باید حداقل 6 کاراکتر باشد')
+      setIsSubmitting(false)
+      return
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('رمز عبور و تکرار آن یکسان نیستند')
       setIsSubmitting(false)
       return
     }
@@ -72,11 +86,14 @@ export default function RegisterPage() {
     }
 
     try {
-      await sendSmsCode(formData)
+      // Only send required fields to the API (exclude confirmPassword)
+      const { confirmPassword, ...userData } = formData
+      await sendSmsCode(userData)
       setSuccess('کد تایید به شماره تلفن شما ارسال شد')
       setStep('verification')
       setCountdown(120) // 2 minutes countdown
     } catch (error: any) {
+      console.error('Send SMS code error:', error)
       setError(error.message || 'خطایی رخ داده است. لطفاً دوباره تلاش کنید')
     } finally {
       setIsSubmitting(false)
@@ -229,20 +246,37 @@ export default function RegisterPage() {
               )}
               
               <div className="space-y-3">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    نام
-                  </label>
-                  <input
-                    id="name"
-                    name="name"
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
-                    placeholder="نام خود را وارد کنید"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      نام
+                    </label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
+                      placeholder="نام"
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="lastName" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      نام خانوادگی
+                    </label>
+                    <input
+                      id="lastName"
+                      name="lastName"
+                      type="text"
+                      required
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
+                      placeholder="نام خانوادگی"
+                    />
+                  </div>
                 </div>
 
 
@@ -264,34 +298,27 @@ export default function RegisterPage() {
                   />
                 </div>
                 
-                <div>
-                  <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    رمز عبور
-                  </label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={formData.password}
-                      onChange={(e) => setFormData({...formData, password: e.target.value})}
-                      className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
-                      placeholder="رمز عبور خود را وارد کنید"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                </div>
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  placeholder="رمز عبور"
+                  required
+                  label="رمز عبور"
+                  autoComplete="new-password"
+                />
+
+                <PasswordInput
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  placeholder="تکرار رمز عبور"
+                  required
+                  label="تکرار رمز عبور"
+                  autoComplete="new-password"
+                />
               </div>
 
               <div className="space-y-2">

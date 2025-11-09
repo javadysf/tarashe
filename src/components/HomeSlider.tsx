@@ -319,8 +319,10 @@ export default function HomeSlider() {
   return (
     <div className="space-y-16">
       {/* Categories Slider */}
-      <section className="py-16 bg-gradient-7">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-gradient-7 relative">
+        {/* Fade overlay at bottom - softer */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -460,8 +462,10 @@ export default function HomeSlider() {
       )}
 
       {/* Brands Slider */}
-      <section className="py-16 bg-gradient-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-gradient-8 relative">
+        {/* Fade overlay at bottom - softer */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -512,8 +516,10 @@ export default function HomeSlider() {
       </section>
 
       {/* Latest Products Slider */}
-      <section className="py-12 bg-gradient-3">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+      <section className="py-12 bg-gradient-3 relative">
+        {/* Fade overlay at bottom - softer */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 relative z-0">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -564,8 +570,10 @@ export default function HomeSlider() {
       </section>
 
       {/* Discounted Products Slider */}
-      <section className="py-16 bg-gradient-5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-gradient-5 relative">
+        {/* Fade overlay at bottom - softer */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -616,8 +624,10 @@ export default function HomeSlider() {
       </section>
 
       {/* Best Selling Products Slider */}
-      <section className="py-12 bg-gradient-3">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+      <section className="py-12 bg-gradient-3 relative">
+        {/* Fade overlay at bottom - softer */}
+        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 relative z-0">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}

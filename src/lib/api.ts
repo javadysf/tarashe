@@ -9,6 +9,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/a
 const isNormalValidationError = (errorMessage: string): boolean => {
   const normalErrors = [
     'ایمیل یا رمز عبور اشتباه است',
+    'شماره تلفن یا رمز عبور اشتباه است',
     'حساب کاربری غیرفعال است',
     'اطلاعات وارد شده صحیح نیست',
     'کاربری با این ایمیل قبلاً ثبت شده است',
@@ -67,6 +68,30 @@ class ApiClient {
       ...options,
     };
 
+    // Log request details for debugging (only in development)
+    if (process.env.NODE_ENV === 'development' && !isAuthCheck) {
+      let bodyPreview: any = undefined;
+      if (options.body) {
+        if (options.body instanceof FormData) {
+          bodyPreview = '[FormData]';
+        } else if (typeof options.body === 'string') {
+          try {
+            bodyPreview = JSON.parse(options.body);
+          } catch {
+            bodyPreview = options.body.substring(0, 100);
+          }
+        } else {
+          bodyPreview = options.body;
+        }
+      }
+      console.log('API Request:', {
+        url,
+        method: options.method || 'GET',
+        headers: config.headers,
+        body: bodyPreview
+      });
+    }
+
     try {
       const response = await fetch(url, config);
       
@@ -100,7 +125,9 @@ class ApiClient {
         const is400Error = response.status === 400
         
         // Don't log if it's a normal error OR if it's an auth check with 401/403 OR if it's a 400 error (validation)
-        if (!isNormalError && !(isAuthCheck && (response.status === 401 || response.status === 403)) && !is400Error) {
+        // Also don't log login errors (400 status with normal error messages)
+        const isLoginError = endpoint.includes('/auth/login') && response.status === 400 && isNormalError;
+        if (!isNormalError && !(isAuthCheck && (response.status === 401 || response.status === 403)) && !is400Error && !isLoginError) {
           console.error('Request failed:', {
             url,
             status: response.status,
@@ -108,7 +135,7 @@ class ApiClient {
             data: data
           })
         }
-        // For auth check failures and validation errors (400), we silently handle them without any logging
+        // For auth check failures, validation errors (400), and login errors, we silently handle them without any logging
         
         // Handle specific error cases
         if (response.status === 401) {
@@ -187,9 +214,18 @@ class ApiClient {
         // Don't log network errors during auth checks to avoid console spam
         const isAuthCheck = endpoint.includes('/auth/me') || endpoint.includes('/auth/profile');
         if (!isAuthCheck) {
-          console.error('Network error:', error);
+          console.error('Network error:', {
+            error,
+            url,
+            message: error.message,
+            stack: error instanceof Error ? error.stack : undefined
+          });
+          console.error('Please check:');
+          console.error('1. Is the backend server running?');
+          console.error('2. Is the API URL correct?', API_BASE_URL);
+          console.error('3. Are there any CORS issues?');
         }
-        throw new Error('خطا در اتصال به اینترنت. لطفاً اتصال خود را بررسی کنید');
+        throw new Error('خطا در اتصال به سرور. لطفاً مطمئن شوید سرور در حال اجرا است و آدرس API صحیح است');
       }
       
       // Re-throw other errors

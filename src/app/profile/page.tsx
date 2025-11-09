@@ -30,10 +30,11 @@ export default function ProfilePage() {
   const [likesTotalPages, setLikesTotalPages] = useState(1)
   const [likesTotal, setLikesTotal] = useState(0)
   const [editMode, setEditMode] = useState(false)
-  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
+    lastName: '',
     phone: '',
+    postalCode: '',
     address: {
       street: '',
       city: '',
@@ -50,7 +51,9 @@ export default function ProfilePage() {
     if (user) {
       setFormData({
         name: user.name || '',
+        lastName: user.lastName || '',
         phone: user.phone || '',
+        postalCode: user.postalCode || '',
         address: user.address || {
           street: '',
           city: '',
@@ -107,8 +110,12 @@ export default function ProfilePage() {
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      await api.updateProfile(formData)
+      // Don't send phone in update request - it's not allowed to be changed
+      const { phone, ...updateData } = formData
+      await api.updateProfile(updateData)
       setEditMode(false)
+      // Refresh user data to get updated information
+      await checkAuth()
       toast.success('✨ پروفایل با موفقیت بروزرسانی شد!', {
         position: 'top-right',
         autoClose: 2500,
@@ -117,8 +124,9 @@ export default function ProfilePage() {
         pauseOnHover: true,
         draggable: true,
       })
-    } catch (error) {
-      toast.error('❌ خطا در بروزرسانی پروفایل', {
+    } catch (error: any) {
+      console.error('Update profile error:', error)
+      toast.error('❌ ' + (error.message || 'خطا در بروزرسانی پروفایل'), {
         position: 'top-right',
         autoClose: 3000,
         hideProgressBar: false,
@@ -129,27 +137,6 @@ export default function ProfilePage() {
     }
   }
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    setUploadingAvatar(true)
-    try {
-      const response = await api.uploadAvatar(file)
-      toast.success('✨ تصویر پروفایل با موفقیت بروزرسانی شد!', {
-        position: 'top-right',
-        autoClose: 2500,
-      })
-      checkAuth()
-    } catch (error: any) {
-      toast.error('❌ ' + (error.message || 'خطا در آپلود تصویر'), {
-        position: 'top-right',
-        autoClose: 3000,
-      })
-    } finally {
-      setUploadingAvatar(false)
-    }
-  }
 
   const getStatusColor = (status: string) => {
     const colors = {
@@ -184,92 +171,99 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
-          <div className="flex items-center space-x-6 space-x-reverse">
-            <div className="relative">
-              {user.avatar ? (
-                <Image
-                  src={user.avatar}
-                  alt={user.name}
-                  width={96}
-                  height={96}
-                  className="w-24 h-24 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {user.name.charAt(0)}
-                </div>
-              )}
-              <label className="absolute bottom-0 right-0 bg-blue-600 dark:bg-blue-700 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 dark:hover:bg-blue-800 transition-colors">
-                {uploadingAvatar ? (
-                  <div className="w-4 h-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header Card with Gradient */}
+        <div className="relative bg-blue-200 rounded-3xl shadow-2xl p-8 mb-8 overflow-hidden">
+          <div className="absolute inset-0 bg-black opacity-10"></div>
+          <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
+            <div className="flex-1 text-center sm:text-right">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white mb-2 drop-shadow-lg">
+                {user.name} {user.lastName || ''}
+              </h1>
+              <div className="flex items-center justify-center sm:justify-start gap-2 mb-3">
+                <svg className="w-5 h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleAvatarUpload}
-                  disabled={uploadingAvatar}
-                  className="hidden"
-                />
-              </label>
+                <p className="text-white/90 text-lg">{user.email}</p>
             </div>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{user.name}</h1>
-              <p className="text-gray-600 dark:text-gray-400">{user.email}</p>
-              <div className="flex items-center mt-2">
-                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+              <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
+                <span className={`inline-flex items-center px-4 py-2 text-sm font-bold rounded-full shadow-lg ${
                   user.role === 'admin' 
-                    ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' 
-                    : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                    ? 'bg-purple-500 text-white' 
+                    : 'bg-green-500 text-white'
                 }`}>
-                  {user.role === 'admin' ? 'ادمین' : 'کاربر'}
+                  {user.role === 'admin' ? '👑 ادمین' : '👤 کاربر'}
                 </span>
+                {user.phoneVerified && (
+                  <span className="inline-flex items-center px-4 py-2 text-sm font-bold rounded-full bg-white/20 backdrop-blur-sm text-white shadow-lg">
+                    <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    ✓ تایید شده
+                  </span>
+                )}
+                {user.phone && (
+                  <span className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-full bg-white/20 backdrop-blur-sm text-white">
+                    <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    {user.phone}
+                  </span>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
-          <div className="border-b border-gray-200 dark:border-gray-700">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden backdrop-blur-sm">
+          <div className="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
             <nav className="flex space-x-8 space-x-reverse px-8">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-5 px-4 border-b-3 font-semibold text-sm transition-all duration-300 relative ${
                   activeTab === 'profile'
                     ? 'border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
                 اطلاعات شخصی
+                </span>
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-5 px-4 border-b-3 font-semibold text-sm transition-all duration-300 relative ${
                   activeTab === 'orders'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
                 سفارشات من
+                </span>
               </button>
               <button
                 onClick={() => setActiveTab('liked')}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`py-5 px-4 border-b-3 font-semibold text-sm transition-all duration-300 relative ${
                   activeTab === 'liked'
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
                 پسندیده‌ها
+                </span>
               </button>
             </nav>
           </div>
@@ -278,35 +272,212 @@ export default function ProfilePage() {
             {/* Profile Tab */}
             {activeTab === 'profile' && (
               <div className="space-y-6">
-                <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-900">اطلاعات شخصی</h2>
+                {!editMode ? (
+                  /* ID Card Design - Compact */
+                  <div className="max-w-2xl mx-auto">
+                    <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
+                      {/* Decorative Background Pattern */}
+                      <div className="absolute inset-0 opacity-10">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -mr-20 -mt-20"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full -ml-16 -mb-16"></div>
+                      </div>
+                      
+                      {/* Card Content */}
+                      <div className="relative p-6">
+                        {/* Header Section */}
+                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/20">
+                          <div>
+                            <h2 className="text-lg font-bold text-white">کارت شناسایی کاربر</h2>
+                            <p className="text-white/70 text-xs">Identity Card</p>
+                          </div>
+                          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/30">
+                            <p className="text-white/60 text-[10px] mb-0.5">شماره عضویت</p>
+                            <p className="text-white font-bold text-sm font-mono">{user.id.slice(-8).toUpperCase()}</p>
+                          </div>
+                        </div>
+
+                        {/* Main Info Grid - Compact */}
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          {/* Name */}
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white/60 text-[10px] mb-0.5">نام</p>
+                                <p className="text-white font-bold text-sm truncate">{user.name} {user.lastName || ''}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Email */}
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white/60 text-[10px] mb-0.5">ایمیل</p>
+                                <p className="text-white font-semibold text-xs truncate">{user.email}</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Phone */}
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white/60 text-[10px] mb-0.5">تماس</p>
+                                <div className="flex items-center gap-1.5">
+                                  <p className="text-white font-bold text-sm">{user.phone || 'وارد نشده'}</p>
+                                  {user.phoneVerified && (
+                                    <span className="inline-flex items-center px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">
+                                      <svg className="w-2.5 h-2.5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                      </svg>
+                                      ✓
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Role */}
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                              </svg>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white/60 text-[10px] mb-0.5">نقش</p>
+                                <p className="text-white font-bold text-sm">{user.role === 'admin' ? '👑 ادمین' : '👤 کاربر'}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Address Section - Compact */}
+                        {(user.address && (user.address.street || user.address.city || user.address.state || user.address.postalCode)) && (
+                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 mb-3">
+                            <div className="flex items-start gap-2">
+                              <svg className="w-4 h-4 text-white/80 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                              </svg>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-white/60 text-[10px] mb-1">آدرس</p>
+                                <p className="text-white font-semibold text-xs leading-relaxed">
+                                  {user.address.street && `${user.address.street}, `}
+                                  {user.address.city && `${user.address.city}, `}
+                                  {user.address.state && `${user.address.state}`}
+                                  {user.address.postalCode && ` - ${user.address.postalCode}`}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Additional Info - Compact */}
+                        <div className="grid grid-cols-2 gap-3 mb-3">
+                          {user.postalCode && (
+                            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+                              <p className="text-white/60 text-[10px] mb-0.5">کد پستی</p>
+                              <p className="text-white font-bold text-xs">{user.postalCode}</p>
+                            </div>
+                          )}
+                          {user.createdAt && (
+                            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+                              <p className="text-white/60 text-[10px] mb-0.5">عضویت</p>
+                              <p className="text-white font-bold text-xs">
+                                {new Date(user.createdAt).toLocaleDateString('fa-IR', {
+                                  year: 'numeric',
+                                  month: 'short',
+                                  day: 'numeric'
+                                })}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Footer with Edit Button - Compact */}
+                        <div className="pt-3 border-t border-white/20 flex justify-center">
+                          <button
+                            onClick={() => setEditMode(true)}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            ویرایش
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  /* Edit Mode */
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center mb-6">
+                      <h2 className="text-3xl font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        ویرایش اطلاعات شخصی
+                      </h2>
                   <button
-                    onClick={() => setEditMode(!editMode)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                        onClick={() => setEditMode(false)}
+                        className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 bg-gray-500 hover:bg-gray-600 text-white"
                   >
-                    {editMode ? 'انصراف' : 'ویرایش'}
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        انصراف
                   </button>
                 </div>
 
-                {editMode ? (
                   <form onSubmit={handleUpdateProfile} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">نام</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نام</label>
                         <input
                           type="text"
                           value={formData.name}
                           onChange={(e) => setFormData({...formData, name: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">شماره تماس</label>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نام خانوادگی</label>
+                        <input
+                          type="text"
+                          value={formData.lastName}
+                          onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          شماره تماس
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">(غیرقابل تغییر)</span>
+                        </label>
                         <input
                           type="tel"
                           value={formData.phone}
-                          onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          disabled
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 cursor-not-allowed"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">کد پستی</label>
+                        <input
+                          type="text"
+                          value={formData.postalCode}
+                          onChange={(e) => setFormData({...formData, postalCode: e.target.value})}
+                          maxLength={10}
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                          placeholder="1234567890"
                         />
                       </div>
                     </div>
@@ -323,7 +494,7 @@ export default function ProfilePage() {
                               ...formData, 
                               address: {...formData.address, street: e.target.value}
                             })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           />
                         </div>
                         <div>
@@ -335,7 +506,7 @@ export default function ProfilePage() {
                               ...formData, 
                               address: {...formData.address, city: e.target.value}
                             })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           />
                         </div>
                         <div>
@@ -347,7 +518,7 @@ export default function ProfilePage() {
                               ...formData, 
                               address: {...formData.address, state: e.target.value}
                             })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           />
                         </div>
                         <div>
@@ -359,53 +530,34 @@ export default function ProfilePage() {
                               ...formData, 
                               address: {...formData.address, postalCode: e.target.value}
                             })}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           />
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex gap-4">
+                    <div className="flex gap-4 pt-4">
                       <button
                         type="submit"
-                        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                        className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-8 py-4 rounded-xl font-bold hover:from-green-700 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
                       >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
                         ذخیره تغییرات
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditMode(false)}
+                        className="flex items-center gap-2 bg-gray-500 text-white px-8 py-4 rounded-xl font-bold hover:bg-gray-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                        انصراف
                       </button>
                     </div>
                   </form>
-                ) : (
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="font-semibold text-gray-900 mb-2">نام</h3>
-                        <p className="text-gray-600">{user.name}</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="font-semibold text-gray-900 mb-2">ایمیل</h3>
-                        <p className="text-gray-600">{user.email}</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="font-semibold text-gray-900 mb-2">شماره تماس</h3>
-                        <p className="text-gray-600">{user.phone || 'وارد نشده'}</p>
-                      </div>
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="font-semibold text-gray-900 mb-2">نقش</h3>
-                        <p className="text-gray-600">{user.role === 'admin' ? 'ادمین' : 'کاربر'}</p>
-                      </div>
-                    </div>
-
-                    {user.address && (
-                      <div className="bg-gray-50 p-4 rounded-lg">
-                        <h3 className="font-semibold text-gray-900 mb-2">آدرس</h3>
-                        <p className="text-gray-600">
-                          {user.address.street && `${user.address.street}, `}
-                          {user.address.city && `${user.address.city}, `}
-                          {user.address.state && `${user.address.state}, `}
-                          {user.address.postalCode && user.address.postalCode}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>

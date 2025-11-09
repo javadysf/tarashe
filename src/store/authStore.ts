@@ -4,8 +4,21 @@ import { api } from '@/lib/api';
 interface User {
   id: string;
   name: string;
+  lastName?: string;
   email: string;
+  phone?: string;
+  phoneVerified?: boolean;
   role: string;
+  address?: {
+    street?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+  };
+  postalCode?: string;
+  avatar?: string;
+  isActive?: boolean;
+  createdAt?: string;
 }
 
 interface AuthState {
