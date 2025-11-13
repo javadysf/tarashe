@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { api } from '@/lib/api'
@@ -50,13 +50,7 @@ export default function CategoryAttributesPage() {
   const [assigning, setAssigning] = useState<string | null>(null)
   const [removing, setRemoving] = useState<string | null>(null)
 
-  useEffect(() => {
-    if (categoryId) {
-      fetchData()
-    }
-  }, [categoryId])
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -85,7 +79,13 @@ export default function CategoryAttributesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [categoryId, router])
+
+  useEffect(() => {
+    if (categoryId) {
+      fetchData()
+    }
+  }, [categoryId, fetchData])
 
   const handleAssignAttribute = async (attributeId: string) => {
     try {
@@ -101,7 +101,7 @@ export default function CategoryAttributesPage() {
           attribute,
           order: categoryAttributes.length
         }
-        setCategoryAttributes([...categoryAttributes, newCategoryAttribute])
+        setCategoryAttributes(prev => [...prev, newCategoryAttribute])
         console.log('Added attribute:', newCategoryAttribute)
       }
       
@@ -124,7 +124,7 @@ export default function CategoryAttributesPage() {
       await api.removeAttributeFromCategory(categoryId, attributeId)
       
       // Remove from category attributes
-      setCategoryAttributes(categoryAttributes.filter(ca => ca.attribute && ca.attribute._id !== attributeId))
+      setCategoryAttributes(prev => prev.filter(ca => ca.attribute && ca.attribute._id !== attributeId))
       
       toast.success('ویژگی از دسته حذف شد')
     } catch (error: any) {
@@ -217,7 +217,7 @@ export default function CategoryAttributesPage() {
                 ویژگی‌های دسته‌بندی
               </h1>
               <p className="text-gray-600 mt-2">
-                مدیریت ویژگی‌های دسته‌بندی "{category?.name}"
+                مدیریت ویژگی‌های دسته‌بندی &quot;{category?.name}&quot;
               </p>
             </div>
           </div>

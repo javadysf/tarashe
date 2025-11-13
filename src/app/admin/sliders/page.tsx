@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import ImageUpload from '@/components/ImageUpload'
+import Image from 'next/image'
 
 interface Slider {
   _id: string
@@ -445,11 +446,13 @@ export default function SliderManagement() {
             <div key={slider._id} className="bg-white rounded-lg shadow-lg p-6">
               <div className="flex max-sm:flex-col max-sm:gap-8 items-center justify-between mb-4">
                 <div className="flex  items-center gap-3">
-                  <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-                    <img
+                  <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden relative">
+                    <Image
                       src={slider.backgroundImage}
                       alt={slider.title}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="64px"
                     />
                   </div>
                   <div>

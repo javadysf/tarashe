@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 
 interface ImageUploadProps {
   onImageUpload: (imageUrl: string) => void
@@ -27,11 +28,14 @@ export default function ImageUpload({ onImageUpload, currentImage, folder = 'gen
   return (
     <div className="space-y-4">
       {preview && (
-        <div className="relative">
-          <img
+        <div className="relative h-48 w-full">
+          <Image
             src={preview}
             alt="Preview"
-            className="w-full h-48 object-cover rounded-lg border border-gray-300"
+            fill
+            className="object-cover rounded-lg border border-gray-300"
+            sizes="(max-width: 768px) 100vw, 400px"
+            unoptimized={preview.startsWith('http') ? false : true}
           />
           <button
             type="button"

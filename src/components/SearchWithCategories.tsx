@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Grid3X3, ChevronDown } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { api } from '@/lib/api'
@@ -148,13 +149,16 @@ export default function SearchWithCategories() {
                           }`} />
                           <div className="flex items-center gap-2 flex-1">
                             {parent.image?.url && (
-                              <img 
+                              <Image 
                                 src={parent.image.url} 
                                 alt={parent.image.alt || parent.name}
+                                width={24}
+                                height={24}
                                 className="w-6 h-6 rounded object-cover border border-gray-200 dark:border-gray-600"
                                 onError={(e) => { 
                                   e.currentTarget.style.display = 'none' 
                                 }}
+                                unoptimized
                               />
                             )}
                             <div className="text-sm font-semibold">{parent.name}</div>
@@ -189,13 +193,16 @@ export default function SearchWithCategories() {
                             className="flex items-center gap-2 mb-2 p-3 bg-gradient-to-l from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white rounded-lg text-right font-bold hover:from-blue-600 hover:to-purple-700 dark:hover:from-blue-700 dark:hover:to-purple-800 transition-all shadow-md text-sm hover:shadow-lg"
                           >
                             {sub.image?.url && (
-                              <img 
+                              <Image 
                                 src={sub.image.url} 
                                 alt={sub.image.alt || sub.name}
+                                width={28}
+                                height={28}
                                 className="w-7 h-7 rounded object-cover border border-white/20"
                                 onError={(e) => { 
                                   e.currentTarget.style.display = 'none' 
                                 }}
+                                unoptimized
                               />
                             )}
                             {sub.name}

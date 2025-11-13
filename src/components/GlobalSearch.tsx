@@ -168,7 +168,7 @@ export default function GlobalSearch() {
                   onClick={handleSearch}
                   className="w-full text-center py-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  مشاهده همه نتایج برای "{searchTerm}"
+                  مشاهده همه نتایج برای &quot;{searchTerm}&quot;
                 </button>
               </div>
             </div>
@@ -228,7 +228,7 @@ export default function GlobalSearch() {
                   onClick={handleSearch}
                   className="w-full text-center py-3 text-base text-blue-600 hover:text-blue-700 font-medium"
                 >
-                  مشاهده همه نتایج برای "{searchTerm}"
+                  مشاهده همه نتایج برای &quot;{searchTerm}&quot;
                 </button>
               </div>
             </div>

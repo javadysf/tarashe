@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { toast } from 'react-toastify'
@@ -24,11 +24,7 @@ export default function EditAttributePage({ params }: Props) {
     options: ['']
   })
 
-  useEffect(() => {
-    fetchAttribute()
-  }, [id])
-
-  const fetchAttribute = async () => {
+  const fetchAttribute = useCallback(async () => {
     try {
       const attribute = await api.getAttribute(id)
       setFormData({
@@ -45,7 +41,11 @@ export default function EditAttributePage({ params }: Props) {
     } finally {
       setInitialLoading(false)
     }
-  }
+  }, [id, router])
+
+  useEffect(() => {
+    fetchAttribute()
+  }, [fetchAttribute])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -128,7 +128,7 @@ export default function EditAttributePage({ params }: Props) {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               ویرایش ویژگی
             </h1>
-            <p className="text-gray-600 mt-2">ویرایش ویژگی "{formData.name}"</p>
+            <p className="text-gray-600 mt-2">ویرایش ویژگی &quot;{formData.name}&quot;</p>
           </div>
         </div>
 

@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { toast } from 'react-toastify'
+import Image from 'next/image'
 import AccessorySelector from '@/components/AdminAccessorySelector'
 import AttributeSelector from '@/components/AttributeSelector'
 
@@ -63,6 +64,7 @@ export default function AddProductPage() {
     description: string
     price: string
     originalPrice: string
+    discountPercent: string
     category: string
     brand: string
     model: string
@@ -80,6 +82,7 @@ export default function AddProductPage() {
     description: '',
     price: '',
     originalPrice: '',
+    discountPercent: '',
     category: '',
     brand: '',
     model: '',
@@ -88,12 +91,127 @@ export default function AddProductPage() {
     images: []
   })
 
+  const normalizeAttributeKey = useCallback((attribute: any) => {
+    if (!attribute) return ''
+    const normalizedName = typeof attribute.name === 'string' ? attribute.name.trim().toLowerCase() : ''
+    const type = attribute.type ?? ''
+    if (normalizedName) {
+      return `${normalizedName}::${type}`
+    }
+    return attribute._id ?? ''
+  }, [])
+
+  const dedupeAttributes = useCallback((items: any[]) => {
+    const unique = new Map<string, any>()
+    items.forEach((attribute) => {
+      const key = normalizeAttributeKey(attribute)
+      if (!key || unique.has(key)) {
+        return
+      }
+      unique.set(key, attribute)
+    })
+    return Array.from(unique.values())
+  }, [normalizeAttributeKey])
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await api.getCategories()
+      setCategories(response)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }, [])
+
+  const fetchBrands = useCallback(async () => {
+    try {
+      const response = await api.getBrands()
+      setBrands(response)
+    } catch (error) {
+      console.error('Error fetching brands:', error)
+    }
+  }, [])
+
+  const fetchCategoryAttributes = useCallback(async (categoryId: string) => {
+    try {
+      const response = await api.getCategoryAttributes(categoryId)
+      console.log('Category attributes response:', response)
+      
+      // Extract attributes from CategoryAttribute objects
+      const attributes = dedupeAttributes(response.map((ca: any) => ca.attribute).filter(Boolean))
+      setCategoryAttributes(attributes)
+    } catch (error) {
+      console.error('Error fetching category attributes:', error)
+    }
+  }, [dedupeAttributes])
+
+  const fetchAllCategoryAttributes = useCallback(async () => {
+    try {
+      const allAttributes = new Map<string, any>()
+      const attributeLevelPriority = {
+        parent: 1,
+        second: 2,
+        third: 3
+      } as const
+
+      type AttributeLevel = keyof typeof attributeLevelPriority
+
+      const addAttributesToMap = (attributes: any[], level: AttributeLevel) => {
+        attributes.forEach((attr: any) => {
+          if (!attr) return
+          const key = normalizeAttributeKey(attr)
+          if (!key) return
+
+          const existing = allAttributes.get(key)
+          if (!existing) {
+            allAttributes.set(key, { ...attr, level })
+            return
+          }
+
+          const existingLevel = existing.level as AttributeLevel | undefined
+          const existingPriority = existingLevel ? attributeLevelPriority[existingLevel] : 0
+          if (attributeLevelPriority[level] > existingPriority) {
+            allAttributes.set(key, { ...attr, level })
+          }
+        })
+      }
+      
+      // Fetch attributes for parent category
+      if (parentCategoryId) {
+        const parentResponse = await api.getCategoryAttributes(parentCategoryId)
+        const parentAttributes = dedupeAttributes(parentResponse.map((ca: any) => ca.attribute).filter(Boolean))
+        addAttributesToMap(parentAttributes, 'parent')
+      }
+      
+      // Fetch attributes for second level category
+      if (secondLevelCategoryId) {
+        const secondResponse = await api.getCategoryAttributes(secondLevelCategoryId)
+        const secondAttributes = dedupeAttributes(secondResponse.map((ca: any) => ca.attribute).filter(Boolean))
+        addAttributesToMap(secondAttributes, 'second')
+      }
+      
+      // Fetch attributes for third level category
+      if (formData.category) {
+        const thirdResponse = await api.getCategoryAttributes(formData.category)
+        const thirdAttributes = dedupeAttributes(thirdResponse.map((ca: any) => ca.attribute).filter(Boolean))
+        addAttributesToMap(thirdAttributes, 'third')
+      }
+      
+      // Convert map to array
+      const combinedAttributes = Array.from(allAttributes.values())
+      setCategoryAttributes(combinedAttributes)
+      
+      console.log('Combined attributes:', combinedAttributes)
+    } catch (error) {
+      console.error('Error fetching all category attributes:', error)
+    }
+  }, [dedupeAttributes, formData.category, normalizeAttributeKey, parentCategoryId, secondLevelCategoryId])
+
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchCategories()
       fetchBrands()
     }
-  }, [user])
+  }, [user, fetchBrands, fetchCategories])
 
   useEffect(() => {
     if (formData.category || secondLevelCategoryId || parentCategoryId) {
@@ -102,7 +220,7 @@ export default function AddProductPage() {
       setCategoryAttributes([])
       setFormData(prev => ({ ...prev, attributes: {} }))
     }
-  }, [formData.category, secondLevelCategoryId, parentCategoryId])
+  }, [fetchAllCategoryAttributes, formData.category, secondLevelCategoryId, parentCategoryId])
 
   useEffect(() => {
     // When parent changes, reset chosen subcategory and attributes
@@ -116,77 +234,22 @@ export default function AddProductPage() {
     setFormData(prev => ({ ...prev, category: '' }))
   }, [secondLevelCategoryId])
 
-  const fetchCategories = async () => {
-    try {
-      const response = await api.getCategories()
-      setCategories(response)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
+  // Calculate price based on originalPrice and discountPercent
+  useEffect(() => {
+    const originalPrice = parseFloat(formData.originalPrice) || 0
+    const discountPercent = parseFloat(formData.discountPercent) || 0
+    
+    if (originalPrice > 0) {
+      const discountAmount = originalPrice * (discountPercent / 100)
+      const finalPrice = originalPrice - discountAmount
+      setFormData(prev => ({
+        ...prev,
+        price: finalPrice > 0 ? finalPrice.toFixed(0) : ''
+      }))
+    } else {
+      setFormData(prev => ({ ...prev, price: '' }))
     }
-  }
-
-  const fetchBrands = async () => {
-    try {
-      const response = await api.getBrands()
-      setBrands(response)
-    } catch (error) {
-      console.error('Error fetching brands:', error)
-    }
-  }
-
-  const fetchCategoryAttributes = async (categoryId: string) => {
-    try {
-      const response = await api.getCategoryAttributes(categoryId)
-      console.log('Category attributes response:', response)
-      
-      // Extract attributes from CategoryAttribute objects
-      const attributes = response.map((ca: any) => ca.attribute).filter(Boolean)
-      setCategoryAttributes(attributes)
-    } catch (error) {
-      console.error('Error fetching category attributes:', error)
-    }
-  }
-
-  const fetchAllCategoryAttributes = async () => {
-    try {
-      const allAttributes = new Map()
-      
-      // Fetch attributes for parent category
-      if (parentCategoryId) {
-        const parentResponse = await api.getCategoryAttributes(parentCategoryId)
-        const parentAttributes = parentResponse.map((ca: any) => ca.attribute).filter(Boolean)
-        parentAttributes.forEach((attr: any) => {
-          allAttributes.set(attr._id, { ...attr, level: 'parent' })
-        })
-      }
-      
-      // Fetch attributes for second level category
-      if (secondLevelCategoryId) {
-        const secondResponse = await api.getCategoryAttributes(secondLevelCategoryId)
-        const secondAttributes = secondResponse.map((ca: any) => ca.attribute).filter(Boolean)
-        secondAttributes.forEach((attr: any) => {
-          allAttributes.set(attr._id, { ...attr, level: 'second' })
-        })
-      }
-      
-      // Fetch attributes for third level category
-      if (formData.category) {
-        const thirdResponse = await api.getCategoryAttributes(formData.category)
-        const thirdAttributes = thirdResponse.map((ca: any) => ca.attribute).filter(Boolean)
-        thirdAttributes.forEach((attr: any) => {
-          allAttributes.set(attr._id, { ...attr, level: 'third' })
-        })
-      }
-      
-      // Convert map to array
-      const combinedAttributes = Array.from(allAttributes.values())
-      setCategoryAttributes(combinedAttributes)
-      
-      console.log('Combined attributes:', combinedAttributes)
-    } catch (error) {
-      console.error('Error fetching all category attributes:', error)
-    }
-  }
+  }, [formData.originalPrice, formData.discountPercent])
 
 
 
@@ -211,7 +274,7 @@ export default function AddProductPage() {
       const productData = {
         ...formData,
         category: finalCategory,
-        price: Number(formData.price),
+        price: Number(formData.price) || Number(formData.originalPrice),
         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : undefined,
         stock: Number(formData.stock),
         attributes: Object.keys(filteredAttributes).length > 0 ? filteredAttributes : undefined,
@@ -623,25 +686,12 @@ export default function AddProductPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">قیمت فروش (تومان) *</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (تومان) *</label>
                 <div className="relative">
                   <input
                     type="number"
                     required
-                    value={formData.price}
-                    onChange={(e) => setFormData({...formData, price: e.target.value})}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 pl-16"
-                    placeholder="0"
-                  />
-                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">تومان</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (اختیاری)</label>
-                <div className="relative">
-                  <input
-                    type="number"
+                    min="0"
                     value={formData.originalPrice}
                     onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 pl-16"
@@ -650,7 +700,47 @@ export default function AddProductPage() {
                   <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">تومان</span>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">درصد تخفیف (اختیاری)</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formData.discountPercent}
+                    onChange={(e) => setFormData({...formData, discountPercent: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 pr-12"
+                    placeholder="0"
+                  />
+                  <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
+                </div>
+                {formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
+                  <p className="text-xs text-green-600 mt-1">
+                    تخفیف: {((parseFloat(formData.originalPrice) || 0) * (parseFloat(formData.discountPercent) || 0) / 100).toLocaleString('fa-IR')} تومان
+                  </p>
+                )}
+              </div>
             </div>
+
+            {/* Calculated Price Display */}
+            {formData.price && parseFloat(formData.price) > 0 && (
+              <div className="mt-4 p-4 bg-green-100 rounded-lg border-2 border-green-300">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-green-800">قیمت فروش نهایی:</span>
+                  <span className="text-lg font-bold text-green-700">
+                    {parseFloat(formData.price).toLocaleString('fa-IR')} تومان
+                  </span>
+                </div>
+                {formData.originalPrice && formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
+                  <div className="mt-2 text-xs text-green-600">
+                    <span>قیمت اصلی: {parseFloat(formData.originalPrice).toLocaleString('fa-IR')} تومان</span>
+                    <span className="mx-2">•</span>
+                    <span>تخفیف: {formData.discountPercent}%</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Category & Details Section */}
@@ -808,10 +898,13 @@ export default function AddProductPage() {
                     </label>
                     {newCategoryImagePreview && (
                       <div className="relative">
-                        <img
+                        <Image
                           src={newCategoryImagePreview}
                           alt="پیشنمایش"
+                          width={64}
+                          height={64}
                           className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
+                          unoptimized
                         />
                         <button
                           type="button"
@@ -1174,10 +1267,13 @@ export default function AddProductPage() {
                             
                             {newBrandImagePreview && (
                               <div className="relative">
-                                <img
+                                <Image
                                   src={newBrandImagePreview}
                                   alt="پیشنمایش"
+                                  width={64}
+                                  height={64}
                                   className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
+                                  unoptimized
                                 />
                                 <button
                                   type="button"
@@ -1332,11 +1428,12 @@ export default function AddProductPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 max-h-80 overflow-y-auto p-4 bg-white/60 rounded-xl border border-orange-100">
                   {formData.images.map((image, index) => (
                     <div key={`${image.previewId || index}`} className="relative group">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-orange-300 transition-all duration-200">
-                        <img
+                      <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-orange-300 transition-all duration-200">
+                        <Image
                           src={image.url}
                           alt={image.alt || `تصویر ${index + 1}`}
-                          className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-300 cursor-pointer ${
+                          fill
+                          className={`object-cover group-hover:scale-105 transition-all duration-300 cursor-pointer ${
                             image.isUploading ? 'opacity-50' : ''
                           }`}
                           onClick={() => !image.isUploading && window.open(image.url, '_blank')}
@@ -1345,6 +1442,8 @@ export default function AddProductPage() {
                             console.error('Image load error:', image.url)
                             e.currentTarget.src = '/pics/battery.jpg'
                           }}
+                          sizes="(max-width: 1024px) 33vw, 200px"
+                          unoptimized={image.url.startsWith('blob:')}
                         />
                         
                         {image.isUploading && (

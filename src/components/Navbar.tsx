@@ -20,7 +20,7 @@ export default function Navbar() {
     if (!user) {
       checkAuth()
     }
-  }, [])
+  }, [checkAuth, user])
 
   useEffect(() => {
     const handleScroll = () => {

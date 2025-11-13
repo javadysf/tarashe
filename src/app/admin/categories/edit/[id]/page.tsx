@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, useCallback, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
@@ -29,6 +29,33 @@ export default function EditCategoryPage({ params }: Props) {
   const [currentImage, setCurrentImage] = useState('')
   const [imagePreview, setImagePreview] = useState('')
 
+  const fetchCategory = useCallback(async () => {
+    try {
+      const category = await api.getCategory(id)
+      setFormData({
+        name: category.name,
+        description: category.description || '',
+        image: null,
+        parent: category.parent || ''
+      })
+      setCurrentImage(category.image?.url || '')
+    } catch (error: any) {
+      toast.error(error.message || 'خطا در بارگذاری دسته بندی')
+      router.push('/admin/categories')
+    } finally {
+      setInitialLoading(false)
+    }
+  }, [id, router])
+
+  const fetchCategories = useCallback(async () => {
+    try {
+      const response = await api.getCategories()
+      setCategories(response)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
+    }
+  }, [])
+
   useEffect(() => {
     const initAuth = async () => {
       await checkAuth()
@@ -45,34 +72,7 @@ export default function EditCategoryPage({ params }: Props) {
     }
     
     initAuth()
-  }, [checkAuth, router, id])
-
-  const fetchCategory = async () => {
-    try {
-      const category = await api.getCategory(id)
-      setFormData({
-        name: category.name,
-        description: category.description || '',
-        image: null,
-        parent: category.parent || ''
-      })
-      setCurrentImage(category.image?.url || '')
-    } catch (error: any) {
-      toast.error(error.message || 'خطا در بارگذاری دسته بندی')
-      router.push('/admin/categories')
-    } finally {
-      setInitialLoading(false)
-    }
-  }
-
-  const fetchCategories = async () => {
-    try {
-      const response = await api.getCategories()
-      setCategories(response)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-    }
-  }
+  }, [checkAuth, fetchCategory, fetchCategories, router])
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -171,7 +171,7 @@ export default function EditCategoryPage({ params }: Props) {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               ویرایش دسته بندی
             </h1>
-            <p className="text-gray-600 mt-2">ویرایش دسته بندی "{formData.name}"</p>
+            <p className="text-gray-600 mt-2">ویرایش دسته بندی &quot;{formData.name}&quot;</p>
           </div>
         </div>
 
@@ -251,10 +251,13 @@ export default function EditCategoryPage({ params }: Props) {
                 
                 {imagePreview && (
                   <div className="relative">
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="پیشنمایش"
+                      width={80}
+                      height={80}
                       className="w-20 h-20 object-cover rounded-xl border-2 border-blue-200"
+                      unoptimized
                     />
                     <button
                       type="button"

@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
@@ -61,108 +62,35 @@ export default function ProductDetailPage() {
   const [accessories, setAccessories] = useState<any[]>([])
   const [showAccessorySelector, setShowAccessorySelector] = useState(false)
 
-  useEffect(() => {
-    if (params.id) {
-      fetchProduct(params.id as string)
-      fetchProductStats(params.id as string)
-    }
-  }, [params.id])
-
-  const fetchProduct = async (id: string) => {
-    try {
-      const response = await api.getProduct(id)
-      setProduct(response)
-      
-      // Check if user has liked this product
-      if (user) {
-        try {
-          const likedProducts = await api.getLikedProducts()
-          const isLiked = likedProducts.products?.some((p: any) => p._id === id)
-          setIsFavorite(isLiked || false)
-        } catch (error) {
-          console.error('Error checking like status:', error)
-        }
-      }
-      
-      fetchReviews(id)
-      fetchRelatedProducts(response.category._id, id)
-      fetchProductAccessories(id)
-      if (response.category._id) {
-        // Fetch product attributes after setting the product
-        await fetchProductAttributes(response.category._id, response)
-        try {
-          const cat = await api.getCategory(response.category._id)
-          setCategoryInfo(cat)
-          if (cat?.parent) {
-            const parent = await api.getCategory(cat.parent)
-            setParentCategoryInfo(parent)
-          } else {
-            setParentCategoryInfo(null)
-          }
-        } catch (e) {
-          // ignore
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching product:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchProductStats = async (id: string) => {
+  const fetchProductStats = useCallback(async (id: string) => {
     try {
       const likesResponse = await api.getProductLikesCount(id)
       setLikesCount(likesResponse.count || 0)
     } catch (error) {
       console.error('Error fetching product stats:', error)
     }
-  }
+  }, [])
 
-  const fetchProductAttributes = async (categoryId: string, productData?: any) => {
+  const fetchReviews = useCallback(async (productId: string) => {
     try {
-      const response = await api.getCategoryAttributes(categoryId)
-      setProductAttributes(response)
-      
-      // Create a mapping of attribute IDs to names
-      const nameMap: {[key: string]: string} = {}
-      response.forEach((categoryAttr: any) => {
-        if (categoryAttr.attribute && categoryAttr.attribute._id) {
-          nameMap[categoryAttr.attribute._id] = categoryAttr.attribute.name
-        }
-      })
-      
-      // If we have product attributes but some are missing from category attributes,
-      // fetch all attributes to get missing names
-      const currentProduct = productData || product
-      if (currentProduct && currentProduct.attributes) {
-        const missingIds = Object.keys(currentProduct.attributes).filter(key => 
-          /^[0-9a-fA-F]{24}$/.test(key) && !nameMap[key]
-        )
-        
-        if (missingIds.length > 0) {
-          console.log('Missing attribute IDs:', missingIds)
-          try {
-            const allAttributes = await api.getAttributes()
-            allAttributes.forEach((attr: any) => {
-              if (missingIds.includes(attr._id)) {
-                nameMap[attr._id] = attr.name
-              }
-            })
-          } catch (error) {
-            console.error('Error fetching all attributes:', error)
-          }
-        }
-      }
-      
-      console.log('Final attribute names mapping:', nameMap)
-      setAttributeNames(nameMap)
+      const response = await api.getProductReviews(productId)
+      setReviews(response.reviews || [])
     } catch (error) {
-      console.error('Error fetching product attributes:', error)
+      console.error('Error fetching reviews:', error)
     }
-  }
+  }, [])
 
-  const fetchRelatedProducts = async (categoryId: string, currentProductId: string) => {
+  const fetchProductAccessories = useCallback(async (productId: string) => {
+    try {
+      const response = await api.getProductAccessories(productId)
+      setAccessories(response.accessories || [])
+    } catch (error) {
+      // Silently handle if accessories endpoint doesn't exist
+      setAccessories([])
+    }
+  }, [])
+
+  const fetchRelatedProducts = useCallback(async (categoryId: string, currentProductId: string) => {
     try {
       let relatedProducts: Product[] = []
       
@@ -247,26 +175,98 @@ export default function ProductDetailPage() {
     } catch (error) {
       console.error('Error fetching related products:', error)
     }
-  }
+  }, [])
 
-  const fetchReviews = async (productId: string) => {
+  const fetchProductAttributes = useCallback(async (categoryId: string, productData?: any) => {
     try {
-      const response = await api.getProductReviews(productId)
-      setReviews(response.reviews || [])
+      const response = await api.getCategoryAttributes(categoryId)
+      setProductAttributes(response)
+      
+      // Create a mapping of attribute IDs to names
+      const nameMap: {[key: string]: string} = {}
+      response.forEach((categoryAttr: any) => {
+        if (categoryAttr.attribute && categoryAttr.attribute._id) {
+          nameMap[categoryAttr.attribute._id] = categoryAttr.attribute.name
+        }
+      })
+      
+      // If we have product attributes but some are missing from category attributes,
+      // fetch all attributes to get missing names
+      const currentProduct = productData || product
+      if (currentProduct && currentProduct.attributes) {
+        const missingIds = Object.keys(currentProduct.attributes).filter(key => 
+          /^[0-9a-fA-F]{24}$/.test(key) && !nameMap[key]
+        )
+        
+        if (missingIds.length > 0) {
+          console.log('Missing attribute IDs:', missingIds)
+          try {
+            const allAttributes = await api.getAttributes()
+            allAttributes.forEach((attr: any) => {
+              if (missingIds.includes(attr._id)) {
+                nameMap[attr._id] = attr.name
+              }
+            })
+          } catch (error) {
+            console.error('Error fetching all attributes:', error)
+          }
+        }
+      }
+      
+      console.log('Final attribute names mapping:', nameMap)
+      setAttributeNames(nameMap)
     } catch (error) {
-      console.error('Error fetching reviews:', error)
+      console.error('Error fetching product attributes:', error)
     }
-  }
+  }, [product])
 
-  const fetchProductAccessories = async (productId: string) => {
+  const fetchProduct = useCallback(async (id: string) => {
     try {
-      const response = await api.getProductAccessories(productId)
-      setAccessories(response.accessories || [])
+      const response = await api.getProduct(id)
+      setProduct(response)
+      
+      // Check if user has liked this product
+      if (user) {
+        try {
+          const likedProducts = await api.getLikedProducts()
+          const isLiked = likedProducts.products?.some((p: any) => p._id === id)
+          setIsFavorite(isLiked || false)
+        } catch (error) {
+          console.error('Error checking like status:', error)
+        }
+      }
+      
+      fetchReviews(id)
+      fetchRelatedProducts(response.category._id, id)
+      fetchProductAccessories(id)
+      if (response.category._id) {
+        await fetchProductAttributes(response.category._id, response)
+        try {
+          const cat = await api.getCategory(response.category._id)
+          setCategoryInfo(cat)
+          if (cat?.parent) {
+            const parent = await api.getCategory(cat.parent)
+            setParentCategoryInfo(parent)
+          } else {
+            setParentCategoryInfo(null)
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
     } catch (error) {
-      // Silently handle if accessories endpoint doesn't exist
-      setAccessories([])
+      console.error('Error fetching product:', error)
+    } finally {
+      setLoading(false)
     }
-  }
+  }, [fetchProductAccessories, fetchProductAttributes, fetchRelatedProducts, fetchReviews, user])
+
+  useEffect(() => {
+    if (params.id) {
+      fetchProduct(params.id as string)
+      fetchProductStats(params.id as string)
+    }
+  }, [fetchProduct, fetchProductStats, params.id])
 
   const handleSubmitReview = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -404,17 +404,35 @@ export default function ProductDetailPage() {
         {/* Breadcrumbs */}
         <nav className="text-sm text-gray-500 dark:text-gray-400 mb-4" aria-label="Breadcrumb">
           <ol className="flex items-center gap-2 flex-wrap">
-            <li><a href="/" className="hover:text-blue-600 dark:hover:text-blue-400">خانه</a></li>
+            <li>
+              <Link href="/" className="hover:text-blue-600 dark:hover:text-blue-400">
+                خانه
+              </Link>
+            </li>
             {parentCategoryInfo && (
               <>
                 <li>›</li>
-                <li><a href={`/products?category=${parentCategoryInfo._id}`} className="hover:text-blue-600 dark:hover:text-blue-400">{parentCategoryInfo.name}</a></li>
+                <li>
+                  <Link
+                    href={`/products?category=${parentCategoryInfo._id}`}
+                    className="hover:text-blue-600 dark:hover:text-blue-400"
+                  >
+                    {parentCategoryInfo.name}
+                  </Link>
+                </li>
               </>
             )}
             {categoryInfo && (
               <>
                 <li>›</li>
-                <li><a href={`/products?category=${categoryInfo._id}`} className="hover:text-blue-600 dark:hover:text-blue-400">{categoryInfo.name}</a></li>
+                <li>
+                  <Link
+                    href={`/products?category=${categoryInfo._id}`}
+                    className="hover:text-blue-600 dark:hover:text-blue-400"
+                  >
+                    {categoryInfo.name}
+                  </Link>
+                </li>
               </>
             )}
             <li>›</li>

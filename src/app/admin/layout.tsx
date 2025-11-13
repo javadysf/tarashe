@@ -15,7 +15,7 @@ export default function AdminLayout({
 
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [checkAuth])
 
   useEffect(() => {
     if (user && user.role !== 'admin') {

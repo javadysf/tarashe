@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Grid3X3, ChevronDown, X } from 'lucide-react'
 import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '@/components/ui/dialog'
 import { api } from '@/lib/api'
@@ -125,11 +126,14 @@ export default function MobileCategoryMenu() {
                         className="flex-1 flex items-center gap-2 p-3 bg-gradient-to-l from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 hover:from-blue-50 hover:to-white dark:hover:from-blue-900 dark:hover:to-gray-800 transition-all"
                       >
                         {parent.image?.url && (
-                          <img 
+                          <Image 
                             src={parent.image.url} 
                             alt={parent.image.alt || parent.name}
+                            width={32}
+                            height={32}
                             className="w-8 h-8 rounded object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600"
                             onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            unoptimized
                           />
                         )}
                         <span className="text-base font-bold text-gray-800 dark:text-gray-100">{parent.name}</span>

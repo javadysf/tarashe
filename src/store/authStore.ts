@@ -9,6 +9,9 @@ interface User {
   phone?: string;
   phoneVerified?: boolean;
   role: string;
+  street?: string;
+  city?: string;
+  state?: string;
   address?: {
     street?: string;
     city?: string;
@@ -25,6 +28,8 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isCheckingAuth: boolean;
+  authRetryCount: number;
   login: (phone: string, password: string) => Promise<{ user: User; token: string }>;
   register: (userData: any) => Promise<{ user: User; token: string }>;
   sendSmsCode: (userData: any) => Promise<void>;
@@ -38,6 +43,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
   user: null,
   token: null,
   isLoading: false,
+  isCheckingAuth: false,
+  authRetryCount: 0,
 
   login: async (phone: string, password: string) => {
     set({ isLoading: true });
@@ -54,7 +61,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           localStorage.setItem('refreshToken', response.refreshToken);
         }
       }
-      set({ user, token, isLoading: false });
+      set({ user, token, isLoading: false, authRetryCount: 0 });
       
       return { user, token };
     } catch (error) {
@@ -78,7 +85,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           localStorage.setItem('refreshToken', response.refreshToken);
         }
       }
-      set({ user, token, isLoading: false });
+      set({ user, token, isLoading: false, authRetryCount: 0 });
       
       return { user, token };
     } catch (error) {
@@ -113,7 +120,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           localStorage.setItem('refreshToken', response.refreshToken);
         }
       }
-      set({ user, token, isLoading: false });
+      set({ user, token, isLoading: false, authRetryCount: 0 });
       
       return { user, token };
     } catch (error) {
@@ -138,19 +145,27 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       localStorage.removeItem('token');
       localStorage.removeItem('refreshToken');
     }
-    set({ user: null, token: null });
+    set({ user: null, token: null, authRetryCount: 0 });
   },
 
   checkAuth: async () => {
     if (typeof window === 'undefined') return;
     
     const token = localStorage.getItem('token');
-    if (!token) return;
+    if (!token) {
+      set({ isCheckingAuth: false, authRetryCount: 0 });
+      return;
+    }
+
+    set({ isCheckingAuth: true });
 
     try {
       const response = await api.getProfile();
-      set({ user: response.user, token });
+      set({ user: response.user, token, isCheckingAuth: false, authRetryCount: 0 });
     } catch (error) {
+      const currentRetry = get().authRetryCount;
+      const nextRetry = Math.min(currentRetry + 1, 3);
+
       // Silently handle auth check failures
       if (error instanceof Error) {
         if (error.message.includes('401') || error.message.includes('ایمیل یا رمز عبور اشتباه است')) {
@@ -163,6 +178,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           console.log('Auth check failed:', error.message);
         }
       }
+      set({ isCheckingAuth: false, authRetryCount: nextRetry });
+      return;
     }
+
+    set({ isCheckingAuth: false });
   },
 }));

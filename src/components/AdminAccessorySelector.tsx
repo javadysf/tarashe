@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/api'
 import Image from 'next/image'
 
@@ -12,7 +12,7 @@ interface Accessory {
     url: string
     alt: string
   }>
-  category: {
+  category?: {
     _id: string
     name: string
   }
@@ -41,14 +41,6 @@ export default function AdminAccessorySelector({ selectedAccessories, onAccessor
   const [selectedSubSubCategory, setSelectedSubSubCategory] = useState<string>('')
   const [searchTerm, setSearchTerm] = useState<string>('')
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  useEffect(() => {
-    filterAccessories()
-  }, [allAccessories, selectedCategory, selectedSubCategory, selectedSubSubCategory, searchTerm])
-
   // Reset subcategories when parent changes
   useEffect(() => {
     setSelectedSubCategory('')
@@ -59,7 +51,7 @@ export default function AdminAccessorySelector({ selectedAccessories, onAccessor
     setSelectedSubSubCategory('')
   }, [selectedSubCategory])
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -78,16 +70,16 @@ export default function AdminAccessorySelector({ selectedAccessories, onAccessor
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const filterAccessories = () => {
+  const filterAccessories = useCallback(() => {
     let filtered = [...allAccessories]
 
     // Filter by category (use the deepest selected level)
     const categoryToFilter = selectedSubSubCategory || selectedSubCategory || selectedCategory
     if (categoryToFilter) {
       filtered = filtered.filter(product => 
-        product.category._id === categoryToFilter
+        product.category && product.category._id === categoryToFilter
       )
     }
 
@@ -99,7 +91,15 @@ export default function AdminAccessorySelector({ selectedAccessories, onAccessor
     }
 
     setAccessories(filtered)
-  }
+  }, [allAccessories, searchTerm, selectedCategory, selectedSubCategory, selectedSubSubCategory])
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+  useEffect(() => {
+    filterAccessories()
+  }, [filterAccessories])
 
   const getParentCategories = () => {
     return categories.filter(cat => !cat.parent)
@@ -157,7 +157,7 @@ export default function AdminAccessorySelector({ selectedAccessories, onAccessor
         </h3>
         <p className="text-red-600 mb-4">{error}</p>
         <button
-          onClick={fetchAccessories}
+          onClick={fetchData}
           className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
         >
           تلاش مجدد
@@ -327,9 +327,11 @@ export default function AdminAccessorySelector({ selectedAccessories, onAccessor
                   <h4 className="font-medium text-gray-900 text-sm leading-tight mb-1">
                     {accessory.name}
                   </h4>
-                  <p className="text-blue-600 text-xs mb-1">
-                    {accessory.category.name}
-                  </p>
+                  {accessory.category && (
+                    <p className="text-blue-600 text-xs mb-1">
+                      {accessory.category.name}
+                    </p>
+                  )}
                   <p className="text-green-600 font-semibold text-sm">
                     {new Intl.NumberFormat('fa-IR').format(accessory.price)} تومان
                   </p>

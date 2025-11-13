@@ -237,10 +237,13 @@ export default function CategoriesPage() {
                   
                   {imagePreview && (
                     <div className="relative">
-                      <img
+                      <Image
                         src={imagePreview}
                         alt="پیشنمایش"
+                        width={80}
+                        height={80}
                         className="w-20 h-20 object-cover rounded-xl border-2 border-blue-200"
+                        unoptimized
                       />
                       <button
                         type="button"

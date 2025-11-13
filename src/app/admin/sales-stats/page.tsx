@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { useRouter } from 'next/navigation'
@@ -14,17 +14,9 @@ export default function SalesStatsPage() {
 
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [checkAuth])
 
-  useEffect(() => {
-    if (user && user.role === 'admin') {
-      fetchStats()
-    } else if (user && user.role !== 'admin') {
-      router.push('/')
-    }
-  }, [user, period])
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       setLoading(true)
       const data = await api.getSalesStats(period)
@@ -34,7 +26,15 @@ export default function SalesStatsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [period])
+
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      fetchStats()
+    } else if (user && user.role !== 'admin') {
+      router.push('/')
+    }
+  }, [user, fetchStats, router])
 
   const formatPrice = (price: number) => new Intl.NumberFormat('fa-IR').format(price)
   const formatDate = (date: string) => new Date(date).toLocaleDateString('fa-IR')
@@ -234,6 +234,13 @@ export default function SalesStatsPage() {
     </div>
   )
 }
+
+
+
+
+
+
+
 
 
 

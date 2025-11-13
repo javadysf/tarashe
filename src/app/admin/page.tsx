@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { useAuthStore } from '@/store/authStore'
@@ -19,15 +19,9 @@ export default function AdminPage() {
 
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [checkAuth])
 
-  useEffect(() => {
-    if (user && user.role === 'admin') {
-      fetchStats()
-    }
-  }, [user])
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       // Get products count (this works without auth)
       let productsCount = 0
@@ -76,7 +70,13 @@ export default function AdminPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (user && user.role === 'admin') {
+      fetchStats()
+    }
+  }, [user, fetchStats])
 
   useEffect(() => {
     if (user && user.role !== 'admin') {

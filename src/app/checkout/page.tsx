@@ -45,7 +45,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [checkAuth])
 
   useEffect(() => {
     if (user) {

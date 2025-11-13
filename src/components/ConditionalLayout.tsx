@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -21,15 +22,15 @@ export default function ConditionalLayout({ children }: { children: React.ReactN
       <ErrorBoundary>
         {isAuthRoute && (
           <div className="absolute top-4 right-4 z-50">
-            <a 
-              href="/" 
+            <Link
+              href="/"
               className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-black/20 hover:bg-black/30 rounded-lg backdrop-blur-sm transition-colors"
             >
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
               بازگشت به خانه
-            </a>
+            </Link>
           </div>
         )}
         {children}

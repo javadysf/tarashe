@@ -3,6 +3,7 @@
 import { useCartStore } from '@/store/cartStore'
 import { XMarkIcon, MinusIcon, PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function CartSidebar() {
   const { items, isOpen, toggleCart, removeItem, updateQuantity, clearCart, getTotalPrice } = useCartStore()
@@ -54,11 +55,16 @@ export default function CartSidebar() {
                   <div key={item.id} className="space-y-3">
                     {/* Main Product */}
                     <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-xl">
-                      <img
-                        src={item.image}
-                        alt={item.name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
+                      <div className="relative w-16 h-16">
+                        <Image
+                          src={item.image || '/pics/battery.jpg'}
+                          alt={item.name}
+                          fill
+                          className="object-cover rounded-lg"
+                          sizes="64px"
+                          unoptimized={item.image?.startsWith('data:') || item.image?.startsWith('blob:')}
+                        />
+                      </div>
                       <div className="flex-1">
                         <h3 className="font-medium text-gray-900 line-clamp-2 text-sm mb-2">
                           {item.name}

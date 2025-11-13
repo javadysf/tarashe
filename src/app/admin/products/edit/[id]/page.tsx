@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'react-toastify';
+import Image from 'next/image';
 import { api } from '@/lib/api';
 import AdminAccessorySelector from '@/components/AdminAccessorySelector';
 import AttributeSelector from '@/components/AttributeSelector';
@@ -31,6 +32,7 @@ export default function EditProductPage() {
     description: '',
     price: '',
     originalPrice: '',
+    discountPercent: '',
     category: '',
     brand: '',
     model: '',
@@ -44,19 +46,17 @@ export default function EditProductPage() {
     }>
   });
 
-  useEffect(() => {
-    fetchData();
-  }, [productId]);
-
-  useEffect(() => {
-    if (formData.category) {
-      fetchCategoryAttributes(formData.category);
-    } else {
-      setCategoryAttributes([]);
+  const fetchCategoryAttributes = useCallback(async (categoryId: string) => {
+    try {
+      const response = await api.getCategoryAttributes(categoryId);
+      const attributes = response.map((ca: any) => ca.attribute).filter(Boolean);
+      setCategoryAttributes(attributes);
+    } catch (error) {
+      console.error('Error fetching category attributes:', error);
     }
-  }, [formData.category]);
+  }, []);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [productData, categoriesData, brandsData] = await Promise.all([
         api.getProduct(productId),
@@ -74,11 +74,23 @@ export default function EditProductPage() {
       // Handle brand properly - it might be an object or string
       const brandId = typeof productData.brand === 'object' ? productData.brand._id : productData.brand;
       
+      // Calculate discount percent from existing data if available
+      let discountPercent = ''
+      if (productData.originalPrice && productData.price) {
+        const original = parseFloat(productData.originalPrice.toString())
+        const current = parseFloat(productData.price.toString())
+        if (original > 0 && original > current) {
+          const discount = ((original - current) / original) * 100
+          discountPercent = discount.toFixed(0)
+        }
+      }
+
       setFormData({
         name: productData.name || '',
         description: productData.description || '',
         price: productData.price?.toString() || '',
-        originalPrice: productData.originalPrice?.toString() || productData.discountPrice?.toString() || '',
+        originalPrice: productData.originalPrice?.toString() || productData.price?.toString() || '',
+        discountPercent: discountPercent,
         category: categoryId || '',
         brand: brandId || '',
         model: productData.model || '',
@@ -105,18 +117,36 @@ export default function EditProductPage() {
       toast.error('خطا در بارگذاری اطلاعات');
       setLoading(false);
     }
-  };
+  }, [fetchCategoryAttributes, productId]);
 
-  const fetchCategoryAttributes = async (categoryId: string) => {
-    try {
-      const response = await api.getCategoryAttributes(categoryId);
-      // Extract the actual attribute objects from CategoryAttribute
-      const attributes = response.map((ca: any) => ca.attribute);
-      setCategoryAttributes(attributes);
-    } catch (error) {
-      console.error('Error fetching category attributes:', error);
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (formData.category) {
+      fetchCategoryAttributes(formData.category);
+    } else {
+      setCategoryAttributes([]);
     }
-  };
+  }, [fetchCategoryAttributes, formData.category]);
+
+  // Calculate price based on originalPrice and discountPercent
+  useEffect(() => {
+    const originalPrice = parseFloat(formData.originalPrice) || 0
+    const discountPercent = parseFloat(formData.discountPercent) || 0
+    
+    if (originalPrice > 0) {
+      const discountAmount = originalPrice * (discountPercent / 100)
+      const finalPrice = originalPrice - discountAmount
+      if (finalPrice > 0) {
+        setFormData(prev => ({
+          ...prev,
+          price: finalPrice.toFixed(0)
+        }))
+      }
+    }
+  }, [formData.originalPrice, formData.discountPercent]);
 
   const handleCreateAttribute = async () => {
     if (!newAttribute.name.trim()) {
@@ -274,7 +304,7 @@ export default function EditProductPage() {
       
       submitData.append('name', formData.name);
       submitData.append('description', formData.description);
-      submitData.append('price', formData.price);
+      submitData.append('price', formData.price || formData.originalPrice);
       if (formData.originalPrice) {
         submitData.append('originalPrice', formData.originalPrice);
       }
@@ -406,26 +436,59 @@ export default function EditProductPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">قیمت فروش (تومان) *</label>
-                <input
-                  type="number"
-                  required
-                  value={formData.price}
-                  onChange={(e) => setFormData({...formData, price: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70"
-                />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (تومان) *</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={formData.originalPrice}
+                    onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 pl-16"
+                  />
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">تومان</span>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (اختیاری)</label>
-                <input
-                  type="number"
-                  value={formData.originalPrice}
-                  onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70"
-                />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">درصد تخفیف (اختیاری)</label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formData.discountPercent}
+                    onChange={(e) => setFormData({...formData, discountPercent: e.target.value})}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 pr-12"
+                  />
+                  <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
+                </div>
+                {formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
+                  <p className="text-xs text-green-600 mt-1">
+                    تخفیف: {((parseFloat(formData.originalPrice) || 0) * (parseFloat(formData.discountPercent) || 0) / 100).toLocaleString('fa-IR')} تومان
+                  </p>
+                )}
               </div>
             </div>
+
+            {/* Calculated Price Display */}
+            {formData.price && parseFloat(formData.price) > 0 && (
+              <div className="mt-4 p-4 bg-green-100 rounded-lg border-2 border-green-300">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-green-800">قیمت فروش نهایی:</span>
+                  <span className="text-lg font-bold text-green-700">
+                    {parseFloat(formData.price).toLocaleString('fa-IR')} تومان
+                  </span>
+                </div>
+                {formData.originalPrice && formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
+                  <div className="mt-2 text-xs text-green-600">
+                    <span>قیمت اصلی: {parseFloat(formData.originalPrice).toLocaleString('fa-IR')} تومان</span>
+                    <span className="mx-2">•</span>
+                    <span>تخفیف: {formData.discountPercent}%</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Category & Details */}
@@ -642,7 +705,7 @@ export default function EditProductPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-500">این دسته هنوز ویژگی ندارد. برای ایجاد ویژگی جدید روی دکمه "ویژگی جدید" کلیک کنید.</p>
+                      <p className="text-sm text-gray-500">این دسته هنوز ویژگی ندارد. برای ایجاد ویژگی جدید روی دکمه &quot;ویژگی جدید&quot; کلیک کنید.</p>
                     )}
                   </div>
                 )}
@@ -731,14 +794,17 @@ export default function EditProductPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 max-h-80 overflow-y-auto p-4 bg-white/60 rounded-xl border border-orange-100">
                   {formData.images.map((image, index) => (
                     <div key={index} className="relative group">
-                      <div className="aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-orange-300 transition-all duration-200">
-                        <img
+                      <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-orange-300 transition-all duration-200">
+                        <Image
                           src={image.url}
                           alt={image.alt || `تصویر ${index + 1}`}
-                          className={`w-full h-full object-cover group-hover:scale-105 transition-all duration-300 cursor-pointer ${
+                          fill
+                          className={`object-cover group-hover:scale-105 transition-all duration-300 cursor-pointer ${
                             image.isUploading ? 'opacity-50' : ''
                           }`}
                           onClick={() => !image.isUploading && window.open(image.url, '_blank')}
+                          sizes="(max-width: 1024px) 33vw, 200px"
+                          unoptimized={image.url.startsWith('blob:')}
                         />
                         
                         {image.isUploading && (

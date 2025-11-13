@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import { Plus, Edit, Trash2, Package, Search, Filter } from 'lucide-react'
 import { api } from '@/lib/api'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Accessory {
   _id: string
@@ -45,12 +46,7 @@ export default function AccessoriesPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [error, setError] = useState('')
 
-  useEffect(() => {
-    fetchAccessories()
-    fetchCategories()
-  }, [currentPage, searchTerm, selectedCategory, filterActive])
-
-  const fetchAccessories = async () => {
+  const fetchAccessories = useCallback(async () => {
     try {
       setLoading(true)
       const params: any = {
@@ -71,16 +67,21 @@ export default function AccessoriesPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, filterActive, searchTerm, selectedCategory])
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await api.getCategories()
       setCategories(response)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    fetchAccessories()
+    fetchCategories()
+  }, [fetchAccessories, fetchCategories])
 
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`آیا مطمئن هستید که می‌خواهید متعلق "${name}" را حذف کنید؟`)) {
@@ -89,7 +90,7 @@ export default function AccessoriesPage() {
 
     try {
       await api.deleteProduct(id)
-      setAccessories(accessories.filter(acc => acc._id !== id))
+      setAccessories(prev => prev.filter(acc => acc._id !== id))
     } catch (error: any) {
       console.error('Error deleting accessory:', error)
       alert(error.message || 'خطا در حذف متعلق')
@@ -106,9 +107,11 @@ export default function AccessoriesPage() {
         isActive: !currentStatus
       })
 
-      setAccessories(accessories.map(acc => 
-        acc._id === id ? { ...acc, isActive: !currentStatus } : acc
-      ))
+      setAccessories(prev =>
+        prev.map(acc =>
+          acc._id === id ? { ...acc, isActive: !currentStatus } : acc
+        )
+      )
     } catch (error) {
       console.error('Error updating accessory:', error)
       alert('خطا در به‌روزرسانی متعلق')
@@ -270,11 +273,14 @@ export default function AccessoriesPage() {
 
                   {/* Image */}
                   {accessory.images && accessory.images.length > 0 && (
-                    <div className="mb-4">
-                      <img
+                    <div className="mb-4 overflow-hidden rounded-lg">
+                      <Image
                         src={accessory.images[0].url}
                         alt={accessory.images[0].alt || accessory.name}
-                        className="w-full h-32 object-cover rounded-lg"
+                        width={600}
+                        height={240}
+                        className="w-full h-32 object-cover"
+                        sizes="(max-width: 768px) 100vw, 600px"
                       />
                     </div>
                   )}

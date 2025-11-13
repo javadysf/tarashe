@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'react-toastify'
+import Image from 'next/image'
 
 interface Slider {
   _id: string
@@ -50,11 +51,14 @@ export default function SliderCard({
       onDrop={(e) => onDrop(e, slider._id)}
     >
       <div className="md:flex">
-        <div className="md:w-1/3 relative">
-          <img
+        <div className="md:w-1/3 relative w-full h-48 md:h-full">
+          <Image
             src={slider.image}
             alt={slider.title}
-            className="w-full h-48 md:h-full object-cover"
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 100vw, 300px"
+            unoptimized
           />
           <div className="absolute top-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
             ترتیب: {slider.displayOrder}

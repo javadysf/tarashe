@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { toast } from 'react-toastify'
 
@@ -25,32 +25,41 @@ export default function AttributeSelector({ categoryId, onAttributeAdd }: Attrib
   const [loading, setLoading] = useState(false)
   const [selectedAttribute, setSelectedAttribute] = useState('')
 
-  useEffect(() => {
-    fetchAttributes()
-    if (categoryId) {
-      fetchCategoryAttributes()
-    }
-  }, [categoryId])
-
-  const fetchAttributes = async () => {
+  const fetchAttributes = useCallback(async () => {
     try {
       const response = await api.getAttributes()
       setAttributes(response)
     } catch (error) {
       console.error('Error fetching attributes:', error)
     }
-  }
+  }, [])
 
-  const fetchCategoryAttributes = async () => {
-    if (!categoryId) return
+  const fetchCategoryAttributes = useCallback(async (id?: string) => {
+    const targetCategoryId = id ?? categoryId
+    if (!targetCategoryId) return
+
     try {
-      const response = await api.getCategoryAttributes(categoryId)
-      const attributeIds = response.map((ca: any) => ca.attribute._id)
-      setCategoryAttributes(attributeIds)
+      const response = await api.getCategoryAttributes(targetCategoryId)
+      const attributeIds = response
+        .map((ca: any) => ca.attribute?._id)
+        .filter(Boolean)
+      setCategoryAttributes(Array.from(new Set(attributeIds)))
     } catch (error) {
       console.error('Error fetching category attributes:', error)
     }
-  }
+  }, [categoryId])
+
+  useEffect(() => {
+    fetchAttributes()
+  }, [fetchAttributes])
+
+  useEffect(() => {
+    if (categoryId) {
+      fetchCategoryAttributes(categoryId)
+    } else {
+      setCategoryAttributes([])
+    }
+  }, [categoryId, fetchCategoryAttributes])
 
   const handleAddAttribute = async () => {
     if (!selectedAttribute || !categoryId) return
@@ -60,7 +69,7 @@ export default function AttributeSelector({ categoryId, onAttributeAdd }: Attrib
       await api.assignAttributeToCategory(categoryId, selectedAttribute)
       onAttributeAdd(selectedAttribute)
       setSelectedAttribute('')
-      fetchCategoryAttributes()
+      fetchCategoryAttributes(categoryId)
     } catch (error: any) {
       toast.error(error.message || 'خطا در افزودن ویژگی')
     } finally {
@@ -68,7 +77,25 @@ export default function AttributeSelector({ categoryId, onAttributeAdd }: Attrib
     }
   }
 
-  const availableAttributes = attributes.filter(attr => !categoryAttributes.includes(attr._id))
+  const getAttributeKey = (attr: Attribute) => {
+    const normalizedName = attr.name?.trim().toLowerCase()
+    if (normalizedName) {
+      return `${normalizedName}::${attr.type}`
+    }
+    return attr._id
+  }
+
+  const uniqueAttributes = Array.from(
+    attributes.reduce((map, attr) => {
+      const key = getAttributeKey(attr)
+      if (!map.has(key)) {
+        map.set(key, attr)
+      }
+      return map
+    }, new Map<string, Attribute>())
+  ).map(([_, value]) => value)
+
+  const availableAttributes = uniqueAttributes.filter(attr => !categoryAttributes.includes(attr._id))
 
   if (availableAttributes.length === 0) {
     return (

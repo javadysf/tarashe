@@ -16,8 +16,7 @@ export const showSuccessToast = (message: string) => {
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
-      className: 'bg-white border border-green-200 shadow-lg rounded-xl',
-      bodyClassName: 'text-gray-800',
+      className: 'bg-white border border-green-200 shadow-lg rounded-xl text-gray-800',
       progressClassName: 'bg-gradient-to-r from-green-500 to-emerald-500',
     }
   )
@@ -36,8 +35,7 @@ export const showErrorToast = (message: string) => {
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
-      className: 'bg-white border border-red-200 shadow-lg rounded-xl',
-      bodyClassName: 'text-gray-800',
+      className: 'bg-white border border-red-200 shadow-lg rounded-xl text-gray-800',
       progressClassName: 'bg-gradient-to-r from-red-500 to-pink-500',
     }
   )
@@ -56,8 +54,7 @@ export const showWarningToast = (message: string) => {
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
-      className: 'bg-white border border-yellow-200 shadow-lg rounded-xl',
-      bodyClassName: 'text-gray-800',
+      className: 'bg-white border border-yellow-200 shadow-lg rounded-xl text-gray-800',
       progressClassName: 'bg-gradient-to-r from-yellow-500 to-orange-500',
     }
   )
@@ -76,8 +73,7 @@ export const showInfoToast = (message: string) => {
       closeOnClick: true,
       pauseOnHover: true,
       draggable: true,
-      className: 'bg-white border border-blue-200 shadow-lg rounded-xl',
-      bodyClassName: 'text-gray-800',
+      className: 'bg-white border border-blue-200 shadow-lg rounded-xl text-gray-800',
       progressClassName: 'bg-gradient-to-r from-blue-500 to-purple-500',
     }
   )

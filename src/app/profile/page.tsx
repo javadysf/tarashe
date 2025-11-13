@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
@@ -45,31 +45,11 @@ export default function ProfilePage() {
 
   useEffect(() => {
     checkAuth()
-  }, [])
+  }, [checkAuth])
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        name: user.name || '',
-        lastName: user.lastName || '',
-        phone: user.phone || '',
-        postalCode: user.postalCode || '',
-        address: user.address || {
-          street: '',
-          city: '',
-          state: '',
-          postalCode: ''
-        }
-      })
-      fetchOrders()
-      fetchLiked()
-    } else {
-      router.push('/auth/login')
-    }
-  }, [user, router])
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
+      setLoading(true)
       const response = await api.getOrders({ page: String(ordersPage), limit: '10' })
       setOrders(response.orders || [])
       setOrdersTotalPages(response.pagination?.totalPages || 1)
@@ -79,9 +59,9 @@ export default function ProfilePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [ordersPage])
 
-  const fetchLiked = async () => {
+  const fetchLiked = useCallback(async () => {
     try {
       setLikedLoading(true)
       const res = await api.getLikedProducts({ page: String(likesPage), limit: '10' })
@@ -93,19 +73,38 @@ export default function ProfilePage() {
     } finally {
       setLikedLoading(false)
     }
-  }
+  }, [likesPage])
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        lastName: user.lastName || '',
+        phone: user.phone || '',
+        postalCode: user.postalCode || '',
+        address: {
+          street: user.address?.street ?? '',
+          city: user.address?.city ?? '',
+          state: user.address?.state ?? '',
+          postalCode: user.address?.postalCode ?? ''
+        }
+      })
+      fetchOrders()
+      fetchLiked()
+    } else {
+      router.push('/auth/login')
+    }
+  }, [fetchLiked, fetchOrders, router, user])
 
   useEffect(() => {
     if (!user) return
     fetchOrders()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ordersPage])
+  }, [fetchOrders, user])
 
   useEffect(() => {
     if (!user) return
     fetchLiked()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [likesPage])
+  }, [fetchLiked, user])
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()

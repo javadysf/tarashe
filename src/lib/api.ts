@@ -44,7 +44,7 @@ class ApiClient {
     return token ? { Authorization: `Bearer ${token}` } : {} as Record<string, string>;
   }
 
-  private async request(endpoint: string, options: RequestInit = {}) {
+  private async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${API_BASE_URL}${endpoint}`;
     
     // Check if this is an auth check request
@@ -151,7 +151,7 @@ class ApiClient {
                   localStorage.setItem('token', refreshResponse.accessToken);
                   localStorage.setItem('refreshToken', refreshResponse.refreshToken);
                   // Retry original request
-                  return this.request(endpoint, options);
+                  return this.request<T>(endpoint, options);
                 } catch (refreshError) {
                   // Refresh failed, clear tokens and redirect to login
                   localStorage.removeItem('token');
@@ -207,7 +207,7 @@ class ApiClient {
         }
       }
 
-      return data;
+      return data as T;
     } catch (error) {
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -534,6 +534,13 @@ class ApiClient {
     });
   }
 
+  async updateReview(reviewId: string, reviewData: any) {
+    return this.request(`/products/reviews/${reviewId}`, {
+      method: 'PUT',
+      body: JSON.stringify(reviewData),
+    });
+  }
+
   async getAllReviews() {
     return this.request('/products/reviews/all');
   }
@@ -665,6 +672,39 @@ class ApiClient {
 
   async getProductAccessories(productId: string) {
     return this.request(`/products/${productId}/accessories`);
+  }
+
+  // Accessories
+  async getAccessories(params?: Record<string, unknown>) {
+    const searchParams = new URLSearchParams();
+    searchParams.set('isAccessory', 'true');
+
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value === undefined || value === null || value === '') {
+          return;
+        }
+        if (Array.isArray(value)) {
+          value.forEach((item) => searchParams.append(key, String(item)));
+        } else {
+          searchParams.set(key, String(value));
+        }
+      });
+    }
+
+    const query = searchParams.toString();
+    const response = await this.request(`/products${query ? `?${query}` : ''}`);
+
+    const accessories = response?.accessories ?? response?.products ?? [];
+    const pagination = response?.pagination;
+    const totalPages = response?.totalPages ?? pagination?.totalPages ?? 1;
+
+    return {
+      ...response,
+      accessories,
+      totalPages,
+      pagination,
+    };
   }
 
   // Sliders

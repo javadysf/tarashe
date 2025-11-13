@@ -15,6 +15,11 @@ interface Product {
   model: string
   price: number
   originalPrice?: number
+  description: string
+  category: {
+    _id: string
+    name: string
+  }
   images: { url: string; alt: string }[]
   rating: { average: number; count: number }
   inStock: boolean
@@ -297,8 +302,8 @@ export default function HomeSlider() {
 
   if (loading) {
     return (
-      <section className="py-16 bg-gradient-6">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-12 bg-gradient-6">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
           <div className="text-center mb-8">
             <div className="animate-pulse">
               <div className="h-8 bg-white/20 rounded w-64 mx-auto mb-4"></div>
@@ -319,10 +324,10 @@ export default function HomeSlider() {
   return (
     <div className="space-y-16">
       {/* Categories Slider */}
-      <section className="py-16 bg-gradient-7 relative">
+      <section className="py-12 bg-gradient-7 relative">
         {/* Fade overlay at bottom - softer */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
+        <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-4 relative z-0">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -330,8 +335,8 @@ export default function HomeSlider() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
-              <span className="text-2xl">📂</span>
+            <div className="inline-flex  font-black items-center gap-2 glass text-white px-6 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
+              <span className="text-xl">📂</span>
               دسته‌بندی‌ها
             </div>
             <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
@@ -473,8 +478,8 @@ export default function HomeSlider() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
-              <span className="text-2xl">🏷️</span>
+            <div className="inline-flex font-black items-center gap-2 glass text-white px-6 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
+              <span className="text-xl">🏷️</span>
               برندها
             </div>
             <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
@@ -527,7 +532,7 @@ export default function HomeSlider() {
             viewport={{ once: true }}
             className="text-center mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-2 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
+            <div className="inline-flex items-center font-black gap-2 glass text-white px-6 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
               <span className="text-xl">🆕</span>
               جدیدترین محصولات
             </div>

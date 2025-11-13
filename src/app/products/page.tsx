@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { api } from '@/lib/api'
@@ -67,53 +67,6 @@ export default function ProductsPage() {
   const ITEMS_PER_PAGE = 12
 
   useEffect(() => {
-    // Read category and brand from URL on mount/URL change and fetch accordingly
-    const categoryFromUrl = searchParams.get('category')
-    const brandFromUrl = searchParams.get('brand')
-    
-    setCurrentCategoryId(categoryFromUrl || undefined)
-    fetchProducts(categoryFromUrl || undefined)
-    fetchCategories()
-    
-    // Update filters based on URL parameters
-    setFilters(prev => ({
-      ...prev,
-      category: categoryFromUrl || 'all',
-      brand: brandFromUrl ? [brandFromUrl] : []
-    }))
-  }, [searchParams])
-
-  useEffect(() => {
-    if (filters.category && filters.category !== 'all') {
-      fetchCategoryAttributes(filters.category)
-      // Refetch products from API with deep category filter
-      fetchProducts(filters.category, filters.brand[0])
-    } else {
-      setCategoryAttributes([])
-      setAttributeValues({})
-      // Load default product set when category cleared
-      if (filters.category === 'all') {
-        fetchProducts(undefined, filters.brand[0])
-      }
-    }
-  }, [filters.category])
-
-  useEffect(() => {
-    // Refetch products when brand filter changes - but don't filter on server side
-    // Let client-side filtering handle the brand filtering
-    if (filters.category !== 'all') {
-      fetchProducts(filters.category)
-    } else {
-      fetchProducts()
-    }
-  }, [filters.brand])
-
-  useEffect(() => {
-    applyFiltersAndSort()
-    setDisplayedCount(ITEMS_PER_PAGE) // Reset to first page when filters change
-  }, [products, filters, sortBy, searchTerm])
-
-  useEffect(() => {
     const uniqueBrands = products
       .map(product => product.brand)
       .filter(Boolean)
@@ -127,13 +80,11 @@ export default function ProductsPage() {
     setBrands(uniqueBrands)
   }, [products])
 
-  const fetchProducts = async (categoryId?: string, brandId?: string) => {
+  const fetchProducts = useCallback(async (categoryId?: string, brandId?: string) => {
     try {
       setError(null)
       const params: any = { limit: 100 }
       if (categoryId && categoryId !== 'all') params.category = categoryId
-      // Remove brand filtering from server-side to keep all brands visible
-      // Brand filtering will be handled client-side
       const response = await api.getProducts(params)
       setProducts(response.products || [])
       setLoading(false)
@@ -142,27 +93,25 @@ export default function ProductsPage() {
       setError('خطا در بارگذاری محصولات')
       setLoading(false)
     }
-  }
+  }, [])
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       const response = await api.getCategories()
       setCategories(response)
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
-  }
+  }, [])
 
-  const fetchCategoryAttributes = async (categoryId: string) => {
+  const fetchCategoryAttributes = useCallback(async (categoryId: string) => {
     try {
       const response = await api.getCategoryAttributes(categoryId)
       console.log('Category attributes response:', response)
       
-      // Extract attributes from CategoryAttribute objects
       const attributes = response.map((ca: any) => ca.attribute).filter(Boolean)
       setCategoryAttributes(attributes)
       
-      // Extract unique values for each attribute from products
       const values: { [key: string]: string[] } = {}
       attributes.forEach((attr: any) => {
         const attrValues = new Set<string>()
@@ -172,7 +121,6 @@ export default function ProductsPage() {
           }
         })
         
-        // For select type attributes, also include predefined options
         if (attr.type === 'select' && attr.options) {
           attr.options.forEach((option: string) => {
             attrValues.add(option)
@@ -186,9 +134,9 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('Error fetching category attributes:', error)
     }
-  }
+  }, [products])
 
-  const applyFiltersAndSort = () => {
+  const applyFiltersAndSort = useCallback(() => {
     let filtered = products.filter(product => {
       const matchesSearch = searchTerm === '' || 
         product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -241,7 +189,40 @@ export default function ProductsPage() {
     }
 
     setFilteredProducts(filtered)
-  }
+  }, [filters, products, searchTerm, sortBy])
+
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get('category')
+    const brandFromUrl = searchParams.get('brand')
+
+    setCurrentCategoryId(categoryFromUrl || undefined)
+    fetchProducts(categoryFromUrl || undefined)
+    fetchCategories()
+
+    setFilters(prev => ({
+      ...prev,
+      category: categoryFromUrl || 'all',
+      brand: brandFromUrl ? [brandFromUrl] : []
+    }))
+  }, [fetchCategories, fetchProducts, searchParams])
+
+  useEffect(() => {
+    const categoryId = filters.category !== 'all' ? filters.category : undefined
+
+    if (categoryId) {
+      fetchCategoryAttributes(categoryId)
+      fetchProducts(categoryId)
+    } else {
+      setCategoryAttributes([])
+      setAttributeValues({})
+      fetchProducts()
+    }
+  }, [fetchCategoryAttributes, fetchProducts, filters.category])
+
+  useEffect(() => {
+    applyFiltersAndSort()
+    setDisplayedCount(ITEMS_PER_PAGE)
+  }, [applyFiltersAndSort])
 
   const retryFetch = () => {
     setLoading(true)

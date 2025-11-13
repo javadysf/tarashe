@@ -474,11 +474,6 @@ class ApiClient {
     });
   }
 
-  // Slider Management
-  async getSliders() {
-    return this.request('/sliders');
-  }
-
   async getSlider(id: string) {
     return this.request(`/sliders/${id}`);
   }
