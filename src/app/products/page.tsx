@@ -210,14 +210,14 @@ export default function ProductsPage() {
     const categoryId = filters.category !== 'all' ? filters.category : undefined
 
     if (categoryId) {
+      // فقط ویژگی‌های دسته انتخابی را می‌گیریم
       fetchCategoryAttributes(categoryId)
-      fetchProducts(categoryId)
     } else {
+      // اگر دسته خاصی انتخاب نشده، ویژگی‌های دسته را خالی می‌کنیم
       setCategoryAttributes([])
       setAttributeValues({})
-      fetchProducts()
     }
-  }, [fetchCategoryAttributes, fetchProducts, filters.category])
+  }, [fetchCategoryAttributes, filters.category])
 
   useEffect(() => {
     applyFiltersAndSort()

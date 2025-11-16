@@ -288,9 +288,48 @@ export default function AddProductPage() {
       })
       router.push('/admin/products')
     } catch (error: any) {
-      toast.error('❌ ' + (error.message || 'خطا در ایجاد محصول'), {
+      console.error('Error creating product:', error)
+      
+      let errorMessage = 'خطا در ایجاد محصول'
+      let errors: any[] = []
+      
+      // Extract error message from different possible error structures
+      if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        // If there are validation errors, use them
+        errors = error.response.data.errors
+        const errorMessages = errors.map((e: any) => {
+          if (typeof e === 'string') return e
+          // Format: "field: message (value)" or just "message"
+          const field = e.field ? `${e.field}: ` : ''
+          const value = e.value ? ` (مقدار: ${e.value})` : ''
+          return `${field}${e.message || e.msg}${value}`
+        })
+        errorMessage = errorMessages.join('\n')
+      } else if (error?.data?.errors && Array.isArray(error.data.errors)) {
+        errors = error.data.errors
+        const errorMessages = errors.map((e: any) => {
+          if (typeof e === 'string') return e
+          const field = e.field ? `${e.field}: ` : ''
+          const value = e.value ? ` (مقدار: ${e.value})` : ''
+          return `${field}${e.message || e.msg}${value}`
+        })
+        errorMessage = errorMessages.join('\n')
+      } else if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      }
+      
+      // Show error with longer autoClose for multiple errors
+      const autoCloseTime = errors.length > 1 ? 10000 : 6000
+      
+      toast.error(`❌ ${errorMessage}`, {
         position: 'top-right',
-        autoClose: 3000,
+        autoClose: autoCloseTime,
       })
     } finally {
       setLoading(false)
@@ -479,7 +518,26 @@ export default function AddProductPage() {
       
       toast.success('✅ دسته بندی جدید ایجاد شد!')
     } catch (error: any) {
-      toast.error('❌ ' + (error.message || 'خطا در ایجاد دسته بندی'))
+      console.error('Error creating category:', error)
+      
+      let errorMessage = 'خطا در ایجاد دسته بندی'
+      
+      // Extract error message from different possible error structures
+      if (error?.message) {
+        errorMessage = error.message
+      } else if (error?.data?.message) {
+        errorMessage = error.data.message
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        errorMessage = error.response.data.errors.map((e: any) => e.message || e.msg).join('. ')
+      } else if (typeof error === 'string') {
+        errorMessage = error
+      }
+      
+      toast.error(`❌ ${errorMessage}`, {
+        autoClose: 6000,
+      })
     } finally {
       setUploadingCategoryImage(false)
     }
@@ -607,13 +665,13 @@ export default function AddProductPage() {
 
   if (user?.role !== 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg text-center">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">دسترسی غیرمجاز</h1>
-          <p className="text-gray-600 mb-4">شما باید به عنوان ادمین وارد شوید</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center">
+          <h1 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">دسترسی غیرمجاز</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">شما باید به عنوان ادمین وارد شوید</p>
           <button
             onClick={() => router.push('/auth/login')}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+            className="bg-blue-600 dark:bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600"
           >
             ورود
           </button>
@@ -623,25 +681,25 @@ export default function AddProductPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-4xl mx-auto px-6 py-8">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 rounded-full mb-4">
             <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
             افزودن محصول جدید
           </h1>
-          <p className="text-gray-600">اطلاعات محصول خود را وارد کنید</p>
+          <p className="text-gray-600 dark:text-gray-400">اطلاعات محصول خود را وارد کنید</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 space-y-8">
+        <form onSubmit={handleSubmit} className="bg-white/80 dark:bg-gray-800/90 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/50 p-8 space-y-8">
           {/* Basic Info Section */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 border border-blue-100">
-            <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-100 dark:border-blue-800/50">
+            <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -650,25 +708,25 @@ export default function AddProductPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">نام محصول *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">نام محصول *</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/70"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200 bg-white/70 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="نام محصول را وارد کنید"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">توضیحات *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">توضیحات *</label>
                 <textarea
                   required
                   rows={4}
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white/70 resize-none"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200 bg-white/70 dark:bg-gray-700/50 resize-none text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="توضیحات کامل محصول را بنویسید"
                 />
               </div>
@@ -676,8 +734,8 @@ export default function AddProductPage() {
           </div>
 
           {/* Pricing Section */}
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-6 border border-green-100">
-            <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-100 dark:border-green-800/50">
+            <h3 className="text-lg font-semibold text-green-800 dark:text-green-300 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
               </svg>
@@ -686,7 +744,7 @@ export default function AddProductPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">قیمت اصلی (تومان) *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">قیمت اصلی (تومان) *</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -694,15 +752,15 @@ export default function AddProductPage() {
                     min="0"
                     value={formData.originalPrice}
                     onChange={(e) => setFormData({...formData, originalPrice: e.target.value})}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 pl-16"
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-green-500 dark:focus:border-green-400 transition-all duration-200 bg-white/70 dark:bg-gray-700/50 pl-16 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="0"
                   />
-                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">تومان</span>
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">تومان</span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">درصد تخفیف (اختیاری)</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">درصد تخفیف (اختیاری)</label>
                 <div className="relative">
                   <input
                     type="number"
@@ -710,13 +768,13 @@ export default function AddProductPage() {
                     max="100"
                     value={formData.discountPercent}
                     onChange={(e) => setFormData({...formData, discountPercent: e.target.value})}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white/70 pr-12"
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-green-500 dark:focus:border-green-400 transition-all duration-200 bg-white/70 dark:bg-gray-700/50 pr-12 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="0"
                   />
-                  <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">%</span>
+                  <span className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400 text-sm">%</span>
                 </div>
                 {formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
-                  <p className="text-xs text-green-600 mt-1">
+                  <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                     تخفیف: {((parseFloat(formData.originalPrice) || 0) * (parseFloat(formData.discountPercent) || 0) / 100).toLocaleString('fa-IR')} تومان
                   </p>
                 )}
@@ -725,15 +783,15 @@ export default function AddProductPage() {
 
             {/* Calculated Price Display */}
             {formData.price && parseFloat(formData.price) > 0 && (
-              <div className="mt-4 p-4 bg-green-100 rounded-lg border-2 border-green-300">
+              <div className="mt-4 p-4 bg-green-100 dark:bg-green-900/30 rounded-lg border-2 border-green-300 dark:border-green-700">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-green-800">قیمت فروش نهایی:</span>
-                  <span className="text-lg font-bold text-green-700">
+                  <span className="text-sm font-semibold text-green-800 dark:text-green-300">قیمت فروش نهایی:</span>
+                  <span className="text-lg font-bold text-green-700 dark:text-green-400">
                     {parseFloat(formData.price).toLocaleString('fa-IR')} تومان
                   </span>
                 </div>
                 {formData.originalPrice && formData.discountPercent && parseFloat(formData.discountPercent) > 0 && (
-                  <div className="mt-2 text-xs text-green-600">
+                  <div className="mt-2 text-xs text-green-600 dark:text-green-400">
                     <span>قیمت اصلی: {parseFloat(formData.originalPrice).toLocaleString('fa-IR')} تومان</span>
                     <span className="mx-2">•</span>
                     <span>تخفیف: {formData.discountPercent}%</span>
@@ -744,8 +802,8 @@ export default function AddProductPage() {
           </div>
 
           {/* Category & Details Section */}
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl p-6 border border-purple-100">
-            <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-100 dark:border-purple-800/50">
+            <h3 className="text-lg font-semibold text-purple-800 dark:text-purple-300 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
               </svg>
@@ -753,14 +811,14 @@ export default function AddProductPage() {
             </h3>
             
             {/* Step 1: Parent Category */}
-            <div className="rounded-xl p-4 bg-white/70 border border-purple-100 mb-4">
+            <div className="rounded-xl p-4 bg-white/70 dark:bg-gray-700/50 border border-purple-100 dark:border-purple-800/50 mb-4">
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-semibold text-gray-700">دستهبندی اصلی *</label>
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">دستهبندی اصلی *</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => { setShowNewCategory(true); setNewCategoryMode('parent'); setNewCategoryParent(''); }}
-                    className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                    className="inline-flex items-center gap-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors"
                   >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -774,7 +832,7 @@ export default function AddProductPage() {
                 required
                 value={parentCategoryId}
                 onChange={(e) => setParentCategoryId(e.target.value)}
-                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               >
                 <option value="">انتخاب دسته اصلی</option>
                 {categories.filter(c => !c.parent).map((cat) => (
@@ -785,14 +843,14 @@ export default function AddProductPage() {
 
             {/* Step 2: Subcategory (visible after parent) */}
             {parentCategoryId && (
-              <div className="rounded-xl p-4 bg-white/70 border border-purple-100 mb-4">
+              <div className="rounded-xl p-4 bg-white/70 dark:bg-gray-700/50 border border-purple-100 dark:border-purple-800/50 mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-gray-700">زیردسته *</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">زیردسته *</label>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => { setShowNewCategory(true); setNewCategoryMode('child'); setNewCategoryParent(parentCategoryId); }}
-                      className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                      className="inline-flex items-center gap-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -805,7 +863,7 @@ export default function AddProductPage() {
                   required
                   value={secondLevelCategoryId}
                   onChange={(e) => setSecondLevelCategoryId(e.target.value)}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">انتخاب زیردسته</option>
                   {categories
@@ -819,14 +877,14 @@ export default function AddProductPage() {
 
             {/* Step 3: Sub-Subcategory (visible after second-level) */}
             {secondLevelCategoryId && (
-              <div className="rounded-xl p-4 bg-white/70 border border-purple-100 mb-4">
+              <div className="rounded-xl p-4 bg-white/70 dark:bg-gray-700/50 border border-purple-100 dark:border-purple-800/50 mb-4">
                 <div className="flex items-center justify-between mb-2">
-                  <label className="block text-sm font-semibold text-gray-700">زیر‌دستهٔ سطح سوم (اختیاری)</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">زیر‌دستهٔ سطح سوم (اختیاری)</label>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => { setShowNewCategory(true); setNewCategoryMode('grandchild'); setNewCategoryParent(secondLevelCategoryId); }}
-                      className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                      className="inline-flex items-center gap-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -838,7 +896,7 @@ export default function AddProductPage() {
                 <select
                   value={formData.category}
                   onChange={(e) => setFormData({...formData, category: e.target.value})}
-                  className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white"
+                  className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
                   <option value="">انتخاب زیر‌دستهٔ سطح سوم</option>
                   {categories
@@ -852,28 +910,28 @@ export default function AddProductPage() {
 
             {/* Create Category/Subcategory Panel */}
                   {showNewCategory && (
-              <div className="mb-4 p-6 bg-white/80 rounded-lg border border-purple-200">
-                <h4 className="text-sm font-semibold text-purple-800 mb-4">
+              <div className="mb-4 p-6 bg-white/80 dark:bg-gray-700/80 rounded-lg border border-purple-200 dark:border-purple-700/50">
+                <h4 className="text-sm font-semibold text-purple-800 dark:text-purple-300 mb-4">
                   {newCategoryMode === 'parent' ? 'ایجاد دستهبندی جدید' : 'ایجاد زیردسته جدید'}
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">نام *</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نام *</label>
                     <input
                       type="text"
                       placeholder={newCategoryMode === 'parent' ? 'نام دستهبندی جدید' : 'نام زیردسته جدید'}
                       value={newCategoryName}
                       onChange={(e) => setNewCategoryName(e.target.value)}
-                      className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                      className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     />
                   </div>
                   {newCategoryMode === 'child' && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">والد</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">والد</label>
                       <select
                         value={newCategoryParent || parentCategoryId}
                         onChange={(e) => setNewCategoryParent(e.target.value)}
-                        className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                        className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                       >
                         <option value="">انتخاب والد</option>
                         {categories.filter(c => !c.parent).map((c) => (
@@ -885,10 +943,10 @@ export default function AddProductPage() {
                 </div>
                 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">تصویر *</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تصویر *</label>
                   <div className="flex items-center gap-4">
-                    <label className="cursor-pointer bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
-                      <span className="text-purple-700 text-sm font-medium">انتخاب تصویر</span>
+                    <label className="cursor-pointer bg-purple-100 dark:bg-purple-900/50 hover:bg-purple-200 dark:hover:bg-purple-900/70 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-700 transition-colors">
+                      <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">انتخاب تصویر</span>
                       <input
                         type="file"
                         accept="image/*"
@@ -903,7 +961,7 @@ export default function AddProductPage() {
                           alt="پیشنمایش"
                           width={64}
                           height={64}
-                          className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
+                          className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200 dark:border-purple-700"
                           unoptimized
                         />
                         <button
@@ -913,7 +971,7 @@ export default function AddProductPage() {
                             setNewCategoryImagePreview('')
                             URL.revokeObjectURL(newCategoryImagePreview)
                           }}
-                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                          className="absolute -top-2 -right-2 bg-red-500 dark:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 dark:hover:bg-red-700"
                         >
                           ×
                         </button>
@@ -927,7 +985,7 @@ export default function AddProductPage() {
                     type="button"
                     onClick={handleCreateCategory}
                     disabled={uploadingCategoryImage || !newCategoryName.trim() || !newCategoryImage}
-                    className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 dark:hover:from-green-700 dark:hover:to-emerald-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {uploadingCategoryImage ? (
                       <>
@@ -950,7 +1008,7 @@ export default function AddProductPage() {
                         setNewCategoryImagePreview('')
                       }
                     }}
-                    className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all duration-200 font-medium"
+                    className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-all duration-200 font-medium"
                   >
                     انصراف
                   </button>
@@ -960,21 +1018,21 @@ export default function AddProductPage() {
 
             {/* Step 3: Attributes (after any category picked) */}
             {(formData.category || parentCategoryId || secondLevelCategoryId) ? (
-              <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border-2 border-purple-200 shadow-lg">
+              <div className="mt-6 p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700/50 shadow-lg">
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 rounded-lg flex items-center justify-center">
                       <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                       </svg>
                     </div>
-                    <h4 className="text-lg font-bold text-purple-800">ویژگی‌های محصول</h4>
+                    <h4 className="text-lg font-bold text-purple-800 dark:text-purple-300">ویژگی‌های محصول</h4>
                   </div>
                   <div className="flex gap-2">
                     <button
                       type="button"
                       onClick={() => setShowNewAttribute(!showNewAttribute)}
-                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 dark:from-purple-600 dark:to-pink-600 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 font-medium transition-all duration-200 shadow-md hover:shadow-lg"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -985,8 +1043,8 @@ export default function AddProductPage() {
                 </div>
 
                 {/* Select Existing Attributes */}
-                <div className="mb-6 p-6 bg-white rounded-xl border-2 border-blue-300 shadow-md">
-                  <h5 className="text-lg font-bold text-blue-800 mb-4 flex items-center gap-2">
+                <div className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-blue-300 dark:border-blue-700/50 shadow-md">
+                  <h5 className="text-lg font-bold text-blue-800 dark:text-blue-300 mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                     </svg>
@@ -1006,8 +1064,8 @@ export default function AddProductPage() {
 
                 {/* Create New Attribute */}
                 {showNewAttribute && (
-                  <div className="mb-6 p-6 bg-white rounded-xl border-2 border-purple-300 shadow-md">
-                    <h5 className="text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
+                  <div className="mb-6 p-6 bg-white dark:bg-gray-800 rounded-xl border-2 border-purple-300 dark:border-purple-700/50 shadow-md">
+                    <h5 className="text-lg font-bold text-purple-800 dark:text-purple-300 mb-4 flex items-center gap-2">
                       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                       </svg>
@@ -1016,18 +1074,18 @@ export default function AddProductPage() {
                       
                       <div className="space-y-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">نام ویژگی</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نام ویژگی</label>
                           <input
                             type="text"
                             value={newAttribute.name}
                             onChange={(e) => setNewAttribute({...newAttribute, name: e.target.value})}
-                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                            className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                             placeholder="مثال: رنگ، اندازه، جنس"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">نوع ویژگی</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع ویژگی</label>
                           <select
                             value={newAttribute.type}
                             onChange={(e) => setNewAttribute({
@@ -1035,7 +1093,7 @@ export default function AddProductPage() {
                               type: e.target.value as 'text' | 'number' | 'select',
                               options: e.target.value === 'select' ? [''] : []
                             })}
-                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                            className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                           >
                             <option value="text">متن</option>
                             <option value="number">عدد</option>
@@ -1045,7 +1103,7 @@ export default function AddProductPage() {
 
                         {newAttribute.type === 'select' && (
                           <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">گزینه ها</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">گزینه ها</label>
                             <div className="space-y-2">
                               {newAttribute.options.map((option, index) => (
                                 <div key={index} className="flex gap-2">
@@ -1053,14 +1111,14 @@ export default function AddProductPage() {
                                     type="text"
                                     value={option}
                                     onChange={(e) => updateAttributeOption(index, e.target.value)}
-                                    className="flex-1 px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                                    className="flex-1 px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                                     placeholder={`گزینه ${index + 1}`}
                                   />
                                   {newAttribute.options.length > 1 && (
                                     <button
                                       type="button"
                                       onClick={() => removeAttributeOption(index)}
-                                      className="px-3 py-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors"
+                                      className="px-3 py-2 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/70 transition-colors"
                                     >
                                       ×
                                     </button>
@@ -1070,7 +1128,7 @@ export default function AddProductPage() {
                               <button
                                 type="button"
                                 onClick={addAttributeOption}
-                                className="text-sm text-purple-600 hover:text-purple-700 font-medium"
+                                className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium"
                               >
                                 + افزودن گزینه
                               </button>
@@ -1082,7 +1140,7 @@ export default function AddProductPage() {
                           <button
                             type="button"
                             onClick={handleCreateAttribute}
-                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors font-medium"
+                            className="bg-green-500 dark:bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-600 dark:hover:bg-green-700 transition-colors font-medium"
                           >
                             ایجاد ویژگی
                           </button>
@@ -1092,7 +1150,7 @@ export default function AddProductPage() {
                               setShowNewAttribute(false)
                               setNewAttribute({ name: '', type: 'text', options: [''] })
                             }}
-                            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-colors font-medium"
+                            className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors font-medium"
                           >
                             انصراف
                           </button>
@@ -1109,16 +1167,16 @@ export default function AddProductPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
-                    <h5 className="text-lg font-bold text-gray-800">
+                    <h5 className="text-lg font-bold text-gray-800 dark:text-gray-200">
                       ویژگی‌های ترکیبی 
                       {parentCategoryId && (
-                        <span className="text-sm text-blue-600"> (سطح اول: {categories.find(c => c._id === parentCategoryId)?.name})</span>
+                        <span className="text-sm text-blue-600 dark:text-blue-400"> (سطح اول: {categories.find(c => c._id === parentCategoryId)?.name})</span>
                       )}
                       {secondLevelCategoryId && (
-                        <span className="text-sm text-green-600"> + سطح دوم: {categories.find(c => c._id === secondLevelCategoryId)?.name}</span>
+                        <span className="text-sm text-green-600 dark:text-green-400"> + سطح دوم: {categories.find(c => c._id === secondLevelCategoryId)?.name}</span>
                       )}
                       {formData.category && (
-                        <span className="text-sm text-purple-600"> + سطح سوم: {categories.find(c => c._id === formData.category)?.name}</span>
+                        <span className="text-sm text-purple-600 dark:text-purple-400"> + سطح سوم: {categories.find(c => c._id === formData.category)?.name}</span>
                       )}
                     </h5>
                   </div>
@@ -1126,22 +1184,22 @@ export default function AddProductPage() {
                   {categoryAttributes.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {categoryAttributes.map((attr) => (
-                        <div key={attr._id} className="bg-white rounded-xl border-2 border-gray-200 p-4 shadow-sm hover:shadow-md transition-all duration-200">
+                        <div key={attr._id} className="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all duration-200">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2">
-                              <label className="block text-sm font-bold text-gray-800">
+                              <label className="block text-sm font-bold text-gray-800 dark:text-gray-200">
                                 {attr.name}
                               </label>
                               {attr.unit && (
-                                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                                <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 px-2 py-1 rounded-full">
                                   {attr.unit}
                                 </span>
                               )}
                               {attr.level && (
                                 <span className={`text-xs px-2 py-1 rounded-full ${
-                                  attr.level === 'parent' ? 'bg-blue-100 text-blue-600' :
-                                  attr.level === 'second' ? 'bg-green-100 text-green-600' :
-                                  'bg-purple-100 text-purple-600'
+                                  attr.level === 'parent' ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400' :
+                                  attr.level === 'second' ? 'bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400' :
+                                  'bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400'
                                 }`}>
                                   {attr.level === 'parent' ? 'سطح اول' :
                                    attr.level === 'second' ? 'سطح دوم' : 'سطح سوم'}
@@ -1164,7 +1222,7 @@ export default function AddProductPage() {
                                   toast.error(error.message)
                                 }
                               }}
-                              className="text-red-500 hover:text-red-700 text-sm p-1 hover:bg-red-50 rounded"
+                              className="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 text-sm p-1 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                             >
                               ×
                             </button>
@@ -1179,7 +1237,7 @@ export default function AddProductPage() {
                                   [attr._id]: e.target.value
                                 }
                               })}
-                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                             >
                               <option value="">انتخاب کنید</option>
                               {attr.options?.map((option: string) => (
@@ -1197,7 +1255,7 @@ export default function AddProductPage() {
                                   [attr._id]: e.target.value
                                 }
                               })}
-                              className="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                              className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                               placeholder={`مقدار ${attr.name} را وارد کنید`}
                             />
                           )}
@@ -1205,14 +1263,14 @@ export default function AddProductPage() {
                           ))}
                         </div>
                   ) : (
-                    <div className="text-center py-12 bg-white rounded-xl border-2 border-dashed border-gray-300">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700">
+                      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg className="w-8 h-8 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                         </svg>
                       </div>
-                      <p className="text-gray-600 text-lg font-medium mb-2">هیچ ویژگی‌ای برای این دسته تعریف نشده است</p>
-                      <p className="text-gray-400 text-sm">می‌توانید ویژگی جدید ایجاد کنید</p>
+                      <p className="text-gray-600 dark:text-gray-400 text-lg font-medium mb-2">هیچ ویژگی‌ای برای این دسته تعریف نشده است</p>
+                      <p className="text-gray-400 dark:text-gray-500 text-sm">می‌توانید ویژگی جدید ایجاد کنید</p>
                     </div>
                   )}
                 </div>
@@ -1223,11 +1281,11 @@ export default function AddProductPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-sm font-semibold text-gray-700">برند *</label>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">برند *</label>
                     <button
                       type="button"
                       onClick={() => setShowNewBrand(!showNewBrand)}
-                      className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium transition-colors"
+                      className="inline-flex items-center gap-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-medium transition-colors"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1237,26 +1295,26 @@ export default function AddProductPage() {
                   </div>
                   
                   {showNewBrand && (
-                    <div className="mb-4 p-4 bg-white/60 rounded-lg border border-purple-200">
-                      <h4 className="text-sm font-semibold text-purple-800 mb-4">ایجاد برند جدید</h4>
+                    <div className="mb-4 p-4 bg-white/60 dark:bg-gray-700/60 rounded-lg border border-purple-200 dark:border-purple-700/50">
+                      <h4 className="text-sm font-semibold text-purple-800 dark:text-purple-300 mb-4">ایجاد برند جدید</h4>
                       
                       <div className="space-y-4">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">نام برند *</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">نام برند *</label>
                           <input
                             type="text"
                             placeholder="نام برند جدید"
                             value={newBrandName}
                             onChange={(e) => setNewBrandName(e.target.value)}
-                            className="w-full px-3 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200"
+                            className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                           />
                         </div>
                         
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">تصویر برند *</label>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تصویر برند *</label>
                           <div className="flex items-center gap-4">
-                            <label className="cursor-pointer bg-purple-100 hover:bg-purple-200 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 transition-colors">
-                              <span className="text-purple-700 text-sm font-medium">انتخاب تصویر</span>
+                            <label className="cursor-pointer bg-purple-100 dark:bg-purple-900/50 hover:bg-purple-200 dark:hover:bg-purple-900/70 px-4 py-2 rounded-lg border-2 border-dashed border-purple-300 dark:border-purple-700 transition-colors">
+                              <span className="text-purple-700 dark:text-purple-300 text-sm font-medium">انتخاب تصویر</span>
                               <input
                                 type="file"
                                 accept="image/*"
@@ -1272,7 +1330,7 @@ export default function AddProductPage() {
                                   alt="پیشنمایش"
                                   width={64}
                                   height={64}
-                                  className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200"
+                                  className="w-16 h-16 object-cover rounded-lg border-2 border-purple-200 dark:border-purple-700"
                                   unoptimized
                                 />
                                 <button
@@ -1282,7 +1340,7 @@ export default function AddProductPage() {
                                     setNewBrandImagePreview('')
                                     URL.revokeObjectURL(newBrandImagePreview)
                                   }}
-                                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600"
+                                  className="absolute -top-2 -right-2 bg-red-500 dark:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 dark:hover:bg-red-700"
                                 >
                                   ×
                                 </button>
@@ -1296,7 +1354,7 @@ export default function AddProductPage() {
                             type="button"
                             onClick={handleCreateBrand}
                             disabled={!newBrandName.trim() || !newBrandImage}
-                            className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-gradient-to-r from-green-500 to-emerald-500 dark:from-green-600 dark:to-emerald-600 text-white px-4 py-2 rounded-lg hover:from-green-600 hover:to-emerald-600 dark:hover:from-green-700 dark:hover:to-emerald-700 transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             ایجاد
                           </button>
@@ -1311,7 +1369,7 @@ export default function AddProductPage() {
                                 setNewBrandImagePreview('')
                               }
                             }}
-                            className="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400 transition-all duration-200 font-medium"
+                            className="bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-500 transition-all duration-200 font-medium"
                           >
                             انصراف
                           </button>
@@ -1324,7 +1382,7 @@ export default function AddProductPage() {
                     required
                     value={formData.brand}
                     onChange={(e) => setFormData({...formData, brand: e.target.value})}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/70"
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white/70 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100"
                   >
                     <option value="">انتخاب برند</option>
                     {brands.map((brand) => (
@@ -1334,25 +1392,25 @@ export default function AddProductPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">مدل</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">مدل</label>
                   <input
                     type="text"
                     value={formData.model}
                     onChange={(e) => setFormData({...formData, model: e.target.value})}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/70"
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white/70 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="مدل محصول"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">موجودی *</label>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">موجودی *</label>
                   <input
                     type="number"
                     required
                     min="0"
                     value={formData.stock}
                     onChange={(e) => setFormData({...formData, stock: e.target.value})}
-                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white/70"
+                    className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-200 bg-white/70 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                     placeholder="تعداد"
                   />
                 </div>
@@ -1361,17 +1419,17 @@ export default function AddProductPage() {
          
 
           {/* Images Upload Section */}
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-6 border border-orange-100">
-            <h3 className="text-lg font-semibold text-orange-800 mb-4 flex items-center gap-2">
+          <div className="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl p-6 border border-orange-100 dark:border-orange-800/50">
+            <h3 className="text-lg font-semibold text-orange-800 dark:text-orange-300 mb-4 flex items-center gap-2">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               تصاویر محصول
             </h3>
             
-            <div className="border-2 border-dashed border-orange-200 rounded-xl p-8 bg-white/50 hover:bg-white/70 transition-all duration-200">
+            <div className="border-2 border-dashed border-orange-200 dark:border-orange-700/50 rounded-xl p-8 bg-white/50 dark:bg-gray-700/30 hover:bg-white/70 dark:hover:bg-gray-700/50 transition-all duration-200">
               <div className="text-center">
-                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-400 to-red-400 rounded-full mb-4">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-orange-400 to-red-400 dark:from-orange-600 dark:to-red-600 rounded-full mb-4">
                   <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
@@ -1379,7 +1437,7 @@ export default function AddProductPage() {
                 
                 <div className="mb-4">
                   <label className="cursor-pointer">
-                    <span className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-red-600 transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <span className="inline-flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 text-white px-6 py-3 rounded-xl font-medium hover:from-orange-600 hover:to-red-600 dark:hover:from-orange-700 dark:hover:to-red-700 transition-all duration-200 shadow-lg hover:shadow-xl">
                       {uploadingImages ? (
                         <>
                           <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
@@ -1406,29 +1464,29 @@ export default function AddProductPage() {
                   </label>
                 </div>
                 
-                <p className="text-sm text-gray-600">حداکثر 20 تصویر • JPG, PNG, WEBP</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">حداکثر 20 تصویر • JPG, PNG, WEBP</p>
               </div>
             </div>
             
             {/* Enhanced Image Preview */}
             <div className="mt-6">
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></div>
                   تصاویر ({formData.images.length})
                 </h4>
                 {formData.images.length > 0 && (
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full">
                     کلیک برای مشاهده کامل
                   </span>
                 )}
               </div>
               
               {formData.images.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 max-h-80 overflow-y-auto p-4 bg-white/60 rounded-xl border border-orange-100">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 max-h-80 overflow-y-auto p-4 bg-white/60 dark:bg-gray-700/30 rounded-xl border border-orange-100 dark:border-orange-800/50">
                   {formData.images.map((image, index) => (
                     <div key={`${image.previewId || index}`} className="relative group">
-                      <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 border-2 border-gray-200 group-hover:border-orange-300 transition-all duration-200">
+                      <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 group-hover:border-orange-300 dark:group-hover:border-orange-600 transition-all duration-200">
                         <Image
                           src={image.url}
                           alt={image.alt || `تصویر ${index + 1}`}
@@ -1457,18 +1515,18 @@ export default function AddProductPage() {
                         type="button"
                         onClick={() => removeImage(index)}
                         disabled={image.isUploading}
-                        className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:from-red-600 hover:to-pink-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg disabled:opacity-30"
+                        className="absolute -top-2 -right-2 bg-gradient-to-r from-red-500 to-pink-500 dark:from-red-600 dark:to-pink-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm hover:from-red-600 hover:to-pink-600 dark:hover:from-red-700 dark:hover:to-pink-700 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg disabled:opacity-30"
                         title="حذف تصویر"
                       >
                         ×
                       </button>
                       
-                      <div className="absolute bottom-2 left-2 bg-gradient-to-r from-gray-800 to-gray-900 text-white text-xs px-2 py-1 rounded-full font-medium">
+                      <div className="absolute bottom-2 left-2 bg-gradient-to-r from-gray-800 to-gray-900 dark:from-gray-700 dark:to-gray-800 text-white text-xs px-2 py-1 rounded-full font-medium">
                         {index + 1}
                       </div>
                       
                       {image.isUploading && (
-                        <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-400 text-white text-xs px-2 py-1 rounded-full font-medium animate-pulse">
+                        <div className="absolute top-2 right-2 bg-gradient-to-r from-yellow-400 to-orange-400 dark:from-yellow-500 dark:to-orange-500 text-white text-xs px-2 py-1 rounded-full font-medium animate-pulse">
                           آپلود...
                         </div>
                       )}
@@ -1476,13 +1534,13 @@ export default function AddProductPage() {
                   ))}
                 </div>
               ) : (
-                <div className="p-8 text-center text-gray-500 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-                  <svg className="w-12 h-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="p-8 text-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl border-2 border-dashed border-gray-200 dark:border-gray-700">
+                  <svg className="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                   <p>هنوز تصویری انتخاب نشده</p>
                   <p className="text-sm mt-1">تصاویر انتخاب شده اینجا نمایش داده میشوند</p>
-                  <p className="text-xs mt-2 text-blue-600">تعداد تصاویر: {formData.images.length}</p>
+                  <p className="text-xs mt-2 text-blue-600 dark:text-blue-400">تعداد تصاویر: {formData.images.length}</p>
                 </div>
               )}
             </div>
@@ -1495,11 +1553,11 @@ export default function AddProductPage() {
           />
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+          <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
             <button
               type="submit"
               disabled={loading || uploadingImages}
-              className="flex-1 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+              className="flex-1 inline-flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-500 dark:to-purple-500 text-white px-8 py-4 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 dark:hover:from-blue-600 dark:hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
             >
               {loading ? (
                 <>
@@ -1519,7 +1577,7 @@ export default function AddProductPage() {
             <button
               type="button"
               onClick={() => router.back()}
-              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gray-100 text-gray-700 px-8 py-4 rounded-xl font-semibold hover:bg-gray-200 transition-all duration-200 border border-gray-200"
+              className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-8 py-4 rounded-xl font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-200 border border-gray-200 dark:border-gray-600"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

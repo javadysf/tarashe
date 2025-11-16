@@ -25,6 +25,7 @@ export default function AdminProductsPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalProducts, setTotalProducts] = useState(0)
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
   const limit = 10
 
   // Compute visible page numbers (stable hook order)
@@ -44,6 +45,7 @@ export default function AdminProductsPage() {
   useEffect(() => {
     if (user?.role === 'admin') {
       fetchProducts()
+      setSelectedProducts([]) // Clear selection when page changes
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, page])
@@ -87,7 +89,7 @@ export default function AdminProductsPage() {
     
     try {
       await api.deleteProduct(id)
-      // Refetch current page after deletion
+      setSelectedProducts(selectedProducts.filter(p => p !== id))
       fetchProducts()
     } catch (error) {
       toast.error('❌ خطا در حذف محصول', {
@@ -97,18 +99,61 @@ export default function AdminProductsPage() {
     }
   }
 
+  const toggleSelectAll = () => {
+    if (selectedProducts.length === products.length) {
+      setSelectedProducts([])
+    } else {
+      setSelectedProducts(products.map(p => p._id))
+    }
+  }
+
+  const toggleSelectProduct = (id: string) => {
+    setSelectedProducts(prev =>
+      prev.includes(id) ? prev.filter(p => p !== id) : [...prev, id]
+    )
+  }
+
+  const deleteSelected = async () => {
+    if (selectedProducts.length === 0) return
+    if (!confirm(`آیا مطمئن هستید که می‌خواهید ${selectedProducts.length} محصول را حذف کنید؟`)) return
+
+    try {
+      await api.bulkDeleteProducts(selectedProducts)
+      toast.success(`🗑️ ${selectedProducts.length} محصول با موفقیت حذف شد!`, {
+        position: 'top-right',
+        autoClose: 2000,
+      })
+      setSelectedProducts([])
+      fetchProducts()
+    } catch (error) {
+      toast.error('❌ خطا در حذف محصولات', {
+        position: 'top-right',
+        autoClose: 3000,
+      })
+    }
+  }
+
   if (user?.role !== 'admin') return null
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-      <AdminSidebar />
-      <div className="flex-1 p-8">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-900 dark:to-gray-800">
+      <div className="flex-1">
         <div className="max-w-7xl mx-auto">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <h1 className="text-xl sm:text-2xl font-bold">مدیریت محصولات</h1>
-          <Link href="/admin/products/add" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm sm:text-base">
-            افزودن محصول
-          </Link>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">مدیریت محصولات</h1>
+          <div className="flex items-center gap-2">
+            {selectedProducts.length > 0 && (
+              <button
+                onClick={deleteSelected}
+                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm sm:text-base"
+              >
+                حذف انتخاب شده ({selectedProducts.length})
+              </button>
+            )}
+            <Link href="/admin/products/add" className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-center text-sm sm:text-base">
+              افزودن محصول
+            </Link>
+          </div>
         </div>
 
         {/* Search Bar */}
@@ -124,10 +169,10 @@ export default function AdminProductsPage() {
               placeholder="جستجو در محصولات (نام، برند، دسته بندی)..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className="block w-full pr-10 pl-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              className="block w-full pr-10 pl-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
             />
           </div>
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             {totalProducts > 0 ? `${totalProducts} محصول` : 'محصولی یافت نشد'}
           </div>
         </div>
@@ -137,36 +182,52 @@ export default function AdminProductsPage() {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
           </div>
         ) : (
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
             <div className="overflow-x-auto">
             <table className="min-w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">نام</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">برند</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">قیمت</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden md:table-cell">موجودی</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">دسته بندی</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">عملیات</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">
+                    <input
+                      type="checkbox"
+                      checked={products.length > 0 && selectedProducts.length === products.length}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    />
+                  </th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">نام</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden sm:table-cell">برند</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">قیمت</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden md:table-cell">موجودی</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden lg:table-cell">دسته بندی</th>
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">عملیات</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {products.length > 0 ? (
                   products.map((product) => (
-                    <tr key={product._id}>
-                      <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900">
+                    <tr key={product._id} className={selectedProducts.includes(product._id) ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}>
+                      <td className="px-3 sm:px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedProducts.includes(product._id)}
+                          onChange={() => toggleSelectProduct(product._id)}
+                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                        />
+                      </td>
+                      <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
                         <div className="truncate max-w-32 sm:max-w-none">{product.name}</div>
                       </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden sm:table-cell">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">
                         {typeof product.brand === 'object' ? product.brand?.name : product.brand}
                       </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                         <div className="text-xs sm:text-sm">{new Intl.NumberFormat('fa-IR').format(product.price)} ت</div>
                       </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden md:table-cell">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
                         {product.stock}
                       </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 hidden lg:table-cell">
+                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
                         {typeof product.category === 'object'
                           ? product.category?.name
                           : product.category || '—'}
@@ -191,15 +252,15 @@ export default function AdminProductsPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="px-3 sm:px-6 py-12 text-center">
-                      <div className="text-gray-500">
-                        <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <td colSpan={7} className="px-3 sm:px-6 py-12 text-center">
+                      <div className="text-gray-500 dark:text-gray-400">
+                        <svg className="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
                           {searchTerm ? 'نتیجه‌ای یافت نشد' : 'هیچ محصولی موجود نیست'}
                         </h3>
-                        <p className="text-gray-500">
+                        <p className="text-gray-500 dark:text-gray-400">
                           {searchTerm 
                             ? `برای "${searchTerm}" محصولی یافت نشد. کلمات کلیدی دیگری امتحان کنید.`
                             : 'اولین محصول خود را اضافه کنید'
@@ -208,7 +269,7 @@ export default function AdminProductsPage() {
                         {searchTerm && (
                           <button
                             onClick={() => handleSearch('')}
-                            className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                            className="mt-4 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium"
                           >
                             پاک کردن جستجو
                           </button>
@@ -221,15 +282,15 @@ export default function AdminProductsPage() {
             </table>
             </div>
             {/* Pagination */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-4 bg-white border-t gap-4">
-              <div className="text-sm text-gray-600 text-center sm:text-right">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-6 py-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 gap-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400 text-center sm:text-right">
                 صفحه {page} از {totalPages}
               </div>
               <div className="flex items-center justify-center gap-1 sm:gap-2">
                 <button
                   disabled={page <= 1}
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page <= 1 ? 'text-gray-300 dark:text-gray-600 border-gray-200 dark:border-gray-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                 >
                   قبلی
                 </button>
@@ -237,7 +298,7 @@ export default function AdminProductsPage() {
                   <button
                     key={p}
                     onClick={() => setPage(p)}
-                    className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                    className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm border ${p === page ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                   >
                     {p}
                   </button>
@@ -245,7 +306,7 @@ export default function AdminProductsPage() {
                 <button
                   disabled={page >= totalPages}
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                  className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page >= totalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                  className={`px-2 sm:px-3 py-1 rounded-lg border text-xs sm:text-sm ${page >= totalPages ? 'text-gray-300 dark:text-gray-600 border-gray-200 dark:border-gray-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}
                 >
                   بعدی
                 </button>

@@ -25,6 +25,7 @@ export default function SearchWithCategories() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(false)
   const [activeParentId, setActiveParentId] = useState<string | null>(null)
+  const [activeSubId, setActiveSubId] = useState<string | null>(null)
   const [hideTimeout, setHideTimeout] = useState<NodeJS.Timeout | null>(null)
 
   useEffect(() => {
@@ -60,8 +61,24 @@ export default function SearchWithCategories() {
   }, [categories])
 
   useEffect(() => {
-    if (!activeParentId && parents.length) setActiveParentId(parents[0]._id)
+    if (!activeParentId && parents.length) {
+      setActiveParentId(parents[0]._id)
+    }
   }, [parents, activeParentId])
+
+  // Whenever parent changes, set a default active subcategory (first child)
+  useEffect(() => {
+    if (activeParentId) {
+      const subs = childrenByParent[activeParentId] || []
+      if (subs.length > 0) {
+        setActiveSubId(subs[0]._id)
+      } else {
+        setActiveSubId(null)
+      }
+    } else {
+      setActiveSubId(null)
+    }
+  }, [activeParentId, childrenByParent])
 
   return (
     <div className="flex items-center  gap-2 md:gap-4 w-full max-w-6xl">
@@ -117,11 +134,11 @@ export default function SearchWithCategories() {
           }}
         >
           {loading ? (
-            <div className="flex items-center justify-center p-12">
+            <div className="flex items-center justify-center p-12 min-h-[320px]">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
             </div>
           ) : (
-              <div className="hidden md:grid gap-4 p-6 lg:grid-cols-[280px_1fr]">
+              <div className="hidden md:grid gap-4 p-6 lg:grid-cols-[280px_1fr] min-h-[360px]">
               {/* Categories Sidebar */}
               <div className="border-l-2 border-gray-100 dark:border-gray-700 pr-4">
                 <div className="mb-3 pb-2 border-b-2 border-blue-100 dark:border-blue-800">
@@ -184,46 +201,89 @@ export default function SearchWithCategories() {
                       </h5>
                       <div className="flex-1 h-px bg-gradient-to-l from-blue-100 dark:from-blue-800 to-transparent"></div>
                     </div>
-                    <div className="grid gap-3 lg:grid-cols-2">
-                      {(childrenByParent[activeParentId] || []).map((sub) => (
-                        <div key={sub._id} className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 rounded-lg p-3 hover:shadow-md transition-all duration-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600">
-                          <Link
-                            href={`/products?category=${encodeURIComponent(sub._id)}`}
-                            onClick={() => setIsOpen(false)}
-                            className="flex items-center gap-2 mb-2 p-3 bg-gradient-to-l from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 text-white rounded-lg text-right font-bold hover:from-blue-600 hover:to-purple-700 dark:hover:from-blue-700 dark:hover:to-purple-800 transition-all shadow-md text-sm hover:shadow-lg"
-                          >
-                            {sub.image?.url && (
-                              <Image 
-                                src={sub.image.url} 
-                                alt={sub.image.alt || sub.name}
-                                width={28}
-                                height={28}
-                                className="w-7 h-7 rounded object-cover border border-white/20"
-                                onError={(e) => { 
-                                  e.currentTarget.style.display = 'none' 
-                                }}
-                                unoptimized
-                              />
-                            )}
-                            {sub.name}
-                          </Link>
-                          {(childrenByParent[sub._id] || []).length > 0 && (
-                            <div className="grid grid-cols-1 gap-1.5">
-                              {(childrenByParent[sub._id] || []).map((child) => (
-                                <Link
-                                  key={child._id}
-                                  href={`/products?category=${encodeURIComponent(child._id)}`}
-                                  onClick={() => setIsOpen(false)}
-                                  className="flex items-center gap-1.5 p-2 text-right bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900 rounded-md transition-all border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 text-xs font-medium hover:shadow-sm"
-                                >
-                                  <div className="w-1 h-1 rounded-full bg-gray-400 dark:bg-gray-500"></div>
-                                  {child.name}
-                                </Link>
-                              ))}
-                            </div>
-                          )}
+
+                    {/* Two-level layout: left = level 2 list, right = level 3 for selected sub */}
+                    <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
+                      {/* Level 2 sidebar */}
+                      <div className="border-l-2 border-gray-100 dark:border-gray-700 pr-3">
+                        <div className="mb-2 text-xs font-semibold text-gray-500 dark:text-gray-400">
+                          زیر‌دسته‌ها
                         </div>
-                      ))}
+                        <div className="space-y-1 max-h-[420px] overflow-y-auto custom-scrollbar">
+                          {(childrenByParent[activeParentId] || []).map((sub) => {
+                            const isActiveSub = activeSubId === sub._id
+                            return (
+                              <button
+                                key={sub._id}
+                                type="button"
+                                onMouseEnter={() => setActiveSubId(sub._id)}
+                                onClick={() => setActiveSubId(sub._id)}
+                                className={`w-full text-right px-2.5 py-2 rounded-lg text-sm flex items-center justify-between gap-2 transition-all ${
+                                  isActiveSub
+                                    ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-r-4 border-blue-500 dark:border-blue-500 shadow-sm'
+                                    : 'bg-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 hover:border-r-4 hover:border-gray-300 dark:hover:border-gray-600'
+                                }`}
+                              >
+                                <span className="flex items-center gap-2">
+                                  <span
+                                    className={`h-1.5 w-1.5 rounded-full ${
+                                      isActiveSub ? 'bg-blue-500 dark:bg-blue-400' : 'bg-gray-300 dark:bg-gray-600'
+                                    }`}
+                                  />
+                                  <span className="truncate">{sub.name}</span>
+                                </span>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Level 3 content for active sub */}
+                      <div className="space-y-3">
+                        {activeSubId ? (
+                          <>
+                            <div className="flex items-center justify-between pb-2 border-b border-gray-200 dark:border-gray-700">
+                              <Link
+                                href={`/products?category=${encodeURIComponent(activeSubId)}`}
+                                onClick={() => setIsOpen(false)}
+                                className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-l from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 px-3 py-2 text-sm font-bold text-white shadow-md hover:shadow-lg transition-all"
+                              >
+                                <span>
+                                  {(childrenByParent[activeParentId] || []).find(s => s._id === activeSubId)?.name ||
+                                    'زیر‌دسته انتخاب شده'}
+                                </span>
+                              </Link>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                برای مشاهده همه محصولات این زیر‌دسته کلیک کنید
+                              </span>
+                            </div>
+
+                            <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+                              {(childrenByParent[activeSubId] || []).length === 0 ? (
+                                <div className="col-span-full text-xs text-gray-500 dark:text-gray-400 py-2">
+                                  زیردسته سطح سوم برای این دسته ثبت نشده است.
+                                </div>
+                              ) : (
+                                (childrenByParent[activeSubId] || []).map((child) => (
+                                  <Link
+                                    key={child._id}
+                                    href={`/products?category=${encodeURIComponent(child._id)}`}
+                                    onClick={() => setIsOpen(false)}
+                                    className="flex items-center gap-2 rounded-md border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-2.5 py-2 text-xs text-gray-700 dark:text-gray-300 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/40 hover:text-blue-700 dark:hover:text-blue-300 transition-all"
+                                  >
+                                    <span className="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+                                    <span className="truncate">{child.name}</span>
+                                  </Link>
+                                ))
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <div className="flex h-full items-center justify-center text-gray-500 dark:text-gray-400 text-xs">
+                            یک زیر‌دسته را از ستون کناری انتخاب کنید
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </>
                 ) : (

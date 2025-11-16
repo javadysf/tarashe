@@ -99,7 +99,7 @@ export default function AttributeSelector({ categoryId, onAttributeAdd }: Attrib
 
   if (availableAttributes.length === 0) {
     return (
-      <div className="text-center py-4 text-gray-500">
+      <div className="text-center py-4 text-gray-500 dark:text-gray-400">
         همه ویژگی‌های موجود به این دسته اضافه شده‌اند
       </div>
     )
@@ -111,7 +111,7 @@ export default function AttributeSelector({ categoryId, onAttributeAdd }: Attrib
         <select
           value={selectedAttribute}
           onChange={(e) => setSelectedAttribute(e.target.value)}
-          className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base"
+          className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm sm:text-base bg-white dark:bg-gray-900 dark:text-gray-100"
         >
           <option value="">انتخاب ویژگی موجود</option>
           {availableAttributes.map((attr) => (
@@ -125,7 +125,7 @@ export default function AttributeSelector({ categoryId, onAttributeAdd }: Attrib
           type="button"
           onClick={handleAddAttribute}
           disabled={!selectedAttribute || loading}
-          className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm sm:text-base w-full sm:w-auto"
+          className="px-4 sm:px-6 py-2 sm:py-3 bg-blue-500 dark:bg-blue-600 text-white rounded-lg hover:bg-blue-600 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm sm:text-base w-full sm:w-auto"
         >
           {loading ? (
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mx-auto"></div>
@@ -135,7 +135,7 @@ export default function AttributeSelector({ categoryId, onAttributeAdd }: Attrib
         </button>
       </div>
       
-      <p className="text-xs sm:text-sm text-gray-600 text-center sm:text-right">
+      <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 text-center sm:text-right">
         {availableAttributes.length} ویژگی موجود برای افزودن
       </p>
     </div>

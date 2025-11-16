@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { getApiUrl } from '@/lib/config'
 
 interface AboutContent {
   _id?: string
@@ -53,7 +54,7 @@ export default function AboutContentManagement() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/content/admin/about', {
+      const response = await fetch(getApiUrl('/content/admin/about'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -61,7 +62,23 @@ export default function AboutContentManagement() {
       
       if (response.ok) {
         const data = await response.json()
-        setContent(data.content)
+        const apiContent = data.content as Partial<AboutContent> || {}
+
+        // نرمال‌سازی داده برگشتی؛ اگر سرور بعضی فیلدها را نداد، مقادیر پیش‌فرض حفظ شود
+        setContent(prev => ({
+          ...prev,
+          ...apiContent,
+          page: 'about',
+          aboutInfo: {
+            ...prev.aboutInfo,
+            ...(apiContent.aboutInfo || {}),
+            stats: apiContent.aboutInfo?.stats && apiContent.aboutInfo.stats.length > 0
+              ? apiContent.aboutInfo.stats
+              : prev.aboutInfo.stats,
+            team: apiContent.aboutInfo?.team || prev.aboutInfo.team
+          },
+          isActive: apiContent.isActive ?? prev.isActive
+        }))
       } else {
         console.log('Content not found, using default values')
       }
@@ -119,25 +136,47 @@ export default function AboutContentManagement() {
     setSaving(true)
 
     try {
-      const response = await fetch('http://localhost:3002/api/content/admin/about', {
+      // پاک‌سازی آمار و اعضای تیم؛ فقط ردیف‌های پر نگه داشته می‌شوند
+      const cleanedStats = (content.aboutInfo.stats || []).filter(
+        (s) => s.number.trim() !== '' || s.label.trim() !== ''
+      )
+
+      const cleanedTeam = (content.aboutInfo.team || []).filter(
+        (m) => m.name.trim() !== '' || m.role.trim() !== '' || m.description.trim() !== ''
+      )
+
+      const payload: AboutContent = {
+        ...content,
+        page: 'about',
+        aboutInfo: {
+          ...content.aboutInfo,
+          stats: cleanedStats,
+          team: cleanedTeam
+        }
+      }
+
+      const response = await fetch(getApiUrl('/content/admin/about'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify(content)
+        body: JSON.stringify(payload)
       })
 
       if (response.ok) {
-        const result = await response.json()
+        await response.json()
         alert('محتوای صفحه درباره ما با موفقیت بروزرسانی شد')
         router.push('/admin/content')
       } else {
-        // Check if response is JSON
         const contentType = response.headers.get('content-type')
         if (contentType && contentType.includes('application/json')) {
           const error = await response.json()
-          alert(`خطا: ${error.message}`)
+          const extra =
+            error.errors && Array.isArray(error.errors)
+              ? '\n' + error.errors.join('\n')
+              : ''
+          alert(`خطا: ${error.message || 'در اعتبارسنجی داده‌ها'}${extra}`)
         } else {
           const errorText = await response.text()
           console.error('Non-JSON error response:', errorText)
@@ -299,7 +338,7 @@ export default function AboutContentManagement() {
                     <label className="block text-xs text-gray-600 mb-1">عدد</label>
                     <input
                       type="text"
-                      value={stat.number}
+                      value={stat.number || ''}
                       onChange={(e) => handleStatsChange(index, 'number', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="10+"
@@ -309,7 +348,7 @@ export default function AboutContentManagement() {
                     <label className="block text-xs text-gray-600 mb-1">برچسب</label>
                     <input
                       type="text"
-                      value={stat.label}
+                      value={stat.label || ''}
                       onChange={(e) => handleStatsChange(index, 'label', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="سال تجربه"
@@ -333,7 +372,7 @@ export default function AboutContentManagement() {
                     <label className="block text-xs text-gray-600 mb-1">نام</label>
                     <input
                       type="text"
-                      value={member.name}
+                      value={member.name || ''}
                       onChange={(e) => handleTeamChange(index, 'name', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="نام عضو تیم"
@@ -343,7 +382,7 @@ export default function AboutContentManagement() {
                     <label className="block text-xs text-gray-600 mb-1">سمت</label>
                     <input
                       type="text"
-                      value={member.role}
+                      value={member.role || ''}
                       onChange={(e) => handleTeamChange(index, 'role', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="مدیر عامل"
@@ -353,7 +392,7 @@ export default function AboutContentManagement() {
                     <label className="block text-xs text-gray-600 mb-1">توضیحات</label>
                     <input
                       type="text"
-                      value={member.description}
+                      value={member.description || ''}
                       onChange={(e) => handleTeamChange(index, 'description', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       placeholder="توضیحات کوتاه"

@@ -65,7 +65,7 @@ export default function OrderSuccessPage() {
             </span>
           </div>
           <p className="text-xs text-gray-500">
-            سفارش شما در حال بررسی و آمادهسازی است
+            سفارش شما در حال بررسی و آماده سازی است
           </p>
         </div>
 

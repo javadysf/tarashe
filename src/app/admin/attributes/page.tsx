@@ -121,19 +121,19 @@ export default function AttributesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="space-y-8">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 dark:from-blue-400 dark:to-purple-400 rounded-lg flex items-center justify-center">
               <Tag className="w-5 h-5 text-white" />
             </div>
             مدیریت ویژگی‌ها
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             ایجاد و مدیریت ویژگی‌های محصولات برای دسته‌بندی‌های مختلف
           </p>
         </div>
@@ -148,56 +148,56 @@ export default function AttributesPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+        <Card className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 border-blue-200 dark:border-blue-700">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-600">کل ویژگی‌ها</p>
-                <p className="text-2xl font-bold text-blue-900">{attributes.length}</p>
+                <p className="text-sm font-medium text-blue-600 dark:text-blue-400">کل ویژگی‌ها</p>
+                <p className="text-2xl font-bold text-blue-900 dark:text-blue-200">{attributes.length}</p>
               </div>
-              <Tag className="w-8 h-8 text-blue-500" />
+              <Tag className="w-8 h-8 text-blue-500 dark:text-blue-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+        <Card className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 border-green-200 dark:border-green-700">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-green-600">ویژگی‌های فیلترپذیر</p>
-                <p className="text-2xl font-bold text-green-900">
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">ویژگی‌های فیلترپذیر</p>
+                <p className="text-2xl font-bold text-green-900 dark:text-green-200">
                   {attributes.filter(attr => attr.isFilterable).length}
                 </p>
               </div>
-              <Filter className="w-8 h-8 text-green-500" />
+              <Filter className="w-8 h-8 text-green-500 dark:text-green-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+        <Card className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 border-purple-200 dark:border-purple-700">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-600">ویژگی‌های الزامی</p>
-                <p className="text-2xl font-bold text-purple-900">
+                <p className="text-sm font-medium text-purple-600 dark:text-purple-400">ویژگی‌های الزامی</p>
+                <p className="text-2xl font-bold text-purple-900 dark:text-purple-200">
                   {attributes.filter(attr => attr.isRequired).length}
                 </p>
               </div>
-              <CheckCircle className="w-8 h-8 text-purple-500" />
+              <CheckCircle className="w-8 h-8 text-purple-500 dark:text-purple-400" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+        <Card className="bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 border-orange-200 dark:border-orange-700">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-orange-600">ویژگی‌های انتخابی</p>
-                <p className="text-2xl font-bold text-orange-900">
+                <p className="text-sm font-medium text-orange-600 dark:text-orange-400">ویژگی‌های انتخابی</p>
+                <p className="text-2xl font-bold text-orange-900 dark:text-orange-200">
                   {attributes.filter(attr => attr.type === 'select').length}
                 </p>
               </div>
-              <Settings className="w-8 h-8 text-orange-500" />
+              <Settings className="w-8 h-8 text-orange-500 dark:text-orange-400" />
             </div>
           </CardContent>
         </Card>
@@ -205,13 +205,13 @@ export default function AttributesPage() {
 
       {/* Attributes List */}
       {attributes.length === 0 ? (
-        <Card className="text-center py-12">
+        <Card className="text-center py-12 bg-white dark:bg-gray-800">
           <CardContent>
-            <Tag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+            <Tag className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-600 dark:text-gray-400 mb-2">
               هیچ ویژگی‌ای وجود ندارد
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
               برای شروع، اولین ویژگی خود را ایجاد کنید
             </p>
             <Button
@@ -232,11 +232,11 @@ export default function AttributesPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 backdrop-blur-sm">
+              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <div>
-                      <CardTitle className="text-lg font-semibold text-gray-900">
+                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         {attribute.name}
                       </CardTitle>
                       <div className="flex items-center gap-2 mt-2">
@@ -281,7 +281,7 @@ export default function AttributesPage() {
                     {/* Options for select type */}
                     {attribute.type === 'select' && attribute.options && (
                       <div>
-                        <p className="text-sm font-medium text-gray-700 mb-2">گزینه‌ها:</p>
+                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">گزینه‌ها:</p>
                         <div className="flex flex-wrap gap-1">
                           {attribute.options.slice(0, 3).map((option, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
@@ -305,24 +305,24 @@ export default function AttributesPage() {
                         ) : (
                           <XCircle className="w-4 h-4 text-gray-400" />
                         )}
-                        <span className={attribute.isRequired ? 'text-green-700' : 'text-gray-500'}>
+                        <span className={attribute.isRequired ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
                           الزامی
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
                         {attribute.isFilterable ? (
-                          <CheckCircle className="w-4 h-4 text-blue-500" />
+                          <CheckCircle className="w-4 h-4 text-blue-500 dark:text-blue-400" />
                         ) : (
-                          <XCircle className="w-4 h-4 text-gray-400" />
+                          <XCircle className="w-4 h-4 text-gray-400 dark:text-gray-500" />
                         )}
-                        <span className={attribute.isFilterable ? 'text-blue-700' : 'text-gray-500'}>
+                        <span className={attribute.isFilterable ? 'text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}>
                           فیلترپذیر
                         </span>
                       </div>
                     </div>
 
                     {/* Created date */}
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       ایجاد شده در: {new Date(attribute.createdAt).toLocaleDateString('fa-IR')}
                     </p>
                   </div>

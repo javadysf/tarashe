@@ -19,10 +19,48 @@ export default function SalesStatsPage() {
   const fetchStats = useCallback(async () => {
     try {
       setLoading(true)
+      try {
+        const data = await api.getFinancialReport({ period, groupBy: 'day' })
+        
+        if (data && (data.summary || data.revenueByPeriod || data.topProducts || data.topCustomers)) {
+          setStats({
+            stats: {
+              totalRevenue: data.summary?.totalRevenue || 0,
+              totalOrders: data.summary?.totalOrders || 0,
+              averageOrderValue: data.summary?.averageOrderValue || 0
+            },
+            dailyChart: data.revenueByPeriod || [],
+            topProducts: data.topProducts || [],
+            topCustomers: data.topCustomers || [],
+            recentOrders: data.recentOrders || []
+          })
+          return
+        }
+      } catch (financialError) {
+        console.error('Financial report API error:', financialError)
+      }
+      
       const data = await api.getSalesStats(period)
-      setStats(data)
+      if (data) {
+        setStats(data)
+      } else {
+        setStats({
+          stats: { totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 },
+          dailyChart: [],
+          topProducts: [],
+          topCustomers: [],
+          recentOrders: []
+        })
+      }
     } catch (error) {
       console.error('Error fetching sales stats:', error)
+      setStats({
+        stats: { totalRevenue: 0, totalOrders: 0, averageOrderValue: 0 },
+        dailyChart: [],
+        topProducts: [],
+        topCustomers: [],
+        recentOrders: []
+      })
     } finally {
       setLoading(false)
     }
@@ -51,16 +89,21 @@ export default function SalesStatsPage() {
     Math.max(max, day.revenue), 0) || 0
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-2 sm:p-4 lg:p-8">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">آمار فروش</h1>
-          <div className="flex gap-2 mt-4">
+        <div className="mb-4 sm:mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+            <div>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-gray-100">گزارش‌های مالی</h1>
+              <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1 sm:mt-2">گزارش‌های پیشرفته مالی و فروش</p>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3 sm:mt-4">
             {['week', 'month', 'year'].map(p => (
               <button
                 key={p}
                 onClick={() => setPeriod(p)}
-                className={`px-6 py-2 rounded-lg transition-colors ${
+                className={`px-3 sm:px-6 py-1.5 sm:py-2 text-sm sm:text-base rounded-lg transition-colors ${
                   period === p
                     ? 'bg-blue-600 text-white'
                     : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
@@ -79,43 +122,43 @@ export default function SalesStatsPage() {
         ) : stats ? (
           <>
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 className="text-gray-500 dark:text-gray-400 mb-2">درآمد کل</h3>
-                <p className="text-3xl font-bold text-green-600">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-6 mb-4 sm:mb-8">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">درآمد کل</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-green-600">
                   {formatPrice(stats.stats.totalRevenue)} تومان
                 </p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 className="text-gray-500 dark:text-gray-400 mb-2">تعداد سفارشات</h3>
-                <p className="text-3xl font-bold text-blue-600">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">تعداد سفارشات</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-blue-600">
                   {formatPrice(stats.stats.totalOrders)}
                 </p>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h3 className="text-gray-500 dark:text-gray-400 mb-2">میانگین هر سفارش</h3>
-                <p className="text-3xl font-bold text-purple-600">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 sm:p-6">
+                <h3 className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mb-1 sm:mb-2">میانگین هر سفارش</h3>
+                <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-purple-600">
                   {formatPrice(stats.stats.averageOrderValue)} تومان
                 </p>
               </div>
             </div>
 
             {/* Chart */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 mb-8">
-              <h2 className="text-xl font-semibold mb-4">نمودار درآمد روزانه</h2>
-              <div className="h-64 flex items-end justify-between gap-1">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-3 sm:p-6 mb-4 sm:mb-8">
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">نمودار درآمد روزانه</h2>
+              <div className="h-48 sm:h-64 flex items-end justify-between gap-1 overflow-x-auto">
                 {stats.dailyChart.map((day: any, idx: number) => (
-                  <div key={idx} className="flex-1 flex flex-col items-center">
+                  <div key={idx} className="flex-1 min-w-[40px] flex flex-col items-center">
                     <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-t relative group">
                       <div
                         className="bg-gradient-to-t from-blue-600 to-blue-400 rounded-t transition-all hover:opacity-80 cursor-pointer"
-                        style={{ height: `${(day.revenue / maxRevenue) * 100}%` }}
+                        style={{ height: `${maxRevenue > 0 ? (day.revenue / maxRevenue) * 100 : 0}%` }}
                       />
-                      <div className="absolute -top-8 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-xs">
+                      <div className="absolute -top-6 sm:-top-8 left-0 right-0 text-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px] sm:text-xs">
                         {formatPrice(day.revenue)}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-2 transform -rotate-45 origin-left truncate w-16">
+                    <div className="text-[10px] sm:text-xs text-gray-500 mt-1 sm:mt-2 transform -rotate-45 origin-left truncate w-12 sm:w-16">
                       {formatDate(day.date)}
                     </div>
                   </div>
@@ -123,22 +166,22 @@ export default function SalesStatsPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-8">
               {/* Top Products */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold">پرفروش‌ترین محصولات</h2>
+                <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg sm:text-xl font-semibold">پرفروش‌ترین محصولات</h2>
                 </div>
-                <div className="p-6">
-                  <div className="space-y-4">
+                <div className="p-3 sm:p-6">
+                  <div className="space-y-3 sm:space-y-4">
                     {stats.topProducts.slice(0, 5).map((product: any, idx: number) => (
                       <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                        <div className="flex-1">
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-sm text-gray-500">{product.quantity} عدد فروخته شده</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{product.name}</p>
+                          <p className="text-xs sm:text-sm text-gray-500">{product.quantity} عدد فروخته شده</p>
                         </div>
-                        <div className="text-left ml-4">
-                          <p className="font-bold text-green-600">{formatPrice(product.revenue)}</p>
+                        <div className="text-left ml-2 sm:ml-4">
+                          <p className="font-bold text-green-600 text-sm sm:text-base">{formatPrice(product.revenue)}</p>
                         </div>
                       </div>
                     ))}
@@ -148,19 +191,19 @@ export default function SalesStatsPage() {
 
               {/* Top Customers */}
               <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-xl font-semibold">بهترین مشتریان</h2>
+                <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                  <h2 className="text-lg sm:text-xl font-semibold">بهترین مشتریان</h2>
                 </div>
-                <div className="p-6">
-                  <div className="space-y-4">
+                <div className="p-3 sm:p-6">
+                  <div className="space-y-3 sm:space-y-4">
                     {stats.topCustomers.slice(0, 5).map((customer: any, idx: number) => (
                       <div key={idx} className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-0">
-                        <div className="flex-1">
-                          <p className="font-medium">{customer.name}</p>
-                          <p className="text-sm text-gray-500">{customer.email}</p>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{customer.name}</p>
+                          <p className="text-xs sm:text-sm text-gray-500 truncate">{customer.email}</p>
                         </div>
-                        <div className="text-left ml-4">
-                          <p className="font-bold text-blue-600">{formatPrice(customer.total)}</p>
+                        <div className="text-left ml-2 sm:ml-4">
+                          <p className="font-bold text-blue-600 text-sm sm:text-base">{formatPrice(customer.total)}</p>
                           <p className="text-xs text-gray-500">{customer.orders} سفارش</p>
                         </div>
                       </div>
@@ -172,42 +215,18 @@ export default function SalesStatsPage() {
 
             {/* Recent Orders */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow">
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <h2 className="text-xl font-semibold">سفارشات اخیر</h2>
+              <div className="p-3 sm:p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 className="text-lg sm:text-xl font-semibold">سفارشات اخیر</h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50 dark:bg-gray-700">
-                    <tr>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">تاریخ</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">مشتری</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">محصولات</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">وضعیت</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">مبلغ</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+              {stats.recentOrders && stats.recentOrders.length > 0 ? (
+                <>
+                  {/* Mobile View - Cards */}
+                  <div className="lg:hidden p-3 sm:p-4 space-y-3">
                     {stats.recentOrders.slice(0, 10).map((order: any) => (
-                      <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(order.date)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <p className="font-medium">{order.customer}</p>
-                            <p className="text-xs text-gray-500">{order.email}</p>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-sm">
-                          <div className="max-w-md">
-                            {order.items.slice(0, 2).map((item: any, idx: number) => (
-                              <p key={idx} className="text-xs">{item.quantity}x {item.name}</p>
-                            ))}
-                            {order.items.length > 2 && (
-                              <p className="text-xs text-gray-500">+{order.items.length - 2} محصول دیگر</p>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 rounded-full text-xs ${
+                      <div key={order.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">{formatDate(order.date)}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-xs ${
                             order.status === 'delivered' ? 'bg-green-100 text-green-800' :
                             order.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
                             order.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
@@ -216,17 +235,87 @@ export default function SalesStatsPage() {
                             {order.status === 'delivered' ? 'تحویل شده' :
                              order.status === 'shipped' ? 'ارسال شده' :
                              order.status === 'processing' ? 'در حال پردازش' :
+                             order.status === 'confirmed' ? 'تایید شده' :
                              'در انتظار'}
                           </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600">
-                          {formatPrice(order.total)}
-                        </td>
-                      </tr>
+                        </div>
+                        <div>
+                          <p className="font-medium text-sm">{order.customer}</p>
+                          <p className="text-xs text-gray-500">{order.email}</p>
+                        </div>
+                        {order.items && order.items.length > 0 && (
+                          <div className="text-xs text-gray-600">
+                            {order.items.slice(0, 2).map((item: any, idx: number) => (
+                              <p key={idx}>{item.quantity}x {item.name}</p>
+                            ))}
+                            {order.items.length > 2 && <p>+{order.items.length - 2} محصول دیگر</p>}
+                          </div>
+                        )}
+                        <p className="font-bold text-green-600 text-sm">{formatPrice(order.total)} تومان</p>
+                      </div>
                     ))}
-                  </tbody>
-                </table>
-              </div>
+                  </div>
+
+                  {/* Desktop View - Table */}
+                  <div className="hidden lg:block overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-700">
+                        <tr>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">تاریخ</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">مشتری</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">محصولات</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">وضعیت</th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300">مبلغ</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {stats.recentOrders.slice(0, 10).map((order: any) => (
+                          <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                            <td className="px-6 py-4 whitespace-nowrap text-sm">{formatDate(order.date)}</td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div>
+                                <p className="font-medium">{order.customer}</p>
+                                <p className="text-xs text-gray-500">{order.email}</p>
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 text-sm">
+                              <div className="max-w-md">
+                                {order.items && order.items.slice(0, 2).map((item: any, idx: number) => (
+                                  <p key={idx} className="text-xs">{item.quantity}x {item.name}</p>
+                                ))}
+                                {order.items && order.items.length > 2 && (
+                                  <p className="text-xs text-gray-500">+{order.items.length - 2} محصول دیگر</p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <span className={`px-2 py-1 rounded-full text-xs ${
+                                order.status === 'delivered' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+                                order.status === 'shipped' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+                                order.status === 'processing' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+                                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                              }`}>
+                                {order.status === 'delivered' ? 'تحویل شده' :
+                                 order.status === 'shipped' ? 'ارسال شده' :
+                                 order.status === 'processing' ? 'در حال پردازش' :
+                                 order.status === 'confirmed' ? 'تایید شده' :
+                                 'در انتظار'}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-600 dark:text-green-400">
+                              {formatPrice(order.total)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              ) : (
+                <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                  هیچ سفارش اخیری یافت نشد
+                </div>
+              )}
             </div>
           </>
         ) : null}
@@ -234,16 +323,3 @@ export default function SalesStatsPage() {
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

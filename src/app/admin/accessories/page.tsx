@@ -49,21 +49,32 @@ export default function AccessoriesPage() {
   const fetchAccessories = useCallback(async () => {
     try {
       setLoading(true)
-      const params: any = {
-        page: currentPage,
-        limit: 20
-      }
+      setError('')
       
-      if (searchTerm) params.search = searchTerm
-      if (selectedCategory) params.category = selectedCategory
-      if (filterActive !== null) params.isActive = filterActive
+      // Use getProducts directly with isAccessory filter
+      const response = await api.getProducts({
+        page: String(currentPage),
+        limit: '20',
+        isAccessory: 'true',
+        ...(searchTerm && { search: searchTerm }),
+        ...(selectedCategory && { category: selectedCategory }),
+        ...(filterActive !== null && { isActive: String(filterActive) })
+      })
       
-      const response = await api.getAccessories(params)
-      setAccessories(response.accessories || [])
-      setTotalPages(response.totalPages || 1)
-    } catch (error) {
+      console.log('Accessories API response:', response)
+      
+      // Handle response format - products API returns { products: [], pagination: {} }
+      const accessoriesList = response?.products || []
+      const totalPagesValue = response?.pagination?.totalPages || 1
+      
+      console.log('Parsed accessories:', accessoriesList.length, 'items')
+      
+      setAccessories(accessoriesList)
+      setTotalPages(totalPagesValue)
+    } catch (error: any) {
       console.error('Error fetching accessories:', error)
-      setError('خطا در بارگذاری متعلقات')
+      setError(error.message || 'خطا در بارگذاری متعلقات')
+      setAccessories([])
     } finally {
       setLoading(false)
     }
@@ -128,16 +139,16 @@ export default function AccessoriesPage() {
 
   if (loading && accessories.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-300 rounded w-64 mb-6"></div>
+            <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-64 mb-6"></div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-white rounded-lg p-6">
-                  <div className="h-4 bg-gray-300 rounded w-3/4 mb-4"></div>
-                  <div className="h-3 bg-gray-300 rounded w-1/2 mb-2"></div>
-                  <div className="h-3 bg-gray-300 rounded w-1/3"></div>
+                <div key={i} className="bg-white dark:bg-gray-800 rounded-lg p-6">
+                  <div className="h-4 bg-gray-300 dark:bg-gray-700 rounded w-3/4 mb-4"></div>
+                  <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/2 mb-2"></div>
+                  <div className="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/3"></div>
                 </div>
               ))}
             </div>
@@ -148,13 +159,13 @@ export default function AccessoriesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">مدیریت متعلقات</h1>
-            <p className="text-gray-600">مدیریت و سازماندهی متعلقات محصولات</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">مدیریت متعلقات</h1>
+            <p className="text-gray-600 dark:text-gray-400">مدیریت و سازماندهی متعلقات محصولات</p>
           </div>
           <Link
             href="/admin/products/add"
@@ -166,17 +177,17 @@ export default function AccessoriesPage() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="relative">
-              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-5 h-5" />
               <input
                 type="text"
                 placeholder="جستجو در متعلقات..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full pr-10 pl-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-400"
               />
             </div>
 
@@ -184,7 +195,7 @@ export default function AccessoriesPage() {
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="">همه دسته‌بندی‌ها</option>
               {categories.map(category => (
@@ -198,7 +209,7 @@ export default function AccessoriesPage() {
             <select
               value={filterActive === null ? '' : filterActive.toString()}
               onChange={(e) => setFilterActive(e.target.value === '' ? null : e.target.value === 'true')}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             >
               <option value="">همه وضعیت‌ها</option>
               <option value="true">فعال</option>
@@ -213,22 +224,29 @@ export default function AccessoriesPage() {
                 setFilterActive(null)
                 setCurrentPage(1)
               }}
-              className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
             >
               پاک کردن فیلترها
             </button>
           </div>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+            <p className="text-red-800 dark:text-red-300">{error}</p>
+          </div>
+        )}
+
         {/* Accessories Grid */}
-        {accessories.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm p-12 text-center">
-            <Package className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">هیچ متعلقی یافت نشد</h3>
-            <p className="text-gray-600 mb-6">
+        {!loading && accessories.length === 0 ? (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
+            <Package className="w-16 h-16 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">هیچ متعلقی یافت نشد</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
               {searchTerm || selectedCategory || filterActive !== null
-                ? 'با فیلترهای انتخاب شده هیچ متعلقی یافت نشد'
-                : 'هنوز هیچ متعلقی ایجاد نشده است'
+                ? 'با فیلترهای انتخاب شده هیچ متعلقی یافت نشد. لطفاً فیلترها را پاک کنید.'
+                : 'هنوز هیچ متعلقی ایجاد نشده است. برای ایجاد متعلق، محصول جدیدی با گزینه "متعلق" اضافه کنید.'
               }
             </p>
             <Link
@@ -246,24 +264,24 @@ export default function AccessoriesPage() {
                 key={accessory._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
                 <div className="p-6">
                   {/* Header */}
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
                         {accessory.name}
                       </h3>
-                      <p className="text-sm text-gray-600">{accessory.category.name}</p>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">{accessory.category.name}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => toggleActive(accessory._id, accessory.isActive)}
                         className={`px-3 py-1 rounded-full text-xs font-medium ${
                           accessory.isActive
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                            : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                         }`}
                       >
                         {accessory.isActive ? 'فعال' : 'غیرفعال'}
@@ -287,37 +305,37 @@ export default function AccessoriesPage() {
 
                   {/* Description */}
                   {accessory.description && (
-                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                       {accessory.description}
                     </p>
                   )}
 
                   {/* Price */}
                   <div className="mb-4">
-                    <span className="text-lg font-bold text-blue-600">
+                    <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
                       {formatPrice(accessory.price)}
                     </span>
                   </div>
 
                   {/* Stock */}
                   <div className="mb-4">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-gray-600 dark:text-gray-400">
                       موجودی: <span className="font-medium">{accessory.stock}</span>
                     </span>
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-2 pt-4 border-t border-gray-200">
+                  <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <Link
                       href={`/admin/products/edit/${accessory._id}`}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors text-sm font-medium"
                     >
                       <Edit className="w-4 h-4" />
                       ویرایش
                     </Link>
                     <button
                       onClick={() => handleDelete(accessory._id, accessory.name)}
-                      className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 text-red-700 rounded-lg hover:bg-red-100 transition-colors text-sm font-medium"
+                      className="flex items-center justify-center gap-2 px-3 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors text-sm font-medium"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -335,7 +353,7 @@ export default function AccessoriesPage() {
               <button
                 onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
               >
                 قبلی
               </button>
@@ -347,7 +365,7 @@ export default function AccessoriesPage() {
                   className={`px-4 py-2 rounded-lg ${
                     currentPage === i + 1
                       ? 'bg-blue-600 text-white'
-                      : 'border border-gray-300 hover:bg-gray-50'
+                      : 'border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
                   }`}
                 >
                   {i + 1}
@@ -357,7 +375,7 @@ export default function AccessoriesPage() {
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
               >
                 بعدی
               </button>

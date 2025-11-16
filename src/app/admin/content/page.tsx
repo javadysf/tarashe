@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { getApiUrl } from '@/lib/config'
 
 interface ContentItem {
   _id: string
@@ -37,7 +38,7 @@ export default function ContentManagement() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/content/admin/all', {
+      const response = await fetch(getApiUrl('/content/admin/all'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -80,10 +81,10 @@ export default function ContentManagement() {
     return (
       <div className="p-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[1, 2].map((i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              <div key={i} className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
           </div>
         </div>
@@ -95,12 +96,12 @@ export default function ContentManagement() {
     <div className="p-8">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
             <span className="text-2xl">📝</span>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">مدیریت محتوا</h1>
-            <p className="text-gray-600">ویرایش و مدیریت محتوای صفحات تماس با ما و درباره ما</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">مدیریت محتوا</h1>
+            <p className="text-gray-600 dark:text-gray-400">ویرایش و مدیریت محتوای صفحات تماس با ما و درباره ما</p>
           </div>
         </div>
       </div>
@@ -109,8 +110,8 @@ export default function ContentManagement() {
         {content.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-6xl mb-4">📝</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">هیچ محتوایی یافت نشد</h3>
-            <p className="text-gray-600 mb-6">برای شروع، محتوای صفحات را ویرایش کنید</p>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">هیچ محتوایی یافت نشد</h3>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">برای شروع، محتوای صفحات را ویرایش کنید</p>
             <div className="space-x-4">
               <Link
                 href="/admin/content/contact"
@@ -128,15 +129,15 @@ export default function ContentManagement() {
           </div>
         ) : (
           content.map((item) => (
-            <div key={item._id} className="bg-white rounded-lg shadow-lg p-6">
+            <div key={item._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
                   <span className="text-2xl">{getPageIcon(item.page)}</span>
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
                       {getPageTitle(item.page)}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       آخرین بروزرسانی: {new Date(item.updatedAt).toLocaleDateString('fa-IR')}
                     </p>
                   </div>
@@ -144,8 +145,8 @@ export default function ContentManagement() {
                 <div className="flex items-center gap-2">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                     item.isActive 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
+                      ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300' 
+                      : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
                   }`}>
                     {item.isActive ? 'فعال' : 'غیرفعال'}
                   </span>
@@ -158,12 +159,12 @@ export default function ContentManagement() {
                 </div>
               </div>
               
-              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600">
+              <div className="grid md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-400">
                 <div>
-                  <strong>عنوان اصلی:</strong> {item.heroTitle || 'تعریف نشده'}
+                  <strong className="text-gray-900 dark:text-gray-100">عنوان اصلی:</strong> {item.heroTitle || 'تعریف نشده'}
                 </div>
                 <div>
-                  <strong>زیرعنوان:</strong> {item.heroSubtitle || 'تعریف نشده'}
+                  <strong className="text-gray-900 dark:text-gray-100">زیرعنوان:</strong> {item.heroSubtitle || 'تعریف نشده'}
                 </div>
               </div>
             </div>

@@ -2,6 +2,16 @@
 
 import React from 'react'
 
+// Conditionally import Sentry
+let Sentry: any = null;
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  try {
+    Sentry = require('@sentry/nextjs');
+  } catch (error) {
+    // Sentry not available
+  }
+}
+
 interface ErrorBoundaryState {
   hasError: boolean
   error?: Error
@@ -23,11 +33,34 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // Only log errors that are not network-related or auth-related
-    if (!error.message.includes('خطا در اتصال به اینترنت') && 
-        !error.message.includes('ایمیل یا رمز عبور اشتباه است') &&
-        !error.message.includes('دسترسی غیرمجاز')) {
-      console.error('ErrorBoundary caught an error:', error, errorInfo)
+    // Filter out known non-critical errors
+    const shouldIgnore = 
+      error.message.includes('خطا در اتصال به اینترنت') || 
+      error.message.includes('ایمیل یا رمز عبور اشتباه است') ||
+      error.message.includes('دسترسی غیرمجاز') ||
+      error.message.includes('Failed to fetch') ||
+      error.message.includes('NetworkError')
+    
+    if (!shouldIgnore) {
+      // Capture in Sentry if available
+      try {
+        if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
+          Sentry.captureException(error, {
+            contexts: {
+              react: {
+                componentStack: errorInfo.componentStack,
+              },
+            },
+          })
+        }
+      } catch (sentryError) {
+        // Sentry not available, continue without it
+      }
+      
+      // Also log to console in development
+      if (process.env.NODE_ENV === 'development') {
+        console.error('ErrorBoundary caught an error:', error, errorInfo)
+      }
     }
   }
 

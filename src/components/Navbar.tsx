@@ -82,7 +82,7 @@ export default function Navbar() {
         <div className="w-4/5 flex flex-col gap-4">
           <div className="flex gap-3 items-center">
             {user ? (
-              <div className="flex items-center text-sm space-x-3 space-x-reverse">
+              <div className="flex items-center text-md space-x-3 space-x-reverse">
                 <div className="flex items-center space-x-2 space-x-reverse bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 px-3 py-2 rounded-lg border border-green-200/50 dark:border-green-700/50">
                   <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full animate-pulse"></div>
                   <span className="text-sm font-medium text-green-700 dark:text-green-300">سلام {user.name}</span>
@@ -111,13 +111,6 @@ export default function Navbar() {
                   </Link>
                 )}
                 
-                <button 
-                  onClick={logout}
-                  className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300"
-                >
-                  <User/>
-                  <span>خروج</span>
-                </button>
               </div>
             ) : (
               <Link
@@ -148,6 +141,14 @@ export default function Navbar() {
                   <span>{item.label}</span>
                 </Link>
               ))}
+              {user && (    <button 
+                  onClick={logout}
+                  className="flex items-center space-x-2 space-x-reverse px-3 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all duration-300"
+                >
+                  <User/>
+                  <span>خروج</span>
+                </button>)}
+             
             </div>
 
             {/* Right Side */}
@@ -178,7 +179,7 @@ export default function Navbar() {
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
             </div>
             <span className="text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-               تماس با ما : 01133379498
+               تماس با ما : 09117775520
             </span>
           </Link>
         </div>
@@ -201,12 +202,12 @@ export default function Navbar() {
               </svg>
             </button>
           {/* Mobile Logo */}
-          <Link href="/" className="flex items-center gap-2">
+          <Link href="/" className="flex items-center p-2 gap-2">
             <Image 
               alt='logo'
-              width={100} 
-              height={100}
-              className='rounded-full' 
+              width={70} 
+              height={60}
+              className='p-2 rounded-full' 
               src={logo}
               priority={true}
             />

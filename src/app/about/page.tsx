@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { getApiUrl } from '@/lib/config'
 
 interface AboutContent {
   heroTitle: string
@@ -26,7 +27,7 @@ export default function About() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/content/about')
+      const response = await fetch(getApiUrl('/content/about'))
       if (response.ok) {
         const data = await response.json()
         setContent(data.content)

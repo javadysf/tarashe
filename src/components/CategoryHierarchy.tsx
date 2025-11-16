@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { api } from '@/lib/api'
 import { ChevronLeft, Home, ChevronRight } from 'lucide-react'
+import { getImageUrl } from '@/lib/config'
 
 interface Category {
   _id: string
@@ -225,7 +226,7 @@ export default function CategoryHierarchy({ currentCategoryId, onCategorySelect 
             {currentSlideCategories.map((category) => {
               // Fix image URL if it contains localhost:5000
               const imageUrl = category.image?.url?.includes('localhost:5000') 
-                ? category.image.url.replace('localhost:5000', 'localhost:3002')
+                ? getImageUrl(category.image.url)
                 : category.image?.url || '/pics/battery.jpg'
               
               return (

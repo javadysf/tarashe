@@ -25,8 +25,10 @@ const isNormalValidationError = (errorMessage: string): boolean => {
 
 
 class ApiClient {
-  private getAuthHeader(): Record<string, string> {
-    if (typeof window === 'undefined') return {};
+  private baseURL = API_BASE_URL;
+
+  private getToken(): string | null {
+    if (typeof window === 'undefined') return null;
     
     // Try to get token from localStorage first
     let token = localStorage.getItem('token');
@@ -41,7 +43,41 @@ class ApiClient {
       }
     }
     
+    return token;
+  }
+
+  private getAuthHeader(): Record<string, string> {
+    const token = this.getToken();
     return token ? { Authorization: `Bearer ${token}` } : {} as Record<string, string>;
+  }
+
+  private handleTokenExpiration(): void {
+    if (typeof window === 'undefined') return;
+    
+    // Clear tokens from localStorage
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    
+    // Logout from auth store
+    try {
+      const { useAuthStore } = require('@/store/authStore');
+      useAuthStore.getState().logout();
+    } catch (error) {
+      // Silently handle if auth store is not available
+    }
+    
+    // Redirect to login page if not already on auth pages
+    const currentPath = window.location.pathname;
+    const isAuthPage = currentPath === '/auth/login' || 
+                       currentPath === '/login' ||
+                       currentPath === '/register' ||
+                       currentPath === '/auth/register' ||
+                       currentPath.startsWith('/auth') ||
+                       currentPath.startsWith('/verify');
+    
+    if (!isAuthPage) {
+      window.location.href = '/auth/login';
+    }
   }
 
   private async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
@@ -140,38 +176,57 @@ class ApiClient {
         // Handle specific error cases
         if (response.status === 401) {
           // Check if this is a token expiry vs invalid credentials
-          if (data.message && (data.message.includes('token') || data.message.includes('expired') || data.message.includes('invalid'))) {
-            // Try to refresh token
+          const errorMessage = data?.message || data?.error || '';
+          const errorCode = data?.code || '';
+          const isTokenExpired = errorCode === 'TOKEN_EXPIRED' || 
+                                errorMessage.includes('منقضی') ||
+                                errorMessage.includes('expired');
+          const isTokenError = isTokenExpired ||
+                              errorCode === 'INVALID_TOKEN' ||
+                              errorMessage.includes('token') || 
+                              errorMessage.includes('invalid') ||
+                              errorMessage.includes('نامعتبر') ||
+                              errorMessage.includes('دسترسی غیرمجاز');
+          
+          // If this is NOT a login endpoint and we have a token, it's likely a token expiration
+          const hasToken = typeof window !== 'undefined' && localStorage.getItem('token');
+          const isLoginEndpoint = endpoint.includes('/auth/login') || 
+                                 endpoint.includes('/auth/register') || 
+                                 endpoint.includes('/auth/verify-sms-code');
+          
+          if (isTokenError || (!isLoginEndpoint && hasToken)) {
+            // Try to refresh token first
             if (typeof window !== 'undefined') {
               const refreshToken = localStorage.getItem('refreshToken');
-              if (refreshToken) {
+              if (refreshToken && !isTokenExpired) {
                 try {
                   const refreshResponse = await this.refreshToken(refreshToken);
                   // Update tokens
-                  localStorage.setItem('token', refreshResponse.accessToken);
-                  localStorage.setItem('refreshToken', refreshResponse.refreshToken);
+                  if (refreshResponse.accessToken) {
+                    localStorage.setItem('token', refreshResponse.accessToken);
+                  }
+                  if (refreshResponse.refreshToken) {
+                    localStorage.setItem('refreshToken', refreshResponse.refreshToken);
+                  }
                   // Retry original request
                   return this.request<T>(endpoint, options);
                 } catch (refreshError) {
-                  // Refresh failed, clear tokens and redirect to login
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('refreshToken');
-                  if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-                    window.location.href = '/login';
-                  }
+                  // Refresh failed, logout and redirect
+                  console.warn('Token refresh failed:', refreshError);
+                  this.handleTokenExpiration();
                   throw new Error('نشست شما منقضی شده است. لطفاً دوباره وارد شوید');
                 }
               } else {
-                // No refresh token, redirect to login
-                if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
-                  window.location.href = '/login';
-                }
-                throw new Error('نشست شما منقضی شده است. لطفاً دوباره وارد شوید');
+                // No refresh token or token expired, logout and redirect
+                this.handleTokenExpiration();
+                throw new Error(isTokenExpired 
+                  ? 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید'
+                  : 'نشست شما منقضی شده است. لطفاً دوباره وارد شوید');
               }
             }
           } else {
-            // This is likely invalid credentials
-            throw new Error('ایمیل یا رمز عبور اشتباه است');
+            // This is likely invalid credentials during login
+            throw new Error(errorMessage || 'ایمیل یا رمز عبور اشتباه است');
           }
         } else if (response.status === 400) {
           // Extract error message from various possible locations
@@ -180,6 +235,13 @@ class ApiClient {
           if (data) {
             if (typeof data === 'string') {
               errorMessage = data
+            } else if (data.errors && Array.isArray(data.errors) && data.errors.length > 0) {
+              // If there are validation errors, combine them
+              const errorMessages = data.errors.map((e: any) => {
+                if (typeof e === 'string') return e
+                return e.message || e.msg || `${e.field || ''}: ${e.value || ''}`.trim()
+              })
+              errorMessage = errorMessages.join('. ')
             } else if (data.message) {
               errorMessage = data.message
             } else if (data.error) {
@@ -191,8 +253,19 @@ class ApiClient {
             }
           }
           
-          throw new Error(errorMessage)
+          // Create error object with both message and full error data
+          const error = new Error(errorMessage)
+          ;(error as any).data = data
+          ;(error as any).response = { data }
+          throw error
         } else if (response.status === 403) {
+          // For 403, also handle token expiration if we have a token
+          const hasToken = typeof window !== 'undefined' && localStorage.getItem('token');
+          if (hasToken) {
+            // Likely token expired or invalid, logout and redirect
+            this.handleTokenExpiration();
+            throw new Error('دسترسی غیرمجاز - نشست شما منقضی شده است');
+          }
           throw new Error('دسترسی غیرمجاز')
         } else if (response.status === 404) {
           throw new Error('منبع یافت نشد')
@@ -577,6 +650,60 @@ class ApiClient {
 
   async getSalesStats(period: string = 'week') {
     return this.request(`/orders/stats/sales?period=${period}`);
+  }
+
+  // Reports
+  async getFinancialReport(params?: any) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/reports/financial${query}`);
+  }
+
+
+  // Bulk Operations
+  async bulkUpdateProducts(productIds: string[], updates: any) {
+    return this.request('/bulk/products/update', {
+      method: 'POST',
+      body: JSON.stringify({ productIds, updates }),
+    });
+  }
+
+  async bulkDeleteProducts(productIds: string[]) {
+    return this.request('/bulk/products/delete', {
+      method: 'POST',
+      body: JSON.stringify({ productIds }),
+    });
+  }
+
+  async bulkUpdateOrderStatus(orderIds: string[], status: string) {
+    return this.request('/bulk/orders/update-status', {
+      method: 'POST',
+      body: JSON.stringify({ orderIds, status }),
+    });
+  }
+
+  async bulkUpdateUsers(userIds: string[], updates: any) {
+    return this.request('/bulk/users/update', {
+      method: 'POST',
+      body: JSON.stringify({ userIds, updates }),
+    });
+  }
+
+  async bulkUpdateCategories(categoryIds: string[], updates: any) {
+    return this.request('/bulk/categories/update', {
+      method: 'POST',
+      body: JSON.stringify({ categoryIds, updates }),
+    });
+  }
+
+  // Activity Logs
+  async getActivityLogs(params?: any) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/activity-logs${query}`);
+  }
+
+  async getActivityLogsStats(params?: any) {
+    const query = params ? `?${new URLSearchParams(params)}` : '';
+    return this.request(`/activity-logs/stats${query}`);
   }
 
   // Attributes

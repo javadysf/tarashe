@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { api } from '@/lib/api'
 import { Carousel } from '@/components/ui/carousel'
 import ProductCard from '@/components/ProductCard'
+import { getImageUrl } from '@/lib/config'
 
 interface Product {
   _id: string
@@ -151,14 +152,9 @@ export default function HomeSlider() {
     if (category.image?.url) {
       let imageUrl = category.image.url
       
-      // Fix old localhost:5000 URLs to use localhost:3002
-      if (imageUrl.includes('localhost:5000')) {
-        imageUrl = imageUrl.replace('localhost:5000', 'localhost:3002')
-      }
-      
       // If URL starts with /uploads, prepend backend URL
       if (imageUrl.startsWith('/uploads')) {
-        imageUrl = `http://localhost:3002${imageUrl}`
+        imageUrl = getImageUrl(imageUrl)
       }
       
       return imageUrl
@@ -267,37 +263,49 @@ export default function HomeSlider() {
     </div>
   )
 
-  const renderBrandsSlider = () => (
-    <div className="sm:px-12">
-      <Carousel>
-        {chunkArray(brands, 6).map((brandChunk, idx) => (
-          <div key={idx} className="w-full">
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {brandChunk.map((brand) => (
-                <Link
-                  key={brand._id}
-                  href={`/products?brand=${encodeURIComponent(brand._id)}`}
-                  className="group relative glass rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 text-center block"
-                >
-                  <div className="relative w-16 h-16 mx-auto mb-3 rounded-xl overflow-hidden bg-gray-100">
-                    <Image
-                      src={brand.image?.url || '/pics/battery.jpg'}
-                      alt={brand.image?.alt || brand.name}
-                      fill
-                      className="object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
-                  <h3 className="text-sm font-bold text-white group-hover:text-yellow-300 transition-colors line-clamp-2">
-                    {brand.name}
-                  </h3>
-                </Link>
-              ))}
+  const renderBrandsSlider = () => {
+    if (brands.length === 0) return null
+
+    return (
+      <div className="sm:px-4">
+        <Carousel>
+          {chunkArray(brands, 10).map((brandChunk, idx) => (
+            <div key={idx} className="w-full py-2">
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-10 gap-6 md:gap-6">
+                {brandChunk.map((brand) => (
+                  <Link
+                    key={brand._id}
+                    href={`/products?brand=${encodeURIComponent(brand._id)}`}
+                    className="group flex flex-col items-center gap-2 hover:scale-105 transition-all duration-300"
+                  >
+                    <div className="relative w-20 h-20 sm:w-24 sm:h-24 md:w-32 md:h-32 rounded-2xl overflow-hidden bg-gradient-to-br from-white/20 to-white/5 backdrop-blur-sm border-2 border-white/30 shadow-xl hover:shadow-2xl transition-all duration-300 group-hover:scale-110">
+                      <Image
+                        src={brand.image?.url || '/pics/battery.jpg'}
+                        alt={brand.image?.alt || brand.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-110"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          if (!target.src.includes('/pics/battery.jpg')) {
+                            target.src = '/pics/battery.jpg'
+                          }
+                        }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-2xl"></div>
+                    </div>
+                    <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-yellow-300 transition-colors text-center line-clamp-2 max-w-[100px] sm:max-w-[120px]">
+                      {brand.name}
+                    </h3>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
-      </Carousel>
-    </div>
-  )
+          ))}
+        </Carousel>
+      </div>
+    )
+  }
 
 
   if (loading) {

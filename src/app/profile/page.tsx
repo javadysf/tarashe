@@ -94,17 +94,36 @@ export default function ProfilePage() {
     } else {
       router.push('/auth/login')
     }
-  }, [fetchLiked, fetchOrders, router, user])
-
-  useEffect(() => {
-    if (!user) return
-    fetchOrders()
-  }, [fetchOrders, user])
+  }, [fetchOrders, fetchLiked, router, user])
 
   useEffect(() => {
     if (!user) return
     fetchLiked()
   }, [fetchLiked, user])
+
+  const getStatusColor = (status: string) => {
+    const colors = {
+      pending: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300',
+      confirmed: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
+      processing: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300',
+      shipped: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300',
+      delivered: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+      cancelled: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300'
+    }
+    return colors[status as keyof typeof colors] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+  }
+
+  const getStatusText = (status: string) => {
+    const texts = {
+      pending: 'در انتظار',
+      confirmed: 'تایید شده',
+      processing: 'در حال پردازش',
+      shipped: 'ارسال شده',
+      delivered: 'تحویل داده شده',
+      cancelled: 'لغو شده'
+    }
+    return texts[status as keyof typeof texts] || status
+  }
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -137,29 +156,6 @@ export default function ProfilePage() {
   }
 
 
-  const getStatusColor = (status: string) => {
-    const colors = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      confirmed: 'bg-blue-100 text-blue-800',
-      processing: 'bg-purple-100 text-purple-800',
-      shipped: 'bg-indigo-100 text-indigo-800',
-      delivered: 'bg-green-100 text-green-800',
-      cancelled: 'bg-red-100 text-red-800'
-    }
-    return colors[status as keyof typeof colors] || 'bg-gray-100 text-gray-800'
-  }
-
-  const getStatusText = (status: string) => {
-    const texts = {
-      pending: 'در انتظار',
-      confirmed: 'تایید شده',
-      processing: 'در حال پردازش',
-      shipped: 'ارسال شده',
-      delivered: 'تحویل داده شده',
-      cancelled: 'لغو شده'
-    }
-    return texts[status as keyof typeof texts] || status
-  }
 
   if (!user) {
     return (
@@ -565,7 +561,7 @@ export default function ProfilePage() {
             {/* Orders Tab */}
             {activeTab === 'orders' && (
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900">سفارشات من</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">سفارشات من</h2>
                 
                 {loading ? (
                   <div className="flex justify-center py-8">
@@ -574,11 +570,11 @@ export default function ProfilePage() {
                 ) : orders.length > 0 ? (
                   <div className="space-y-4">
                     {orders.map((order) => (
-                      <div key={order._id} className="border border-gray-200 rounded-lg p-6">
+                      <div key={order._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6 bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-start mb-4">
                           <div>
-                            <h3 className="font-semibold text-gray-900">سفارش #{order._id.slice(-6)}</h3>
-                            <p className="text-sm text-gray-600">
+                            <h3 className="font-semibold text-gray-900 dark:text-gray-100">سفارش #{order._id.slice(-6)}</h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">
                               {new Date(order.createdAt).toLocaleDateString('fa-IR')}
                             </p>
                           </div>
@@ -589,17 +585,17 @@ export default function ProfilePage() {
                        
                         <div className="space-y-2 mb-4">
                           {order.items.map((item, index) => (
-                            <div key={index} className="flex justify-between text-sm">
+                            <div key={index} className="flex justify-between text-sm text-gray-700 dark:text-gray-300">
                               <span>{item?.product?.name}</span>
                               <span>تعداد: {item.quantity}</span>
                             </div>
                           ))}
                         </div>
                         
-                        <div className="border-t pt-4">
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold">مجموع:</span>
-                            <span className="font-bold text-lg text-blue-600">
+                            <span className="font-semibold text-gray-900 dark:text-gray-100">مجموع:</span>
+                            <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
                               {new Intl.NumberFormat('fa-IR').format(order.totalAmount)} تومان
                             </span>
                           </div>
@@ -609,34 +605,36 @@ export default function ProfilePage() {
                   </div>
                 ) : (
                   <div className="text-center py-12">
-                    <div className="text-gray-400 mb-4">
+                    <div className="text-gray-400 dark:text-gray-500 mb-4">
                       <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                       </svg>
                     </div>
-                    <h3 className="text-xl font-medium text-gray-900 mb-2">هیچ سفارشی یافت نشد</h3>
-                    <p className="text-gray-600">شما هنوز هیچ سفارشی ثبت نکرده‌اید</p>
+                    <h3 className="text-xl font-medium text-gray-900 dark:text-gray-100 mb-2">هیچ سفارشی یافت نشد</h3>
+                    <p className="text-gray-600 dark:text-gray-400">شما هنوز هیچ سفارشی ثبت نکرده‌اید</p>
                   </div>
                 )}
 
                 {/* Orders Pagination */}
-                <div className="flex items-center justify-between pt-2">
-                  <div className="text-sm text-gray-600">{ordersTotal} سفارش • صفحه {ordersPage} از {ordersTotalPages}</div>
-                  <div className="flex items-center gap-2">
-                    <button disabled={ordersPage <= 1} onClick={() => setOrdersPage(p => Math.max(1, p - 1))} className={`px-3 py-1 rounded-lg border text-sm ${ordersPage <= 1 ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>قبلی</button>
-                    {Array.from({ length: Math.min(5, ordersTotalPages) }, (_, i) => {
-                      const half = 2
-                      let start = Math.max(1, ordersPage - half)
-                      let end = Math.min(ordersTotalPages, start + 4)
-                      if (end - start < 4) start = Math.max(1, end - 4)
-                      const pageNum = start + i
-                      return pageNum <= ordersTotalPages ? (
-                        <button key={pageNum} onClick={() => setOrdersPage(pageNum)} className={`px-3 py-1 rounded-lg text-sm border ${pageNum === ordersPage ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>{pageNum}</button>
-                      ) : null
-                    })}
-                    <button disabled={ordersPage >= ordersTotalPages} onClick={() => setOrdersPage(p => Math.min(ordersTotalPages, p + 1))} className={`px-3 py-1 rounded-lg border text-sm ${ordersPage >= ordersTotalPages ? 'text-gray-300 border-gray-200' : 'text-gray-700 border-gray-300 hover:bg-gray-50'}`}>بعدی</button>
+                {ordersTotalPages > 1 && (
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">{ordersTotal} سفارش • صفحه {ordersPage} از {ordersTotalPages}</div>
+                    <div className="flex items-center gap-2">
+                      <button disabled={ordersPage <= 1} onClick={() => setOrdersPage(p => Math.max(1, p - 1))} className={`px-3 py-1 rounded-lg border text-sm ${ordersPage <= 1 ? 'text-gray-300 dark:text-gray-600 border-gray-200 dark:border-gray-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>قبلی</button>
+                      {Array.from({ length: Math.min(5, ordersTotalPages) }, (_, i) => {
+                        const half = 2
+                        let start = Math.max(1, ordersPage - half)
+                        let end = Math.min(ordersTotalPages, start + 4)
+                        if (end - start < 4) start = Math.max(1, end - 4)
+                        const pageNum = start + i
+                        return pageNum <= ordersTotalPages ? (
+                          <button key={pageNum} onClick={() => setOrdersPage(pageNum)} className={`px-3 py-1 rounded-lg text-sm border ${pageNum === ordersPage ? 'bg-blue-600 text-white border-blue-600' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>{pageNum}</button>
+                        ) : null
+                      })}
+                      <button disabled={ordersPage >= ordersTotalPages} onClick={() => setOrdersPage(p => Math.min(ordersTotalPages, p + 1))} className={`px-3 py-1 rounded-lg border text-sm ${ordersPage >= ordersTotalPages ? 'text-gray-300 dark:text-gray-600 border-gray-200 dark:border-gray-700' : 'text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>بعدی</button>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
 

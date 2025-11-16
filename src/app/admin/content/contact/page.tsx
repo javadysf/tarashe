@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import MapHelper from '@/components/MapHelper'
+import { getApiUrl } from '@/lib/config'
 
 interface ContactContent {
   _id?: string
@@ -59,7 +60,7 @@ export default function ContactContentManagement() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/content/admin/contact', {
+      const response = await fetch(getApiUrl('/content/admin/contact'), {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -119,7 +120,7 @@ export default function ContactContentManagement() {
         }
       }
 
-      const response = await fetch('http://localhost:3002/api/content/admin/contact', {
+      const response = await fetch(getApiUrl('/content/admin/contact'), {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

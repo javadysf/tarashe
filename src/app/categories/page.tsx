@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { api } from '@/lib/api'
 import Image from 'next/image'
 import Link from 'next/link'
+import { getImageUrl } from '@/lib/config'
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<any[]>([])
@@ -29,14 +30,9 @@ export default function CategoriesPage() {
     if (category.image?.url) {
       let imageUrl = category.image.url
       
-      // Fix old localhost:5000 URLs to use localhost:3002
-      if (imageUrl.includes('localhost:5000')) {
-        imageUrl = imageUrl.replace('localhost:5000', 'localhost:3002')
-      }
-      
       // If URL starts with /uploads, prepend backend URL
       if (imageUrl.startsWith('/uploads')) {
-        imageUrl = `http://localhost:3002${imageUrl}`
+        imageUrl = getImageUrl(imageUrl)
       }
       
       return imageUrl

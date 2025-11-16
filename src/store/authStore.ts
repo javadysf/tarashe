@@ -166,15 +166,34 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
       const currentRetry = get().authRetryCount;
       const nextRetry = Math.min(currentRetry + 1, 3);
 
-      // Silently handle auth check failures
+      // Handle auth check failures
       if (error instanceof Error) {
-        if (error.message.includes('401') || error.message.includes('ایمیل یا رمز عبور اشتباه است')) {
-          // Clear invalid token silently
+        const errorMessage = error.message.toLowerCase();
+        const isTokenExpired = errorMessage.includes('401') || 
+                              errorMessage.includes('403') ||
+                              errorMessage.includes('منقضی') ||
+                              errorMessage.includes('نشست') ||
+                              errorMessage.includes('expired') ||
+                              errorMessage.includes('invalid') ||
+                              errorMessage.includes('نامعتبر') ||
+                              errorMessage.includes('دسترسی غیرمجاز');
+        
+        if (isTokenExpired) {
+          // Token expired, logout and redirect to login
+          get().logout();
+          // Redirect to login if not already there
+          const currentPath = window.location.pathname;
+          if (currentPath !== '/auth/login' && currentPath !== '/login' && !currentPath.startsWith('/auth') && !currentPath.startsWith('/register')) {
+            window.location.href = '/auth/login';
+          }
+        } else if (errorMessage.includes('ایمیل یا رمز عبور اشتباه است')) {
+          // Invalid credentials, clear token silently
           localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
           set({ user: null, token: null });
         }
         // Don't log network errors during auth check
-        else if (!error.message.includes('خطا در اتصال به اینترنت')) {
+        else if (!errorMessage.includes('خطا در اتصال به اینترنت')) {
           console.log('Auth check failed:', error.message);
         }
       }
