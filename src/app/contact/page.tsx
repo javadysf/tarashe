@@ -35,7 +35,7 @@ export default function Contact() {
 
   const fetchContent = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/content/contact')
+      const response = await fetch(getApiUrl('/content/contact'))
       if (response.ok) {
         const data = await response.json()
         setContent(data.content)
