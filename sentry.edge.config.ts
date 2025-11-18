@@ -25,3 +25,6 @@ if (process.env.NEXT_PUBLIC_SENTRY_DSN) {
   }
 }
 
+// Export empty object to make this file a valid module
+export {};
+

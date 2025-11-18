@@ -35,7 +35,7 @@ if (!process.env.NEXT_PUBLIC_SENTRY_DSN) {
   ],
   
   // Filter out sensitive data
-  beforeSend(event, hint) {
+  beforeSend(event: any, hint: any) {
     // Don't send events in development unless explicitly enabled
     if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_SENTRY_DEBUG) {
       return null;
@@ -67,4 +67,7 @@ if (!process.env.NEXT_PUBLIC_SENTRY_DSN) {
     console.warn('Failed to initialize Sentry client:', error);
   }
 }
+
+// Export empty object to make this file a valid module
+export {};
 

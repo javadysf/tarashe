@@ -145,7 +145,7 @@ export default function ActivityLogsPage() {
       setPage(1)
       fetchLogs()
     }
-  }, [filters])
+  }, [filters, user?.role, fetchLogs])
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleString('fa-IR', {
