@@ -167,23 +167,23 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Header Card with Gradient */}
-        <div className="relative bg-blue-200 rounded-3xl shadow-2xl p-8 mb-8 overflow-hidden">
+        <div className="relative bg-blue-200 rounded-xl sm:rounded-2xl md:rounded-3xl shadow-2xl p-4 sm:p-6 md:p-8 mb-4 sm:mb-6 md:mb-8 overflow-hidden">
           <div className="absolute inset-0 bg-black opacity-10"></div>
-          <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            <div className="flex-1 text-center sm:text-right">
-              <h1 className="text-xl sm:text-2xl font-extrabold text-white mb-2 drop-shadow-lg">
+          <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-6">
+            <div className="flex-1 text-center sm:text-right w-full">
+              <h1 className="text-base sm:text-lg md:text-xl lg:text-2xl font-extrabold text-white mb-1.5 sm:mb-2 drop-shadow-lg">
                 {user.name} {user.lastName || ''}
               </h1>
-              <div className="flex items-center justify-center sm:justify-start gap-2 mb-3">
-                <svg className="w-5 h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+                <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-white/90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                   </svg>
-                <p className="text-white/90 text-lg">{user.email}</p>
+                <p className="text-white/90 text-xs sm:text-sm md:text-base lg:text-lg truncate">{user.email}</p>
             </div>
-              <div className="flex items-center justify-center sm:justify-start gap-3 flex-wrap">
-                <span className={`inline-flex items-center px-4 py-2 text-sm font-bold rounded-full shadow-lg ${
+              <div className="flex items-center justify-center sm:justify-start gap-2 sm:gap-3 flex-wrap">
+                <span className={`inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm font-bold rounded-full shadow-lg ${
                   user.role === 'admin' 
                     ? 'bg-purple-500 text-white' 
                     : 'bg-green-500 text-white'
@@ -191,19 +191,21 @@ export default function ProfilePage() {
                   {user.role === 'admin' ? '👑 ادمین' : '👤 کاربر'}
                 </span>
                 {user.phoneVerified && (
-                  <span className="inline-flex items-center px-4 py-2 text-sm font-bold rounded-full bg-white/20 backdrop-blur-sm text-white shadow-lg">
-                    <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm font-bold rounded-full bg-white/20 backdrop-blur-sm text-white shadow-lg">
+                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ml-0.5 sm:ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    ✓ تایید شده
+                    <span className="hidden sm:inline">✓ تایید شده</span>
+                    <span className="sm:hidden">✓</span>
                   </span>
                 )}
                 {user.phone && (
-                  <span className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-full bg-white/20 backdrop-blur-sm text-white">
-                    <svg className="w-4 h-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <span className="inline-flex items-center px-2.5 py-1 sm:px-3 sm:py-1.5 md:px-4 md:py-2 text-xs sm:text-sm font-semibold rounded-full bg-white/20 backdrop-blur-sm text-white">
+                    <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 ml-0.5 sm:ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                    {user.phone}
+                    <span className="hidden sm:inline">{user.phone}</span>
+                    <span className="sm:hidden text-[10px]">{user.phone.slice(-4)}</span>
                   </span>
                 )}
               </div>
@@ -212,126 +214,129 @@ export default function ProfilePage() {
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-xl overflow-hidden backdrop-blur-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl md:rounded-3xl shadow-xl overflow-hidden backdrop-blur-sm">
           <div className="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800 dark:to-gray-800">
-            <nav className="flex space-x-8 space-x-reverse px-8">
+            <nav className="flex space-x-4 sm:space-x-6 md:space-x-8 space-x-reverse px-2 sm:px-4 md:px-6 lg:px-8 overflow-x-auto">
               <button
                 onClick={() => setActiveTab('profile')}
-                className={`py-5 px-4 border-b-3 font-semibold text-sm transition-all duration-300 relative ${
+                className={`py-3 sm:py-4 md:py-5 px-2 sm:px-3 md:px-4 border-b-3 font-semibold text-xs sm:text-sm transition-all duration-300 relative whitespace-nowrap ${
                   activeTab === 'profile'
                     ? 'border-blue-500 dark:border-blue-400 text-blue-600 dark:text-blue-400'
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
-                <span className="flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                اطلاعات شخصی
+                  <span className="hidden sm:inline">اطلاعات شخصی</span>
+                  <span className="sm:hidden">پروفایل</span>
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab('orders')}
-                className={`py-5 px-4 border-b-3 font-semibold text-sm transition-all duration-300 relative ${
+                className={`py-3 sm:py-4 md:py-5 px-2 sm:px-3 md:px-4 border-b-3 font-semibold text-xs sm:text-sm transition-all duration-300 relative whitespace-nowrap ${
                   activeTab === 'orders'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
-                <span className="flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
-                سفارشات من
+                  <span className="hidden sm:inline">سفارشات من</span>
+                  <span className="sm:hidden">سفارشات</span>
                 </span>
               </button>
               <button
                 onClick={() => setActiveTab('liked')}
-                className={`py-5 px-4 border-b-3 font-semibold text-sm transition-all duration-300 relative ${
+                className={`py-3 sm:py-4 md:py-5 px-2 sm:px-3 md:px-4 border-b-3 font-semibold text-xs sm:text-sm transition-all duration-300 relative whitespace-nowrap ${
                   activeTab === 'liked'
                     ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                     : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
                 }`}
               >
-                <span className="flex items-center gap-2">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+                  <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                   </svg>
-                پسندیده‌ها
+                  <span className="hidden sm:inline">پسندیده‌ها</span>
+                  <span className="sm:hidden">پسندیده</span>
                 </span>
               </button>
             </nav>
           </div>
 
-          <div className="p-8">
+          <div className="p-2 sm:p-4 md:p-6 lg:p-6">
             {/* Profile Tab */}
             {activeTab === 'profile' && (
               <div className="space-y-6">
                 {!editMode ? (
                   /* ID Card Design - Compact */
                   <div className="max-w-2xl mx-auto">
-                    <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-2xl shadow-xl overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
+                    <div className="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 rounded-lg sm:rounded-xl md:rounded-2xl shadow-xl overflow-hidden transform hover:scale-[1.01] transition-all duration-300">
                       {/* Decorative Background Pattern */}
                       <div className="absolute inset-0 opacity-10">
-                        <div className="absolute top-0 right-0 w-40 h-40 bg-white rounded-full -mr-20 -mt-20"></div>
-                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-white rounded-full -ml-16 -mb-16"></div>
+                        <div className="absolute top-0 right-0 w-20 h-20 sm:w-32 sm:h-32 md:w-40 md:h-40 bg-white rounded-full -mr-10 -mt-10 sm:-mr-16 sm:-mt-16 md:-mr-20 md:-mt-20"></div>
+                        <div className="absolute bottom-0 left-0 w-16 h-16 sm:w-24 sm:h-24 md:w-32 md:h-32 bg-white rounded-full -ml-8 -mb-8 sm:-ml-12 sm:-mb-12 md:-ml-16 md:-mb-16"></div>
                       </div>
                       
                       {/* Card Content */}
-                      <div className="relative p-6">
+                      <div className="relative p-3 sm:p-4 md:p-5 lg:p-6">
                         {/* Header Section */}
-                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-white/20">
+                        <div className="flex items-center justify-between mb-3 sm:mb-4 pb-2 sm:pb-3 border-b border-white/20">
                           <div>
-                            <h2 className="text-lg font-bold text-white">کارت شناسایی کاربر</h2>
-                            <p className="text-white/70 text-xs">Identity Card</p>
+                            <h2 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-white">کارت شناسایی کاربر</h2>
+                            <p className="text-white/70 text-[9px] sm:text-[10px] md:text-xs hidden sm:block">Identity Card</p>
                           </div>
-                          <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5 border border-white/30">
-                            <p className="text-white/60 text-[10px] mb-0.5">شماره عضویت</p>
-                            <p className="text-white font-bold text-sm font-mono">{user.id.slice(-8).toUpperCase()}</p>
+                          <div className="bg-white/20 backdrop-blur-sm rounded-md sm:rounded-lg px-2 py-1 sm:px-3 sm:py-1.5 border border-white/30">
+                            <p className="text-white/60 text-[8px] sm:text-[9px] md:text-[10px] mb-0.5">شماره عضویت</p>
+                            <p className="text-white font-bold text-[10px] sm:text-xs md:text-sm font-mono">{user.id.slice(-8).toUpperCase()}</p>
                           </div>
                         </div>
 
                         {/* Main Info Grid - Compact */}
-                        <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 mb-3 sm:mb-4">
                           {/* Name */}
-                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                            <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2.5 md:p-3 border border-white/20">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
                               <div className="min-w-0 flex-1">
-                                <p className="text-white/60 text-[10px] mb-0.5">نام</p>
-                                <p className="text-white font-bold text-sm truncate">{user.name} {user.lastName || ''}</p>
+                                <p className="text-white/60 text-[9px] sm:text-[10px] mb-0.5">نام</p>
+                                <p className="text-white font-bold text-xs sm:text-sm truncate">{user.name} {user.lastName || ''}</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Email */}
-                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                            <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2.5 md:p-3 border border-white/20">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                               </svg>
                               <div className="min-w-0 flex-1">
-                                <p className="text-white/60 text-[10px] mb-0.5">ایمیل</p>
-                                <p className="text-white font-semibold text-xs truncate">{user.email}</p>
+                                <p className="text-white/60 text-[9px] sm:text-[10px] mb-0.5">ایمیل</p>
+                                <p className="text-white font-semibold text-[10px] sm:text-xs truncate">{user.email}</p>
                               </div>
                             </div>
                           </div>
 
                           {/* Phone */}
-                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                            <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2.5 md:p-3 border border-white/20">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                               </svg>
                               <div className="min-w-0 flex-1">
-                                <p className="text-white/60 text-[10px] mb-0.5">تماس</p>
-                                <div className="flex items-center gap-1.5">
-                                  <p className="text-white font-bold text-sm">{user.phone || 'وارد نشده'}</p>
+                                <p className="text-white/60 text-[9px] sm:text-[10px] mb-0.5">تماس</p>
+                                <div className="flex items-center gap-1 sm:gap-1.5">
+                                  <p className="text-white font-bold text-xs sm:text-sm truncate">{user.phone || 'وارد نشده'}</p>
                                   {user.phoneVerified && (
-                                    <span className="inline-flex items-center px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">
-                                      <svg className="w-2.5 h-2.5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <span className="inline-flex items-center px-1 py-0.5 sm:px-1.5 sm:py-0.5 bg-green-500 text-white text-[8px] sm:text-[9px] md:text-[10px] font-bold rounded-full flex-shrink-0">
+                                      <svg className="w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-2.5 md:h-2.5 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                       </svg>
                                       ✓
@@ -343,14 +348,14 @@ export default function ProfilePage() {
                           </div>
 
                           {/* Role */}
-                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                            <div className="flex items-center gap-2">
-                              <svg className="w-4 h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2.5 md:p-3 border border-white/20">
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white/80 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                               </svg>
                               <div className="min-w-0 flex-1">
-                                <p className="text-white/60 text-[10px] mb-0.5">نقش</p>
-                                <p className="text-white font-bold text-sm">{user.role === 'admin' ? '👑 ادمین' : '👤 کاربر'}</p>
+                                <p className="text-white/60 text-[9px] sm:text-[10px] mb-0.5">نقش</p>
+                                <p className="text-white font-bold text-xs sm:text-sm">{user.role === 'admin' ? '👑 ادمین' : '👤 کاربر'}</p>
                               </div>
                             </div>
                           </div>
@@ -358,15 +363,15 @@ export default function ProfilePage() {
 
                         {/* Address Section - Compact */}
                         {(user.address && (user.address.street || user.address.city || user.address.state || user.address.postalCode)) && (
-                          <div className="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20 mb-3">
-                            <div className="flex items-start gap-2">
-                              <svg className="w-4 h-4 text-white/80 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-2 sm:p-2.5 md:p-3 border border-white/20 mb-2 sm:mb-3">
+                            <div className="flex items-start gap-1.5 sm:gap-2">
+                              <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4 text-white/80 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                               </svg>
                               <div className="min-w-0 flex-1">
-                                <p className="text-white/60 text-[10px] mb-1">آدرس</p>
-                                <p className="text-white font-semibold text-xs leading-relaxed">
+                                <p className="text-white/60 text-[9px] sm:text-[10px] mb-0.5 sm:mb-1">آدرس</p>
+                                <p className="text-white font-semibold text-[10px] sm:text-xs leading-relaxed">
                                   {user.address.street && `${user.address.street}, `}
                                   {user.address.city && `${user.address.city}, `}
                                   {user.address.state && `${user.address.state}`}
@@ -378,17 +383,17 @@ export default function ProfilePage() {
                         )}
 
                         {/* Additional Info - Compact */}
-                        <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div className="grid grid-cols-2 gap-2 sm:gap-2.5 md:gap-3 mb-2 sm:mb-3">
                           {user.postalCode && (
-                            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
-                              <p className="text-white/60 text-[10px] mb-0.5">کد پستی</p>
-                              <p className="text-white font-bold text-xs">{user.postalCode}</p>
+                            <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1.5 sm:p-2 border border-white/20">
+                              <p className="text-white/60 text-[9px] sm:text-[10px] mb-0.5">کد پستی</p>
+                              <p className="text-white font-bold text-[10px] sm:text-xs">{user.postalCode}</p>
                             </div>
                           )}
                           {user.createdAt && (
-                            <div className="bg-white/10 backdrop-blur-sm rounded-lg p-2 border border-white/20">
-                              <p className="text-white/60 text-[10px] mb-0.5">عضویت</p>
-                              <p className="text-white font-bold text-xs">
+                            <div className="bg-white/10 backdrop-blur-sm rounded-md sm:rounded-lg p-1.5 sm:p-2 border border-white/20">
+                              <p className="text-white/60 text-[9px] sm:text-[10px] mb-0.5">عضویت</p>
+                              <p className="text-white font-bold text-[10px] sm:text-xs">
                                 {new Date(user.createdAt).toLocaleDateString('fa-IR', {
                                   year: 'numeric',
                                   month: 'short',
@@ -400,12 +405,12 @@ export default function ProfilePage() {
                         </div>
 
                         {/* Footer with Edit Button - Compact */}
-                        <div className="pt-3 border-t border-white/20 flex justify-center">
+                        <div className="pt-2 sm:pt-3 border-t border-white/20 flex justify-center">
                           <button
                             onClick={() => setEditMode(true)}
-                            className="flex items-center gap-1.5 px-4 py-2 bg-white text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg"
+                            className="flex items-center gap-1 sm:gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 bg-white text-blue-600 rounded-md sm:rounded-lg text-xs sm:text-sm font-semibold hover:bg-blue-50 transition-all duration-200 shadow-md hover:shadow-lg"
                           >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                             ویرایش
