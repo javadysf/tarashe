@@ -134,7 +134,6 @@ export default function AddProductPage() {
   const fetchCategoryAttributes = useCallback(async (categoryId: string) => {
     try {
       const response = await api.getCategoryAttributes(categoryId)
-      console.log('Category attributes response:', response)
       
       // Extract attributes from CategoryAttribute objects
       const attributes = dedupeAttributes(response.map((ca: any) => ca.attribute).filter(Boolean))
@@ -199,8 +198,6 @@ export default function AddProductPage() {
       // Convert map to array
       const combinedAttributes = Array.from(allAttributes.values())
       setCategoryAttributes(combinedAttributes)
-      
-      console.log('Combined attributes:', combinedAttributes)
     } catch (error) {
       console.error('Error fetching all category attributes:', error)
     }
@@ -338,7 +335,6 @@ export default function AddProductPage() {
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
-    console.log('Files selected:', files.length)
     
     if (files.length === 0) return
 
@@ -365,13 +361,11 @@ export default function AddProductPage() {
       return true
     })
 
-    console.log('Valid files:', validFiles.length)
     if (validFiles.length === 0) return
 
     // Show preview immediately
     const previews = validFiles.map((file, index) => {
       const previewUrl = URL.createObjectURL(file)
-      console.log('Created preview URL:', previewUrl)
       return {
         url: previewUrl,
         alt: file.name,
@@ -380,22 +374,18 @@ export default function AddProductPage() {
       }
     })
     
-    console.log('Setting previews:', previews)
     setFormData(prev => {
       const newData = {
         ...prev,
         images: [...prev.images, ...previews]
       }
-      console.log('New formData images:', newData.images)
       return newData
     })
 
     setUploadingImages(true)
     
     try {
-      console.log('Starting upload...')
       const response = await api.uploadProductImages(validFiles, formData.name || 'محصول')
-      console.log('Upload response:', response)
       
       // Replace preview images with uploaded URLs
       setFormData(prev => ({

@@ -1,7 +1,4 @@
 // Validate API URL configuration
-if (!process.env.NEXT_PUBLIC_API_URL) {
-  console.warn('NEXT_PUBLIC_API_URL not configured, using default');
-}
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
@@ -120,12 +117,6 @@ class ApiClient {
           bodyPreview = options.body;
         }
       }
-      console.log('API Request:', {
-        url,
-        method: options.method || 'GET',
-        headers: config.headers,
-        body: bodyPreview
-      });
     }
 
     try {
@@ -212,7 +203,6 @@ class ApiClient {
                   return this.request<T>(endpoint, options);
                 } catch (refreshError) {
                   // Refresh failed, logout and redirect
-                  console.warn('Token refresh failed:', refreshError);
                   this.handleTokenExpiration();
                   throw new Error('نشست شما منقضی شده است. لطفاً دوباره وارد شوید');
                 }
@@ -284,20 +274,6 @@ class ApiClient {
     } catch (error) {
       // Handle network errors
       if (error instanceof TypeError && error.message.includes('fetch')) {
-        // Don't log network errors during auth checks to avoid console spam
-        const isAuthCheck = endpoint.includes('/auth/me') || endpoint.includes('/auth/profile');
-        if (!isAuthCheck) {
-          console.error('Network error:', {
-            error,
-            url,
-            message: error.message,
-            stack: error instanceof Error ? error.stack : undefined
-          });
-          console.error('Please check:');
-          console.error('1. Is the backend server running?');
-          console.error('2. Is the API URL correct?', API_BASE_URL);
-          console.error('3. Are there any CORS issues?');
-        }
         throw new Error('خطا در اتصال به سرور. لطفاً مطمئن شوید سرور در حال اجرا است و آدرس API صحیح است');
       }
       
@@ -437,7 +413,6 @@ class ApiClient {
     if (!searchTerm.trim()) return { products: [] };
     try {
       const result = await this.request(`/products?search=${encodeURIComponent(searchTerm)}&limit=${limit}`);
-      console.log('Search suggestions result:', result);
       return result;
     } catch (error) {
       console.error('Search suggestions API error:', error);

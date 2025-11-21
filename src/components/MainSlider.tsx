@@ -67,9 +67,9 @@ export default function MainSlider() {
 
   if (loading) {
     return (
-      <div className="relative h-[450px] lg:h-[550px] bg-gradient-to-r from-blue-500 to-purple-600 rounded-3xl overflow-hidden">
+      <div className="relative h-[280px] sm:h-[350px] md:h-[400px] lg:h-[550px] bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl sm:rounded-3xl overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+          <div className="animate-spin rounded-full h-8 w-8 sm:h-10 sm:w-10 md:h-12 md:w-12 border-b-2 border-white"></div>
         </div>
       </div>
     )
@@ -80,10 +80,10 @@ export default function MainSlider() {
   }
 
   return (
-    <section className="relative h-[450px] lg:h-[550px] overflow-hidden rounded-3xl mb-8">
+    <section className="relative h-[280px] sm:h-[350px] md:h-[400px] lg:h-[550px] overflow-hidden rounded-2xl sm:rounded-3xl mb-4 sm:mb-6 md:mb-8">
       <Carousel className="w-full h-full">
         {sliders.map((slider) => (
-          <div key={slider._id} className="relative w-full h-[450px] lg:h-[550px] bg-gradient-1 rounded-3xl">
+          <div key={slider._id} className="relative w-full h-[280px] sm:h-[350px] md:h-[400px] lg:h-[550px] bg-gradient-1 rounded-2xl sm:rounded-3xl">
             <Image
               src={slider.backgroundImage}
               alt={slider.title}
@@ -97,17 +97,17 @@ export default function MainSlider() {
                 backgroundColor: `rgba(0, 0, 0, ${slider.overlayOpacity || 0.4})`
               }}
             />
-            <div className="absolute inset-0 flex items-center justify-center p-8">
+            <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-6 md:p-8">
               <div className="text-center max-w-4xl">
                 <h1
-                  className="text-4xl lg:text-6xl font-bold mb-4 drop-shadow-lg"
+                  className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl font-bold mb-2 sm:mb-3 md:mb-4 drop-shadow-lg"
                   style={{ color: slider.textColor || '#ffffff' }}
                 >
                   {slider.title}
                 </h1>
                 {slider.subtitle && (
                   <p
-                    className="text-xl lg:text-2xl mb-6 drop-shadow-md"
+                    className="text-sm sm:text-base md:text-lg lg:text-2xl mb-3 sm:mb-4 md:mb-6 drop-shadow-md"
                     style={{ color: slider.textColor || '#ffffff' }}
                   >
                     {slider.subtitle}
@@ -115,7 +115,7 @@ export default function MainSlider() {
                 )}
                 {slider.description && (
                   <p
-                    className="text-lg mb-8 max-w-2xl mx-auto drop-shadow-md"
+                    className="text-xs sm:text-sm md:text-base lg:text-lg mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto drop-shadow-md px-2"
                     style={{ color: slider.textColor || '#ffffff' }}
                   >
                     {slider.description}
@@ -124,7 +124,7 @@ export default function MainSlider() {
                 {slider.buttonText && slider.buttonLink && (
                   <Link
                     href={slider.buttonLink}
-                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
+                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl text-sm sm:text-base md:text-lg font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg"
                     style={{
                       backgroundColor: slider.buttonColor || '#3b82f6'
                     }}

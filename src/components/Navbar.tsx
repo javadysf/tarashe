@@ -188,7 +188,7 @@ export default function Navbar() {
       {/* Mobile Layout */}
       <div className='md:hidden'>
         {/* Mobile Header */}
-        <div className='flex items-center justify-between sm:px-4 sm:py-3'>
+        <div className='flex items-center justify-between px-4 sm:px-4 sm:py-3'>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -205,8 +205,8 @@ export default function Navbar() {
           <Link href="/" className="flex items-center p-2 gap-2">
             <Image 
               alt='logo'
-              width={70} 
-              height={60}
+              width={100} 
+              height={70}
               className='p-2 rounded-full' 
               src={logo}
               priority={true}
@@ -214,6 +214,9 @@ export default function Navbar() {
           </Link>
 
           {/* Mobile Actions */}
+          <div className="flex items-center gap-2">
+            <ThemeToggle size="md" />
+          </div>
         </div>
 
         {/* Mobile Search Bar */}
@@ -306,8 +309,9 @@ export default function Navbar() {
                 </div>
               )}
 
+
               {/* Contact Info */}
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="text-center">
                   <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">تماس با ما</p>
                   <a href="tel:01133379498" className="text-blue-600 dark:text-blue-400 font-medium text-lg">

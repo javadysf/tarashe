@@ -330,9 +330,9 @@ export default function HomeSlider() {
   }
 
   return (
-    <div className="space-y-16">
+    <div className="space-y-8 sm:space-y-12 md:space-y-16">
       {/* Categories Slider */}
-      <section className="py-12 bg-gradient-7 relative">
+      <section className="py-6 sm:py-8 md:py-12 bg-gradient-7 relative">
         {/* Fade overlay at bottom - softer */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
         <div className="max-w-7xl mx-auto px-2 sm:px-2 lg:px-4 relative z-0">
@@ -341,16 +341,16 @@ export default function HomeSlider() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-8"
+            className="text-center mb-6 sm:mb-8"
           >
-            <div className="inline-flex  font-black items-center gap-2 glass text-white px-6 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
-              <span className="text-xl">📂</span>
+            <div className="inline-flex font-black items-center gap-1 sm:gap-2 glass text-white px-3 py-1 sm:px-4 sm:py-1.5 md:px-6 md:py-2 rounded-full text-sm sm:text-base md:text-lg lg:text-2xl font-medium mb-2 sm:mb-3 md:mb-4 animate-pulse-glow">
+              <span className="text-sm sm:text-base md:text-lg lg:text-xl">📂</span>
               دسته‌بندی‌ها
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-lg">
               دسته‌بندی محصولات
             </h2>
-            <p className="text-lg text-white/90 drop-shadow-md">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 drop-shadow-md">
               انتخاب کنید و خرید کنید
             </p>
           </motion.div>
@@ -374,10 +374,10 @@ export default function HomeSlider() {
           >
             <Link
               href="/categories"
-              className="inline-flex items-center gap-2 bg-gradient-3 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
+              className="inline-flex items-center gap-1 sm:gap-2 bg-gradient-3 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-sm sm:text-base md:text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
             >
               <span>مشاهده همه دسته‌بندی‌ها</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
@@ -387,7 +387,7 @@ export default function HomeSlider() {
 
       {/* Promo Banners Section */}
       {promoBanners.length > 0 && (
-        <section className="py-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+        <section className="py-4 sm:py-6 md:py-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -400,7 +400,7 @@ export default function HomeSlider() {
                 <Link
                   key={banner._id}
                   href={banner.buttonLink || '/products'}
-                  className="group relative h-[280px] rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]"
+                  className="group relative h-[200px] sm:h-[240px] md:h-[280px] rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-[1.02]"
                 >
                   <Image
                     src={banner.backgroundImage || '/pics/battery.jpg'}
@@ -421,7 +421,7 @@ export default function HomeSlider() {
                       backgroundColor: `rgba(0, 0, 0, ${banner.overlayOpacity || 0.5})`
                     }}
                   />
-                  <div className="absolute inset-0 flex flex-col justify-end p-8">
+                  <div className="absolute inset-0 flex flex-col justify-end p-4 sm:p-6 md:p-8">
                     <motion.div
                       initial={{ opacity: 0, y: 20 }}
                       whileInView={{ opacity: 1, y: 0 }}
@@ -430,35 +430,35 @@ export default function HomeSlider() {
                     >
                       {banner.subtitle && (
                         <p
-                          className="text-sm font-semibold mb-2 uppercase tracking-wider drop-shadow-lg"
+                          className="text-xs sm:text-sm font-semibold mb-1 sm:mb-2 uppercase tracking-wider drop-shadow-lg"
                           style={{ color: banner.textColor || '#fbbf24' }}
                         >
                           {banner.subtitle}
                         </p>
                       )}
                       <h3
-                        className="text-2xl md:text-3xl font-bold mb-4 drop-shadow-lg group-hover:translate-x-2 transition-transform duration-300"
+                        className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-2 sm:mb-3 md:mb-4 drop-shadow-lg group-hover:translate-x-2 transition-transform duration-300"
                         style={{ color: banner.textColor || '#ffffff' }}
                       >
                         {banner.title}
                       </h3>
                       {banner.description && (
                         <p
-                          className="text-sm md:text-base mb-4 max-w-md drop-shadow-md line-clamp-2"
+                          className="text-xs sm:text-sm md:text-base mb-2 sm:mb-3 md:mb-4 max-w-md drop-shadow-md line-clamp-2"
                           style={{ color: banner.textColor || '#ffffff' }}
                         >
                           {banner.description}
                         </p>
                       )}
                       {banner.buttonText && (
-                        <div className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform group-hover:scale-105 shadow-lg"
+                        <div className="inline-flex items-center gap-1 sm:gap-2 px-3 py-1.5 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-xl font-semibold text-xs sm:text-sm md:text-base transition-all duration-300 transform group-hover:scale-105 shadow-lg"
                           style={{ 
                             backgroundColor: banner.buttonColor || '#3b82f6',
                             color: '#ffffff'
                           }}
                         >
                           <span>{banner.buttonText}</span>
-                          <svg className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                           </svg>
                         </div>
@@ -475,7 +475,7 @@ export default function HomeSlider() {
       )}
 
       {/* Brands Slider */}
-      <section className="py-16 bg-gradient-8 relative">
+      <section className="py-8 sm:py-12 md:py-16 bg-gradient-8 relative">
         {/* Fade overlay at bottom - softer */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
@@ -484,16 +484,16 @@ export default function HomeSlider() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-8"
+            className="text-center mb-6 sm:mb-8"
           >
-            <div className="inline-flex font-black items-center gap-2 glass text-white px-6 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
-              <span className="text-xl">🏷️</span>
+            <div className="inline-flex font-black items-center gap-1 sm:gap-2 glass text-white px-3 py-1 sm:px-4 sm:py-1.5 md:px-6 md:py-2 rounded-full text-sm sm:text-base md:text-lg lg:text-2xl font-medium mb-2 sm:mb-3 md:mb-4 animate-pulse-glow">
+              <span className="text-sm sm:text-base md:text-lg lg:text-xl">🏷️</span>
               برندها
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-lg">
               برندهای معتبر
             </h2>
-            <p className="text-lg text-white/90 drop-shadow-md">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 drop-shadow-md">
               محصولات با کیفیت از بهترین برندها
             </p>
           </motion.div>
@@ -517,10 +517,10 @@ export default function HomeSlider() {
           >
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 bg-gradient-4 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
+              className="inline-flex items-center gap-1 sm:gap-2 bg-gradient-4 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-sm sm:text-base md:text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
             >
               <span>مشاهده همه برندها</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
@@ -529,7 +529,7 @@ export default function HomeSlider() {
       </section>
 
       {/* Latest Products Slider */}
-      <section className="py-12 bg-gradient-3 relative">
+      <section className="py-6 sm:py-8 md:py-12 bg-gradient-3 relative">
         {/* Fade overlay at bottom - softer */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 relative z-0">
@@ -538,16 +538,16 @@ export default function HomeSlider() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-8"
+            className="text-center mb-6 sm:mb-8"
           >
-            <div className="inline-flex items-center font-black gap-2 glass text-white px-6 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
-              <span className="text-xl">🆕</span>
+            <div className="inline-flex items-center font-black gap-1 sm:gap-2 glass text-white px-3 py-1 sm:px-4 sm:py-1.5 md:px-6 md:py-2 rounded-full text-sm sm:text-base md:text-lg lg:text-2xl font-medium mb-2 sm:mb-3 md:mb-4 animate-pulse-glow">
+              <span className="text-sm sm:text-base md:text-lg lg:text-xl">🆕</span>
               جدیدترین محصولات
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-lg">
               تازه‌ترین محصولات
             </h2>
-            <p className="text-lg text-white/90 drop-shadow-md">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 drop-shadow-md">
               جدیدترین محصولات اضافه شده به فروشگاه
             </p>
           </motion.div>
@@ -571,10 +571,10 @@ export default function HomeSlider() {
           >
             <Link
               href="/products?sort=newest"
-              className="inline-flex items-center gap-2 bg-gradient-4 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
+              className="inline-flex items-center gap-1 sm:gap-2 bg-gradient-4 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-sm sm:text-base md:text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
             >
               <span>مشاهده همه محصولات جدید</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
@@ -583,7 +583,7 @@ export default function HomeSlider() {
       </section>
 
       {/* Discounted Products Slider */}
-      <section className="py-16 bg-gradient-5 relative">
+      <section className="py-8 sm:py-12 md:py-16 bg-gradient-5 relative">
         {/* Fade overlay at bottom - softer */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
@@ -592,16 +592,16 @@ export default function HomeSlider() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-8"
+            className="text-center mb-6 sm:mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-4 py-2 rounded-full text-sm font-medium mb-4 animate-pulse-glow">
-              <span className="text-lg">🔥</span>
+            <div className="inline-flex items-center gap-1 sm:gap-2 glass text-white px-3 py-1 sm:px-4 sm:py-1.5 md:px-4 md:py-2 rounded-full text-xs sm:text-sm md:text-base font-medium mb-2 sm:mb-3 md:mb-4 animate-pulse-glow">
+              <span className="text-sm sm:text-base md:text-lg">🔥</span>
               پیشنهاد ویژه
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-lg">
               بیشترین تخفیف‌ها
             </h2>
-            <p className="text-lg text-white/90 drop-shadow-md">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 drop-shadow-md">
               محصولات با بالاترین درصد تخفیف را از دست ندهید
             </p>
           </motion.div>
@@ -625,10 +625,10 @@ export default function HomeSlider() {
           >
             <Link
               href="/products?sort=discount"
-              className="inline-flex items-center gap-2 bg-gradient-2 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
+              className="inline-flex items-center gap-1 sm:gap-2 bg-gradient-2 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-sm sm:text-base md:text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
             >
               <span>مشاهده همه تخفیف‌ها</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>
@@ -637,7 +637,7 @@ export default function HomeSlider() {
       </section>
 
       {/* Best Selling Products Slider */}
-      <section className="py-12 bg-gradient-3 relative">
+      <section className="py-6 sm:py-8 md:py-12 bg-gradient-3 relative">
         {/* Fade overlay at bottom - softer */}
         <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6 relative z-0">
@@ -646,16 +646,16 @@ export default function HomeSlider() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="text-center mb-8"
+            className="text-center mb-6 sm:mb-8"
           >
-            <div className="inline-flex items-center gap-2 glass text-white px-2 py-2 rounded-full text-2xl font-medium mb-4 animate-pulse-glow">
-              <span className="text-xl">⭐</span>
+            <div className="inline-flex items-center gap-1 sm:gap-2 glass text-white px-2 py-1 sm:px-2 sm:py-1.5 md:px-2 md:py-2 rounded-full text-sm sm:text-base md:text-lg lg:text-2xl font-medium mb-2 sm:mb-3 md:mb-4 animate-pulse-glow">
+              <span className="text-sm sm:text-base md:text-lg lg:text-xl">⭐</span>
               محصولات پرفروش
             </div>
-            <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-lg">
               پرفروش‌ترین محصولات
             </h2>
-            <p className="text-lg text-white/90 drop-shadow-md">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 drop-shadow-md">
               محصولات محبوب و پرفروش مشتریان
             </p>
           </motion.div>
@@ -679,10 +679,10 @@ export default function HomeSlider() {
           >
             <Link
               href="/products?sort=bestselling"
-              className="inline-flex items-center gap-2 bg-gradient-4 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
+              className="inline-flex items-center gap-1 sm:gap-2 bg-gradient-4 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-sm sm:text-base md:text-lg transform hover:scale-105 shadow-lg animate-pulse-glow"
             >
               <span>مشاهده همه محصولات پرفروش</span>
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </Link>

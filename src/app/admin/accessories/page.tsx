@@ -61,13 +61,9 @@ export default function AccessoriesPage() {
         ...(filterActive !== null && { isActive: String(filterActive) })
       })
       
-      console.log('Accessories API response:', response)
-      
       // Handle response format - products API returns { products: [], pagination: {} }
       const accessoriesList = response?.products || []
       const totalPagesValue = response?.pagination?.totalPages || 1
-      
-      console.log('Parsed accessories:', accessoriesList.length, 'items')
       
       setAccessories(accessoriesList)
       setTotalPages(totalPagesValue)

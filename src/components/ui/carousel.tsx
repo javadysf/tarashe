@@ -26,13 +26,11 @@ export const Carousel = React.forwardRef<HTMLDivElement, CarouselProps>(
     const isRTL = rootDir.toLowerCase() === 'rtl'
 
     const next = () => {
-      console.log("rast");
       if (totalItems <= 1) return
       setCurrentIndex((prev) => (prev + 1) % totalItems)
     }
 
     const prev = () => {
-      console.log("chap");
       if (totalItems <= 1) return
       setCurrentIndex((prev) => (prev - 1 + totalItems) % totalItems)
     }

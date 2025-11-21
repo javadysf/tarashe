@@ -75,18 +75,18 @@ const services: Service[] = [
 
 export default function ServicesSection() {
   return (
-    <section className="py-16 bg-gradient-8 relative">
+    <section className="py-8 sm:py-12 md:py-16 bg-gradient-8 relative">
       {/* Fade overlay at bottom - softer */}
       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white/80 via-white/40 to-transparent pointer-events-none z-10"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-0">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4 drop-shadow-lg">خدمات ما</h2>
-          <p className="text-xl text-white/90 max-w-3xl mx-auto drop-shadow-md">
+        <div className="text-center mb-6 sm:mb-8 md:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-lg">خدمات ما</h2>
+          <p className="text-sm sm:text-base md:text-lg lg:text-xl text-white/90 max-w-3xl mx-auto drop-shadow-md px-2">
             ما در تراشه طیف گسترده‌ای از خدمات فنی و فروش قطعات را ارائه می‌دهیم
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-5 md:gap-6">
           {services.map((service) => (
             <Link
               key={service.id}
@@ -94,7 +94,7 @@ export default function ServicesSection() {
               className="group relative glass rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-white/20 hover:border-white/40 transform hover:-translate-y-2 animate-bounce-in"
             >
               {/* Image Background */}
-              <div className="relative h-48 overflow-hidden">
+              <div className="relative h-32 sm:h-40 md:h-48 overflow-hidden">
                 <div className="absolute inset-0 bg-primary/80 z-10"></div>
                 <Image
                   src={service.image}
@@ -104,27 +104,29 @@ export default function ServicesSection() {
                 />
                 
                 {/* Icon */}
-                <div className="absolute top-4 right-4 z-20">
-                  <div className="bg-white/20 backdrop-blur-sm p-3 rounded-xl text-white group-hover:bg-white/30 transition-colors">
-                    {service.icon}
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3 md:top-4 md:right-4 z-20">
+                  <div className="bg-white/20 backdrop-blur-sm p-2 sm:p-2.5 md:p-3 rounded-lg sm:rounded-xl text-white group-hover:bg-white/30 transition-colors">
+                    <div className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-8 lg:h-8">
+                      {service.icon}
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Content */}
-              <div className="p-6">
-                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-yellow-300 transition-colors">
+              <div className="p-4 sm:p-5 md:p-6">
+                <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-2 sm:mb-2.5 md:mb-3 group-hover:text-yellow-300 transition-colors">
                   {service.title}
                 </h3>
-                <p className="text-white/80 text-sm leading-relaxed">
+                <p className="text-white/80 text-xs sm:text-sm leading-relaxed">
                   {service.description}
                 </p>
                 
                 {/* Arrow Icon */}
-                <div className="mt-4 flex items-center text-white group-hover:text-yellow-300">
-                  <span className="text-sm font-medium ml-2">مشاهده بیشتر</span>
+                <div className="mt-3 sm:mt-3.5 md:mt-4 flex items-center text-white group-hover:text-yellow-300">
+                  <span className="text-xs sm:text-sm font-medium ml-1 sm:ml-2">مشاهده بیشتر</span>
                   <svg 
-                    className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
+                    className="w-3 h-3 sm:w-4 sm:h-4 transform group-hover:translate-x-1 transition-transform" 
                     fill="none" 
                     viewBox="0 0 24 24" 
                     stroke="currentColor"
@@ -141,24 +143,24 @@ export default function ServicesSection() {
         </div>
 
         {/* CTA Section */}
-        <div className="mt-16 text-center">
-          <div className="glass rounded-3xl p-8 md:p-12">
-            <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 drop-shadow-lg">
+        <div className="mt-8 sm:mt-12 md:mt-16 text-center">
+          <div className="glass rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 lg:p-12">
+            <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2 sm:mb-3 md:mb-4 drop-shadow-lg">
               نیاز به مشاوره دارید؟
             </h3>
-            <p className="text-lg text-white/90 mb-8 max-w-2xl mx-auto drop-shadow-md">
+            <p className="text-sm sm:text-base md:text-lg text-white/90 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto drop-shadow-md px-2">
               تیم متخصص ما آماده ارائه بهترین راهکارها برای نیازهای شما است
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center">
               <Link
                 href="/contact"
-                className="bg-gradient-4 text-white px-8 py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-lg transform hover:scale-105"
+                className="bg-gradient-4 text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl hover:shadow-2xl transition-all font-medium text-sm sm:text-base md:text-lg transform hover:scale-105"
               >
                 تماس با ما
               </Link>
               <Link
                 href="/services"
-                className="border-2 border-white text-white px-8 py-4 rounded-xl hover:bg-white hover:text-gray-900 transition-all font-medium text-lg transform hover:scale-105"
+                className="border-2 border-white text-white px-4 py-2 sm:px-6 sm:py-3 md:px-8 md:py-4 rounded-xl hover:bg-white hover:text-gray-900 transition-all font-medium text-sm sm:text-base md:text-lg transform hover:scale-105"
               >
                 مشاهده همه خدمات
               </Link>

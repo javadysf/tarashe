@@ -107,7 +107,6 @@ export default function ProductsPage() {
   const fetchCategoryAttributes = useCallback(async (categoryId: string) => {
     try {
       const response = await api.getCategoryAttributes(categoryId)
-      console.log('Category attributes response:', response)
       
       const attributes = response.map((ca: any) => ca.attribute).filter(Boolean)
       setCategoryAttributes(attributes)
@@ -130,7 +129,6 @@ export default function ProductsPage() {
         values[attr._id] = Array.from(attrValues).sort()
       })
       setAttributeValues(values)
-      console.log('Attribute values:', values)
     } catch (error) {
       console.error('Error fetching category attributes:', error)
     }
@@ -297,7 +295,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8">
         {/* Search Header */}
         <SearchHeader
           searchTerm={searchTerm}
@@ -315,9 +313,9 @@ export default function ProductsPage() {
           onCategorySelect={handleCategorySelect}
         />
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+          {/* Filters Sidebar - Hidden on mobile, shown as dropdown */}
+          <div className="hidden lg:block lg:col-span-1">
             <FilterSidebar
               filters={filters}
               setFilters={setFilters}
@@ -328,6 +326,22 @@ export default function ProductsPage() {
               productsCount={filteredProducts.length}
               categoryAttributes={categoryAttributes}
               attributeValues={attributeValues}
+            />
+          </div>
+
+          {/* Mobile Filter Dropdown */}
+          <div className="lg:hidden mb-4">
+            <FilterSidebar
+              filters={filters}
+              setFilters={setFilters}
+              categories={categories}
+              brands={brands}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              productsCount={filteredProducts.length}
+              categoryAttributes={categoryAttributes}
+              attributeValues={attributeValues}
+              isMobile={true}
             />
           </div>
 
@@ -343,8 +357,8 @@ export default function ProductsPage() {
                   transition={{ duration: 0.3 }}
                   className={`${
                     viewMode === 'grid'
-                      ? 'grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6'
-                      : 'space-y-6'
+                      ? 'grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6'
+                      : 'space-y-4 sm:space-y-6'
                   }`}
                 >
                   {filteredProducts.slice(0, displayedCount).map((product, index) => (

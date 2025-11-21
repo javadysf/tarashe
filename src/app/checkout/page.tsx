@@ -181,7 +181,7 @@ export default function CheckoutPage() {
           }
         })
       } catch (error) {
-        console.log('Could not update user profile')
+        // Silently handle profile update error
       }
 
       const orderData = {

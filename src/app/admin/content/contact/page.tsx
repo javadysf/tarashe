@@ -69,8 +69,6 @@ export default function ContactContentManagement() {
       if (response.ok) {
         const data = await response.json()
         setContent(data.content)
-      } else {
-        console.log('Content not found, using default values')
       }
     } catch (error) {
       console.error('Error fetching content:', error)
@@ -165,7 +163,7 @@ export default function ContactContentManagement() {
     
     // Ensure it's a valid iframe
     if (!/<iframe[^>]*src=["'][^"']*["'][^>]*>.*?<\/iframe>/i.test(sanitized)) {
-      console.warn('Invalid embed code detected, clearing it')
+      // Invalid embed code detected, clearing it
       return ''
     }
     

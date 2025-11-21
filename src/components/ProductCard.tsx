@@ -77,7 +77,7 @@ export default function ProductCard({ product, index, className }: ProductCardPr
     return [...Array(5)].map((_, i) => (
       <Star
         key={i}
-        className={`w-3 h-3 md:w-4 md:h-4 ${
+        className={`w-2.5 h-2.5 md:w-4 md:h-4 ${
           i < Math.floor(rating) 
             ? 'text-yellow-400 fill-current' 
             : 'text-gray-300'
@@ -167,75 +167,76 @@ export default function ProductCard({ product, index, className }: ProductCardPr
       onHoverEnd={() => setIsHovered(false)}
     >
       {/* Mobile Design */}
-      <Card className="md:hidden w-full h-[280px] group relative overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300 rounded-xl flex flex-col">
-        {/* Image Section - ~33% of height */}
-        <div className="relative h-[92px] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
+      <Card className="md:hidden w-full h-[210px] group relative overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-xl transition-all duration-300 rounded-lg flex flex-col">
+        {/* Image Section - ~30% of height */}
+        <div className="relative  h-[80px] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
           <Link href={`/products/${product._id}`}>
             <Image
               src={product.images[0]?.url || '/pics/battery.jpg'}
               alt={product.images[0]?.alt || product.name}
               fill
-              className="object-contain p-2 group-hover:scale-105 transition-transform duration-500"
-              sizes="160px"
+              className="object-contain p-1 group-hover:scale-105 transition-transform duration-500"
+              sizes="140px"
               priority={index < 4}
             />
           </Link>
           
           {/* Discount Badge - Mobile */}
           {hasDiscount && (
-            <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-[14px] font-bold px-2 py-0.5 rounded-full shadow-md z-10">
+            <div className="absolute top-1 left-1 bg-gradient-to-r from-red-500 to-red-600 text-white text-[11px] font-bold px-1 py-0.5 rounded-full shadow-md z-10">
               {discountPercent}% تخفیف
             </div>
           )}
 
           {/* Stock Badge - Mobile */}
           {product.stock === 0 && (
-            <div className="absolute top-2 right-2 bg-red-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full shadow-md z-10">
+            <div className="absolute top-1 right-1 bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md z-10">
               ناموجود
             </div>
           )}
         </div>
 
-        {/* Content Section - ~67% of height */}
-        <CardContent className="p-3 flex-1 flex flex-col h-[188px]">
+        {/* Content Section - ~70% of height */}
+        <CardContent className="p-2 flex-1 flex flex-col h-[110px]">
           {/* Title - Fixed Height */}
-          <Link href={`/products/${product._id}`} className="mb-2">
-            <h3 className="text-xs font-bold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 min-h-[32px] leading-tight">
+          <Link href={`/products/${product._id}`} className="mb-1">
+            <h3 className="text-[11px] font-bold text-gray-900 dark:text-gray-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 min-h-[28px] leading-tight">
               {product.name}
             </h3>
           </Link>
           
           {/* Rating - Fixed Height - Mobile */}
-          <div className="flex items-center gap-1 mb-2 min-h-[16px]">
+          <div className="flex items-center gap-1 mb-1 min-h-[12px]">
             <div className="flex items-center gap-0.5">
               {renderStars(product.rating.average)}
             </div>
-            <span className="text-[10px] text-gray-500 dark:text-gray-400">({product.rating.count})</span>
+            <span className="text-[9px] text-gray-500 dark:text-gray-400">({product.rating.count})</span>
           </div>
 
           {/* Price Section - Fixed Height */}
-          <div className="mt-auto pt-2 border-t border-gray-100 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="text-right">
+          <div className="mt-auto pt-1 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-right flex-1 min-w-0">
                 {hasDiscount && (
-                  <div className="text-[9px] text-gray-400 dark:text-gray-500 line-through mb-0.5">
+                  <div className="text-[8px] text-gray-400 dark:text-gray-500 line-through mb-0.5">
                     {formatPrice(product.originalPrice as number)} تومان
                   </div>
                 )}
-                <div className="text-base font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
+                <div className="text-sm font-bold bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent">
                   {formatPrice(product.price)}
                 </div>
-                <div className="text-[9px] text-gray-500 dark:text-gray-400">تومان</div>
+                <div className="text-[8px] text-gray-500 dark:text-gray-400">تومان</div>
               </div>
               
               <Button
                 size="sm"
                 disabled={product.stock === 0}
                 onClick={handleAddToCart}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-[10px] px-2.5 py-1.5 h-auto shadow-md hover:shadow-lg transition-all duration-200"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white text-[9px] px-2 py-1 h-auto shadow-md hover:shadow-lg transition-all duration-200 flex-shrink-0"
               >
-                <ShoppingCart className="w-3 h-3 mr-1" />
-                افزودن
+                <ShoppingCart className="w-3 h-3 mr-0.5" />
+                <span className="hidden xs:inline">افزودن</span>
+                <span className="xs:hidden">+</span>
               </Button>
             </div>
           </div>

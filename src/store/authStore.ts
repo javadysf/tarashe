@@ -192,10 +192,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
           localStorage.removeItem('refreshToken');
           set({ user: null, token: null });
         }
-        // Don't log network errors during auth check
-        else if (!errorMessage.includes('خطا در اتصال به اینترنت')) {
-          console.log('Auth check failed:', error.message);
-        }
+        // Silently handle auth check errors
       }
       set({ isCheckingAuth: false, authRetryCount: nextRetry });
       return;

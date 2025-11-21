@@ -79,8 +79,6 @@ export default function AboutContentManagement() {
           },
           isActive: apiContent.isActive ?? prev.isActive
         }))
-      } else {
-        console.log('Content not found, using default values')
       }
     } catch (error) {
       console.error('Error fetching content:', error)

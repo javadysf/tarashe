@@ -71,8 +71,6 @@ export default function CategoryAttributesPage() {
       setCategory(foundCategory)
       setAllAttributes(attributesRes)
       setCategoryAttributes(categoryAttributesRes)
-      
-      console.log('Category attributes response:', categoryAttributesRes)
     } catch (error) {
       console.error('Error fetching data:', error)
       toast.error('خطا در بارگذاری اطلاعات')
@@ -102,7 +100,6 @@ export default function CategoryAttributesPage() {
           order: categoryAttributes.length
         }
         setCategoryAttributes(prev => [...prev, newCategoryAttribute])
-        console.log('Added attribute:', newCategoryAttribute)
       }
       
       toast.success('ویژگی با موفقیت به دسته اختصاص داده شد')
