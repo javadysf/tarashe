@@ -86,6 +86,14 @@ export default function CategoriesPage() {
     try {
       const imageResponse = await api.uploadCategoryImage(formData.image, formData.name)
       
+      // Show warning if image was saved locally
+      if (imageResponse.warning) {
+        toast.warning(`⚠️ ${imageResponse.warning}`, {
+          position: 'top-right',
+          autoClose: 6000,
+        })
+      }
+      
       const response = await api.createCategory({
         name: formData.name,
         description: formData.description,

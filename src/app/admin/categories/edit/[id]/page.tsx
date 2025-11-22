@@ -107,6 +107,15 @@ export default function EditCategoryPage({ params }: Props) {
         setUploading(true)
         const imageResponse = await api.uploadCategoryImage(formData.image, formData.name)
         imageData = imageResponse.image
+        
+        // Show warning if image was saved locally
+        if (imageResponse.warning) {
+          toast.warning(`⚠️ ${imageResponse.warning}`, {
+            position: 'top-right',
+            autoClose: 6000,
+          })
+        }
+        
         setUploading(false)
       }
 

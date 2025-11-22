@@ -1,6 +1,14 @@
 // Validate API URL configuration
+// Ensure /api is included in the base URL
+const getApiBaseUrl = (): string => {
+  const envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+  // Remove trailing slash if exists
+  const cleanUrl = envUrl.replace(/\/$/, '');
+  // Add /api if not already present
+  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
+};
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
+const API_BASE_URL = getApiBaseUrl();
 
 // Helper function to check if error is a normal validation error
 const isNormalValidationError = (errorMessage: string): boolean => {

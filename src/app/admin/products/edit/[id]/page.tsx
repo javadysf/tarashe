@@ -265,6 +265,27 @@ export default function EditProductPage() {
       });
 
       toast.success(`✅ ${validFiles.length} تصویر با موفقیت آپلود شد!`);
+      
+      // Show warnings if any files were saved locally or failed
+      if (response.warning) {
+        setTimeout(() => {
+          toast.warning(`⚠️ ${response.warning}`, {
+            position: 'top-right',
+            autoClose: 8000,
+          });
+        }, 500);
+      }
+      
+      if (response.warnings && Array.isArray(response.warnings) && response.warnings.length > 0) {
+        response.warnings.forEach((warning: string) => {
+          setTimeout(() => {
+            toast.warning(`⚠️ ${warning}`, {
+              position: 'top-right',
+              autoClose: 6000,
+            });
+          }, 1000);
+        });
+      }
     } catch (error: any) {
       setFormData((prev) => ({
         ...prev,

@@ -118,10 +118,30 @@ export default function BrandsPage() {
         const response = await api.updateBrand(editingBrand, formDataToSend)
         setBrands(brands.map(b => b._id === editingBrand ? response.brand : b))
         toast.success('✅ برند با موفقیت به‌روزرسانی شد!')
+        
+        // Show warning if image was saved locally
+        if (response.warning) {
+          setTimeout(() => {
+            toast.warning(`⚠️ ${response.warning}`, {
+              position: 'top-right',
+              autoClose: 6000,
+            })
+          }, 500)
+        }
       } else {
         const response = await api.createBrand(formDataToSend)
         setBrands([...brands, response.brand])
         toast.success('✅ برند با موفقیت ایجاد شد!')
+        
+        // Show warning if image was saved locally
+        if (response.warning) {
+          setTimeout(() => {
+            toast.warning(`⚠️ ${response.warning}`, {
+              position: 'top-right',
+              autoClose: 6000,
+            })
+          }, 500)
+        }
       }
 
       resetForm()

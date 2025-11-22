@@ -287,47 +287,131 @@ export default function AddProductPage() {
     } catch (error: any) {
       console.error('Error creating product:', error)
       
-      let errorMessage = 'خطا در ایجاد محصول'
-      let errors: any[] = []
-      
-      // Extract error message from different possible error structures
-      if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
-        // If there are validation errors, use them
-        errors = error.response.data.errors
-        const errorMessages = errors.map((e: any) => {
-          if (typeof e === 'string') return e
-          // Format: "field: message (value)" or just "message"
-          const field = e.field ? `${e.field}: ` : ''
-          const value = e.value ? ` (مقدار: ${e.value})` : ''
-          return `${field}${e.message || e.msg}${value}`
-        })
-        errorMessage = errorMessages.join('\n')
-      } else if (error?.data?.errors && Array.isArray(error.data.errors)) {
-        errors = error.data.errors
-        const errorMessages = errors.map((e: any) => {
-          if (typeof e === 'string') return e
-          const field = e.field ? `${e.field}: ` : ''
-          const value = e.value ? ` (مقدار: ${e.value})` : ''
-          return `${field}${e.message || e.msg}${value}`
-        })
-        errorMessage = errorMessages.join('\n')
-      } else if (error?.message) {
-        errorMessage = error.message
-      } else if (error?.data?.message) {
-        errorMessage = error.data.message
-      } else if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message
-      } else if (typeof error === 'string') {
-        errorMessage = error
+      // Map field names to Persian
+      const fieldNames: { [key: string]: string } = {
+        name: 'نام محصول',
+        description: 'توضیحات',
+        price: 'قیمت',
+        originalPrice: 'قیمت اصلی',
+        category: 'دسته‌بندی',
+        brand: 'برند',
+        stock: 'موجودی',
+        model: 'مدل',
+        images: 'تصاویر',
+        discountPercent: 'درصد تخفیف'
       }
       
-      // Show error with longer autoClose for multiple errors
-      const autoCloseTime = errors.length > 1 ? 10000 : 6000
+      let errors: any[] = []
+      let errorMessages: string[] = []
       
-      toast.error(`❌ ${errorMessage}`, {
-        position: 'top-right',
-        autoClose: autoCloseTime,
+      // Extract errors from different possible error structures
+      if (error?.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        errors = error.response.data.errors
+      } else if (error?.data?.errors && Array.isArray(error.data.errors)) {
+        errors = error.data.errors
+      } else if (error?.response?.data?.error) {
+        // Single error object
+        errors = [error.response.data.error]
+      } else if (error?.data?.error) {
+        errors = [error.data.error]
+      }
+      
+      // Process errors and create user-friendly messages
+      if (errors.length > 0) {
+        errors.forEach((err: any) => {
+          if (typeof err === 'string') {
+            errorMessages.push(err)
+          } else {
+            // Extract field name
+            const field = err.field || err.path || err.param || ''
+            const fieldName = fieldNames[field] || field || 'فیلد'
+            
+            // Extract error message
+            let message = err.message || err.msg || err.msg || 'مقدار نامعتبر'
+            
+            // Handle specific validation errors
+            if (err.type === 'required' || message.includes('required') || message.includes('الزامی')) {
+              message = `${fieldName} الزامی است`
+            } else if (err.type === 'min' || message.includes('min')) {
+              const minValue = err.min || err.limit || ''
+              if (field === 'name' && minValue) {
+                message = `نام محصول باید حداقل ${minValue} کاراکتر باشد`
+              } else if (minValue) {
+                message = `${fieldName} باید حداقل ${minValue} باشد`
+              } else {
+                message = `${fieldName} باید مقدار معتبری داشته باشد`
+              }
+            } else if (err.type === 'max' || message.includes('max') || message.includes('بیشتر از')) {
+              const maxValue = err.max || err.limit || ''
+              if (maxValue) {
+                message = message.includes('بیشتر از') ? message : `${fieldName} نباید بیشتر از ${maxValue} باشد`
+              } else {
+                message = `${fieldName} مقدار نامعتبری دارد`
+              }
+            } else if (err.type === 'minlength' || message.includes('minlength')) {
+              const minLength = err.minlength || err.min || ''
+              if (minLength) {
+                message = `${fieldName} باید حداقل ${minLength} کاراکتر باشد`
+              } else {
+                message = `${fieldName} طول کافی ندارد`
+              }
+            } else if (err.type === 'maxlength' || message.includes('maxlength')) {
+              const maxLength = err.maxlength || err.max || ''
+              if (maxLength) {
+                message = `${fieldName} نباید بیشتر از ${maxLength} کاراکتر باشد`
+              } else {
+                message = `${fieldName} طول بیش از حد مجاز است`
+              }
+            } else if (message.includes('کاراکتر')) {
+              // Already in Persian, just add field name if not present
+              if (!message.includes(fieldName)) {
+                message = `${fieldName}: ${message}`
+              }
+            } else {
+              // Generic error - format it nicely
+              if (!message.includes(fieldName) && field) {
+                message = `${fieldName}: ${message}`
+              }
+            }
+            
+            errorMessages.push(message)
+          }
+        })
+      } else {
+        // No structured errors, try to extract message
+        const message = error?.message || error?.data?.message || error?.response?.data?.message || 'خطا در ایجاد محصول'
+        errorMessages.push(message)
+      }
+      
+      // Show errors
+      if (errorMessages.length === 0) {
+        errorMessages.push('خطا در ایجاد محصول. لطفاً اطلاعات را بررسی کنید.')
+      }
+      
+      // Show first error as main toast, and others as info toasts
+      errorMessages.forEach((msg, index) => {
+        if (index === 0) {
+          toast.error(`❌ ${msg}`, {
+            position: 'top-right',
+            autoClose: errorMessages.length > 1 ? 8000 : 5000,
+          })
+        } else {
+          toast.warning(`⚠️ ${msg}`, {
+            position: 'top-right',
+            autoClose: 6000,
+          })
+        }
       })
+      
+      // If multiple errors, show a summary
+      if (errorMessages.length > 1) {
+        setTimeout(() => {
+          toast.info(`📋 ${errorMessages.length} خطا پیدا شد. لطفاً همه موارد را بررسی کنید.`, {
+            position: 'top-right',
+            autoClose: 4000,
+          })
+        }, 1000)
+      }
     } finally {
       setLoading(false)
     }
@@ -403,7 +487,43 @@ export default function AddProductPage() {
         }
       })
       
-      toast.success(`✅ ${validFiles.length} تصویر با موفقیت آپلود شد!`)
+      // Show success message
+      const uploadedCount = response.images?.length || validFiles.length
+      toast.success(`✅ ${uploadedCount} تصویر با موفقیت آپلود شد!`)
+      
+      // Show warning if any files were saved locally (this is NOT an error)
+      if (response.warning) {
+        setTimeout(() => {
+          toast.warning(`⚠️ ${response.warning}`, {
+            position: 'top-right',
+            autoClose: 8000,
+          })
+        }, 500)
+      }
+      
+      // Show warnings for failed files (if any)
+      if (response.warnings && Array.isArray(response.warnings) && response.warnings.length > 0) {
+        response.warnings.forEach((warning: string, index: number) => {
+          setTimeout(() => {
+            toast.warning(`⚠️ ${warning}`, {
+              position: 'top-right',
+              autoClose: 6000,
+            })
+          }, 1000 + (index * 500))
+        })
+      }
+      
+      // Log storage summary if available
+      if (response.storage_summary) {
+        const { cloudinary, local } = response.storage_summary
+        if (local > 0) {
+          console.warn('⚠️ Storage summary:', {
+            cloudinary,
+            local,
+            warning: response.warning
+          })
+        }
+      }
     } catch (error: any) {
       console.error('Upload error:', error)
       
@@ -463,6 +583,14 @@ export default function AddProductPage() {
       
       // Upload image first
       const imageResponse = await api.uploadCategoryImage(newCategoryImage, newCategoryName)
+      
+      // Show warning if image was saved locally
+      if (imageResponse.warning) {
+        toast.warning(`⚠️ ${imageResponse.warning}`, {
+          position: 'top-right',
+          autoClose: 6000,
+        })
+      }
       
       // Create category with image (+ optional parent)
       const response = await api.createCategory({ 

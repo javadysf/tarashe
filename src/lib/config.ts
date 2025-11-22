@@ -1,11 +1,17 @@
 // API Configuration
 export const getApiBaseUrl = (): string => {
+  let envUrl: string;
   if (typeof window !== 'undefined') {
     // Client-side: use environment variable
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api'
+    envUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002'
+  } else {
+    // Server-side: use environment variable
+    envUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3002'
   }
-  // Server-side: use environment variable
-  return process.env.NEXT_PUBLIC_API_URL || process.env.API_URL || 'http://localhost:3002/api'
+  // Remove trailing slash if exists
+  const cleanUrl = envUrl.replace(/\/$/, '');
+  // Add /api if not already present
+  return cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`;
 }
 
 export const getApiUrl = (endpoint: string): string => {
