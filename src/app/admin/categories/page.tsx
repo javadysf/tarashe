@@ -437,7 +437,7 @@ export default function CategoriesPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">نتیجه‌ای یافت نشد</h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">برای "{searchTerm}" دسته‌بندی‌ای یافت نشد</p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">برای &quot;{searchTerm}&quot; دسته‌بندی‌ای یافت نشد</p>
               <button
                 onClick={() => setSearchTerm('')}
                 className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium text-sm"
