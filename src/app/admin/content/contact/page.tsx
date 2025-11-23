@@ -172,12 +172,12 @@ export default function ContactContentManagement() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-12 bg-gray-200 rounded"></div>
+              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
           </div>
         </div>
@@ -186,38 +186,38 @@ export default function ContactContentManagement() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="mb-8">
         <button
           onClick={() => router.back()}
-          className="text-blue-600 hover:text-blue-800 mb-6 flex items-center gap-2 font-medium"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-6 flex items-center gap-2 font-medium transition-colors"
         >
           ← بازگشت به مدیریت محتوا
         </button>
         
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
             <span className="text-2xl">📞</span>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">ویرایش محتوای تماس با ما</h1>
-            <p className="text-gray-600">مدیریت اطلاعات تماس، آدرس و محتوای صفحه تماس با ما</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">ویرایش محتوای تماس با ما</h1>
+            <p className="text-gray-600 dark:text-gray-400">مدیریت اطلاعات تماس، آدرس و محتوای صفحه تماس با ما</p>
           </div>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-4xl">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
               <span className="text-lg">📄</span>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">اطلاعات اصلی صفحه</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">اطلاعات اصلی صفحه</h2>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="heroTitle" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="heroTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 عنوان اصلی صفحه
               </label>
               <input
@@ -225,13 +225,13 @@ export default function ContactContentManagement() {
                 id="heroTitle"
                 value={content.heroTitle}
                 onChange={(e) => handleChange('heroTitle', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="تماس با ما"
               />
             </div>
             
             <div>
-              <label htmlFor="heroSubtitle" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="heroSubtitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 زیرعنوان صفحه
               </label>
               <input
@@ -239,24 +239,24 @@ export default function ContactContentManagement() {
                 id="heroSubtitle"
                 value={content.heroSubtitle}
                 onChange={(e) => handleChange('heroSubtitle', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="ما همیشه آماده پاسخگویی به سوالات شما هستیم"
               />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
               <span className="text-lg">📞</span>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">اطلاعات تماس</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">اطلاعات تماس</h2>
           </div>
           
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 شماره تلفن
               </label>
               <input
@@ -264,13 +264,13 @@ export default function ContactContentManagement() {
                 id="phone"
                 value={content.contactInfo.phone}
                 onChange={(e) => handleChange('contactInfo.phone', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="021-1234-5678"
               />
             </div>
             
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 آدرس ایمیل
               </label>
               <input
@@ -278,13 +278,13 @@ export default function ContactContentManagement() {
                 id="email"
                 value={content.contactInfo.email}
                 onChange={(e) => handleChange('contactInfo.email', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="info@tarashe.com"
               />
             </div>
             
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="address" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 آدرس
               </label>
               <input
@@ -292,13 +292,13 @@ export default function ContactContentManagement() {
                 id="address"
                 value={content.contactInfo.address}
                 onChange={(e) => handleChange('contactInfo.address', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="تهران، خیابان ولیعصر، پلاک 123"
               />
             </div>
             
             <div>
-              <label htmlFor="workingHours" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="workingHours" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 ساعات کاری
               </label>
               <input
@@ -306,24 +306,24 @@ export default function ContactContentManagement() {
                 id="workingHours"
                 value={content.contactInfo.workingHours}
                 onChange={(e) => handleChange('contactInfo.workingHours', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="شنبه تا پنجشنبه: 9-18"
               />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
               <span className="text-lg">🗺️</span>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">تنظیمات نقشه</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">تنظیمات نقشه</h2>
           </div>
           
           <div className="space-y-6">
             <div>
-              <label htmlFor="mapAddress" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="mapAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 آدرس برای نمایش در نقشه
               </label>
               <input
@@ -331,14 +331,14 @@ export default function ContactContentManagement() {
                 id="mapAddress"
                 value={content.contactInfo.mapAddress}
                 onChange={(e) => handleChange('contactInfo.mapAddress', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="تهران، خیابان ولیعصر، پلاک 123"
               />
-              <p className="text-xs text-gray-500 mt-1">این آدرس برای جستجو در نقشه استفاده می‌شود</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">این آدرس برای جستجو در نقشه استفاده می‌شود</p>
             </div>
             
             <div>
-              <label htmlFor="mapEmbedCode" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="mapEmbedCode" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 کد تعبیه نقشه (اختیاری)
               </label>
               <textarea
@@ -346,17 +346,17 @@ export default function ContactContentManagement() {
                 rows={6}
                 value={content.contactInfo.mapEmbedCode}
                 onChange={(e) => handleChange('contactInfo.mapEmbedCode', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 font-mono text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="&lt;iframe src=&quot;https://www.google.com/maps/embed?pb=...&quot; width=&quot;100%&quot; height=&quot;300&quot; style=&quot;border:0;&quot; allowfullscreen=&quot;&quot; loading=&quot;lazy&quot; referrerpolicy=&quot;no-referrer-when-downgrade&quot;&gt;&lt;/iframe&gt;"
               />
               {content.contactInfo.mapEmbedCode && (
-                <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded text-sm text-green-800">
+                <div className="mt-2 p-2 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded text-sm text-green-800 dark:text-green-300">
                   ✓ کد نقشه معتبر است و آماده ذخیره می‌باشد
                 </div>
               )}
-              <div className="mt-2 p-3 bg-blue-50 rounded-lg">
-                <p className="text-sm text-blue-800 font-medium mb-2">راهنمای دریافت کد نقشه:</p>
-                <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
+              <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300 font-medium mb-2">راهنمای دریافت کد نقشه:</p>
+                <ol className="text-xs text-blue-700 dark:text-blue-400 space-y-1 list-decimal list-inside">
                   <li>به <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="underline">Google Maps</a> بروید</li>
                   <li>آدرس شرکت خود را جستجو کنید</li>
                   <li>روی دکمه &quot;اشتراک‌ گذاری&quot; کلیک کنید</li>
@@ -378,17 +378,17 @@ export default function ContactContentManagement() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
               <span className="text-lg">🔍</span>
             </div>
-            <h2 className="text-xl font-semibold text-gray-900">تنظیمات SEO</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">تنظیمات SEO</h2>
           </div>
           
           <div className="space-y-6">
             <div>
-              <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="metaTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 عنوان متا (Meta Title)
               </label>
               <input
@@ -396,15 +396,15 @@ export default function ContactContentManagement() {
                 id="metaTitle"
                 value={content.seo.metaTitle}
                 onChange={(e) => handleChange('seo.metaTitle', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="تماس با ما | تراشه"
                 maxLength={60}
               />
-              <p className="text-xs text-gray-500 mt-1">حداکثر 60 کاراکتر (بهینه برای موتورهای جستجو)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">حداکثر 60 کاراکتر (بهینه برای موتورهای جستجو)</p>
             </div>
             
             <div>
-              <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="metaDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 توضیحات متا (Meta Description)
               </label>
               <textarea
@@ -412,15 +412,15 @@ export default function ContactContentManagement() {
                 rows={3}
                 value={content.seo.metaDescription}
                 onChange={(e) => handleChange('seo.metaDescription', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="با تیم تراشه در تماس باشید - پشتیبانی 24/7، مشاوره رایگان و پاسخگویی سریع"
                 maxLength={160}
               />
-              <p className="text-xs text-gray-500 mt-1">حداکثر 160 کاراکتر (بهینه برای موتورهای جستجو)</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">حداکثر 160 کاراکتر (بهینه برای موتورهای جستجو)</p>
             </div>
             
             <div>
-              <label htmlFor="metaKeywords" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="metaKeywords" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 کلمات کلیدی (Meta Keywords)
               </label>
               <input
@@ -428,15 +428,15 @@ export default function ContactContentManagement() {
                 id="metaKeywords"
                 value={content.seo.metaKeywords}
                 onChange={(e) => handleChange('seo.metaKeywords', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="تماس، پشتیبانی، مشاوره، تراشه، فناوری"
               />
-              <p className="text-xs text-gray-500 mt-1">کلمات کلیدی را با کاما جدا کنید</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">کلمات کلیدی را با کاما جدا کنید</p>
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="ogTitle" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="ogTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   عنوان Open Graph
                 </label>
                 <input
@@ -444,13 +444,13 @@ export default function ContactContentManagement() {
                   id="ogTitle"
                   value={content.seo.ogTitle}
                   onChange={(e) => handleChange('seo.ogTitle', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="تماس با ما | تراشه"
                 />
               </div>
               
               <div>
-                <label htmlFor="ogDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="ogDescription" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   توضیحات Open Graph
                 </label>
                 <textarea
@@ -458,7 +458,7 @@ export default function ContactContentManagement() {
                   rows={3}
                   value={content.seo.ogDescription}
                   onChange={(e) => handleChange('seo.ogDescription', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="با تیم تراشه در تماس باشید - پشتیبانی 24/7، مشاوره رایگان و پاسخگویی سریع"
                 />
               </div>
@@ -470,14 +470,14 @@ export default function ContactContentManagement() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800"
           >
             انصراف
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
           </button>

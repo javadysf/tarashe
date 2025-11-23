@@ -26,6 +26,8 @@ export default function AdminProductsPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalProducts, setTotalProducts] = useState(0)
   const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const [sortField, setSortField] = useState<'stock' | 'name' | 'price' | 'brand' | 'category'>('stock')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const limit = 10
 
   // Compute visible page numbers (stable hook order)
@@ -48,13 +50,57 @@ export default function AdminProductsPage() {
       setSelectedProducts([]) // Clear selection when page changes
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, page])
+  }, [user, page, sortField, sortOrder])
 
   const fetchProducts = async () => {
     setLoading(true)
     try {
-      const response = await api.getProducts({ page: String(page), limit: String(limit), search: searchTerm || '' })
-      setProducts(response.products || [])
+      // Map frontend sort field to backend sort parameter
+      let sortParam = ''
+      if (sortField === 'stock') {
+        sortParam = sortOrder === 'asc' ? 'stock-asc' : 'stock-desc'
+      } else if (sortField === 'price') {
+        sortParam = sortOrder === 'asc' ? 'price-asc' : 'price-desc'
+      } else if (sortField === 'name') {
+        sortParam = sortOrder === 'asc' ? 'name' : 'name-desc'
+      }
+      
+      const response = await api.getProducts({ 
+        page: String(page), 
+        limit: String(limit), 
+        search: searchTerm || '',
+        sort: sortParam || undefined
+      })
+      
+      // Sort on frontend for fields that backend doesn't support or for all fields to ensure consistency
+      let sortedProducts = response.products || []
+      sortedProducts = [...sortedProducts].sort((a, b) => {
+        let aValue: any
+        let bValue: any
+        
+        if (sortField === 'stock') {
+          aValue = a.stock
+          bValue = b.stock
+        } else if (sortField === 'price') {
+          aValue = a.price
+          bValue = b.price
+        } else if (sortField === 'name') {
+          aValue = a.name.toLowerCase()
+          bValue = b.name.toLowerCase()
+        } else if (sortField === 'brand') {
+          aValue = (typeof a.brand === 'object' ? a.brand?.name : a.brand || '').toLowerCase()
+          bValue = (typeof b.brand === 'object' ? b.brand?.name : b.brand || '').toLowerCase()
+        } else if (sortField === 'category') {
+          aValue = (typeof a.category === 'object' ? a.category?.name : a.category || '').toLowerCase()
+          bValue = (typeof b.category === 'object' ? b.category?.name : b.category || '').toLowerCase()
+        }
+        
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1
+        return 0
+      })
+      
+      setProducts(sortedProducts)
       setTotalPages(response.pagination?.totalPages || 1)
       setTotalProducts(response.pagination?.totalProducts || 0)
     } catch (error) {
@@ -67,6 +113,31 @@ export default function AdminProductsPage() {
   const handleSearch = (term: string) => {
     setSearchTerm(term)
     setPage(1)
+  }
+
+  const handleSort = (field: 'stock' | 'name' | 'price' | 'brand' | 'category') => {
+    if (sortField === field) {
+      // Toggle sort order if clicking the same field
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')
+    } else {
+      // Set new field with ascending order
+      setSortField(field)
+      setSortOrder('asc')
+    }
+    setPage(1) // Reset to first page when sorting changes
+  }
+
+  const getSortIcon = (field: 'stock' | 'name' | 'price' | 'brand' | 'category') => {
+    if (sortField !== field) {
+      return (
+        <span className="text-gray-400 dark:text-gray-500 ml-1">⇅</span>
+      )
+    }
+    return sortOrder === 'asc' ? (
+      <span className="text-blue-600 dark:text-blue-400 ml-1">↑</span>
+    ) : (
+      <span className="text-blue-600 dark:text-blue-400 ml-1">↓</span>
+    )
   }
 
   // Debounce search
@@ -195,61 +266,120 @@ export default function AdminProductsPage() {
                       className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                     />
                   </th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">نام</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden sm:table-cell">برند</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">قیمت</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden md:table-cell">موجودی</th>
-                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden lg:table-cell">دسته بندی</th>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center justify-end">
+                      نام
+                      {getSortIcon('name')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden sm:table-cell cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+                    onClick={() => handleSort('brand')}
+                  >
+                    <div className="flex items-center justify-end">
+                      برند
+                      {getSortIcon('brand')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+                    onClick={() => handleSort('price')}
+                  >
+                    <div className="flex items-center justify-end">
+                      قیمت
+                      {getSortIcon('price')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden md:table-cell cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+                    onClick={() => handleSort('stock')}
+                  >
+                    <div className="flex items-center justify-end">
+                      موجودی
+                      {getSortIcon('stock')}
+                    </div>
+                  </th>
+                  <th 
+                    className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase hidden lg:table-cell cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors select-none"
+                    onClick={() => handleSort('category')}
+                  >
+                    <div className="flex items-center justify-end">
+                      دسته بندی
+                      {getSortIcon('category')}
+                    </div>
+                  </th>
                   <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase">عملیات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {products.length > 0 ? (
-                  products.map((product) => (
-                    <tr key={product._id} className={selectedProducts.includes(product._id) ? 'bg-blue-50 dark:bg-blue-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'}>
-                      <td className="px-3 sm:px-6 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedProducts.includes(product._id)}
-                          onChange={() => toggleSelectProduct(product._id)}
-                          className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-100">
-                        <div className="truncate max-w-32 sm:max-w-none">{product.name}</div>
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden sm:table-cell">
-                        {typeof product.brand === 'object' ? product.brand?.name : product.brand}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        <div className="text-xs sm:text-sm">{new Intl.NumberFormat('fa-IR').format(product.price)} ت</div>
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden md:table-cell">
-                        {product.stock}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hidden lg:table-cell">
-                        {typeof product.category === 'object'
-                          ? product.category?.name
-                          : product.category || '—'}
-                      </td>
-                      <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
-                          <Link 
-                            href={`/admin/products/edit/${product._id}`} 
-                            className="text-blue-600 hover:text-blue-900 transition-colors px-2 sm:px-3 py-1 rounded bg-blue-50 hover:bg-blue-100 text-xs sm:text-sm text-center"
-                          >
-                            ویرایش
-                          </Link>
-                          <button 
-                            onClick={() => deleteProduct(product._id)} 
-                            className="text-red-600 hover:text-red-900 transition-colors px-2 sm:px-3 py-1 rounded bg-red-50 hover:bg-red-100 text-xs sm:text-sm"
-                          >
-                            حذف
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
+                  products.map((product) => {
+                    const isLowStock = product.stock < 15
+                    return (
+                      <tr 
+                        key={product._id} 
+                        className={`
+                          ${selectedProducts.includes(product._id) 
+                            ? 'bg-blue-50 dark:bg-blue-900/20' 
+                            : isLowStock 
+                              ? 'bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30' 
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                          }
+                          transition-colors
+                        `}
+                      >
+                        <td className="px-3 sm:px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedProducts.includes(product._id)}
+                            onChange={() => toggleSelectProduct(product._id)}
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className={`px-3 sm:px-6 py-4 text-sm font-medium ${isLowStock ? 'text-red-900 dark:text-red-200' : 'text-gray-900 dark:text-gray-100'}`}>
+                          <div className="truncate max-w-32 sm:max-w-none">{product.name}</div>
+                        </td>
+                        <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm hidden sm:table-cell ${isLowStock ? 'text-red-700 dark:text-red-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {typeof product.brand === 'object' ? product.brand?.name : product.brand}
+                        </td>
+                        <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${isLowStock ? 'text-red-700 dark:text-red-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                          <div className="text-xs sm:text-sm">{new Intl.NumberFormat('fa-IR').format(product.price)} ت</div>
+                        </td>
+                        <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold hidden md:table-cell ${isLowStock ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
+                          <span className="flex items-center gap-1">
+                            {product.stock}
+                            {isLowStock && (
+                              <span className="text-xs text-red-600 dark:text-red-400" title="موجودی کم">⚠️</span>
+                            )}
+                          </span>
+                        </td>
+                        <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm hidden lg:table-cell ${isLowStock ? 'text-red-700 dark:text-red-300' : 'text-gray-500 dark:text-gray-400'}`}>
+                          {typeof product.category === 'object'
+                            ? product.category?.name
+                            : product.category || '—'}
+                        </td>
+                        <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex flex-col sm:flex-row gap-1 sm:gap-2">
+                            <Link 
+                              href={`/admin/products/edit/${product._id}`} 
+                              className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 transition-colors px-2 sm:px-3 py-1 rounded bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-xs sm:text-sm text-center"
+                            >
+                              ویرایش
+                            </Link>
+                            <button 
+                              onClick={() => deleteProduct(product._id)} 
+                              className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 transition-colors px-2 sm:px-3 py-1 rounded bg-red-50 hover:bg-red-100 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-xs sm:text-sm"
+                            >
+                              حذف
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
                 ) : (
                   <tr>
                     <td colSpan={7} className="px-3 sm:px-6 py-12 text-center">

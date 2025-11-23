@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import { api } from '@/lib/api'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { 
@@ -85,36 +84,52 @@ export default function AttributesPage() {
 
   const getTypeColor = (type: string) => {
     const colors = {
-      text: 'bg-blue-100 text-blue-800',
-      number: 'bg-green-100 text-green-800',
-      select: 'bg-purple-100 text-purple-800',
-      boolean: 'bg-orange-100 text-orange-800'
+      text: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
+      number: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
+      select: 'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300',
+      boolean: 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
     }
-    return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800'
+    return colors[type as keyof typeof colors] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-                <Skeleton className="h-4 w-24" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-3/4" />
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="max-w-7xl mx-auto px-6 py-8">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+            <Card className="bg-white dark:bg-gray-800">
+              <CardContent className="p-0">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-700">
+                      <tr>
+                        {[...Array(8)].map((_, i) => (
+                          <th key={i} className="px-6 py-3">
+                            <Skeleton className="h-4 w-20" />
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {[...Array(5)].map((_, i) => (
+                        <tr key={i}>
+                          {[...Array(8)].map((_, j) => (
+                            <td key={j} className="px-6 py-4">
+                              <Skeleton className="h-4 w-full" />
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </CardContent>
             </Card>
-          ))}
+          </div>
         </div>
       </div>
     )
@@ -203,7 +218,7 @@ export default function AttributesPage() {
         </Card>
       </div>
 
-      {/* Attributes List */}
+      {/* Attributes Table */}
       {attributes.length === 0 ? (
         <Card className="text-center py-12 bg-white dark:bg-gray-800">
           <CardContent>
@@ -224,114 +239,153 @@ export default function AttributesPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {attributes.map((attribute) => (
-            <motion.div
-              key={attribute._id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Card className="hover:shadow-lg transition-all duration-300 border-0 shadow-md bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                        {attribute.name}
-                      </CardTitle>
-                      <div className="flex items-center gap-2 mt-2">
+        <Card className="bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                <thead className="bg-gray-50 dark:bg-gray-700">
+                  <tr>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      نام ویژگی
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      نوع
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      واحد
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      گزینه‌ها
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      الزامی
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      فیلترپذیر
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      تاریخ ایجاد
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                      عملیات
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                  {attributes.map((attribute) => (
+                    <tr 
+                      key={attribute._id} 
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {attribute.name}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <Badge className={getTypeColor(attribute.type)}>
                           {getTypeLabel(attribute.type)}
                         </Badge>
-                        {attribute.unit && (
-                          <Badge variant="outline" className="text-xs">
-                            {attribute.unit}
-                          </Badge>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => router.push(`/admin/attributes/edit/${attribute._id}`)}
-                        className="h-8 w-8 p-0 hover:bg-blue-50"
-                      >
-                        <Edit className="w-4 h-4 text-blue-600" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleDelete(attribute._id, attribute.name)}
-                        disabled={deleting === attribute._id}
-                        className="h-8 w-8 p-0 hover:bg-red-50"
-                      >
-                        {deleting === attribute._id ? (
-                          <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <Trash2 className="w-4 h-4 text-red-600" />
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="pt-0">
-                  <div className="space-y-3">
-                    {/* Options for select type */}
-                    {attribute.type === 'select' && attribute.options && (
-                      <div>
-                        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">گزینه‌ها:</p>
-                        <div className="flex flex-wrap gap-1">
-                          {attribute.options.slice(0, 3).map((option, index) => (
-                            <Badge key={index} variant="secondary" className="text-xs">
-                              {option}
-                            </Badge>
-                          ))}
-                          {attribute.options.length > 3 && (
-                            <Badge variant="secondary" className="text-xs">
-                              +{attribute.options.length - 3} بیشتر
-                            </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {attribute.unit || '—'}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {attribute.type === 'select' && attribute.options ? (
+                            <div className="flex flex-wrap gap-1">
+                              {attribute.options.length > 0 ? (
+                                <>
+                                  {attribute.options.slice(0, 3).map((option, index) => (
+                                    <Badge key={index} variant="secondary" className="text-xs">
+                                      {option}
+                                    </Badge>
+                                  ))}
+                                  {attribute.options.length > 3 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{attribute.options.length - 3} بیشتر
+                                    </Badge>
+                                  )}
+                                </>
+                              ) : (
+                                <span className="text-gray-400 dark:text-gray-500">—</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500">—</span>
                           )}
                         </div>
-                      </div>
-                    )}
-
-                    {/* Settings */}
-                    <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1">
-                        {attribute.isRequired ? (
-                          <CheckCircle className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-gray-400" />
-                        )}
-                        <span className={attribute.isRequired ? 'text-green-700 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'}>
-                          الزامی
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        {attribute.isFilterable ? (
-                          <CheckCircle className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        )}
-                        <span className={attribute.isFilterable ? 'text-blue-700 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}>
-                          فیلترپذیر
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Created date */}
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      ایجاد شده در: {new Date(attribute.createdAt).toLocaleDateString('fa-IR')}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1">
+                          {attribute.isRequired ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-green-500 dark:text-green-400" />
+                              <span className="text-sm text-green-700 dark:text-green-400">بله</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                              <span className="text-sm text-gray-500 dark:text-gray-400">خیر</span>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-1">
+                          {attribute.isFilterable ? (
+                            <>
+                              <CheckCircle className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                              <span className="text-sm text-blue-700 dark:text-blue-400">بله</span>
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="w-4 h-4 text-gray-400 dark:text-gray-500" />
+                              <span className="text-sm text-gray-500 dark:text-gray-400">خیر</span>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {new Date(attribute.createdAt).toLocaleDateString('fa-IR')}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center gap-2">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => router.push(`/admin/attributes/edit/${attribute._id}`)}
+                            className="h-8 w-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                          >
+                            <Edit className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(attribute._id, attribute.name)}
+                            disabled={deleting === attribute._id}
+                            className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/30"
+                          >
+                            {deleting === attribute._id ? (
+                              <div className="w-4 h-4 border-2 border-red-600 dark:border-red-400 border-t-transparent rounded-full animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4 text-red-600 dark:text-red-400" />
+                            )}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          )}
+          </CardContent>
+        </Card>
+      )}
         </div>
       </div>
     </div>

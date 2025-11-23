@@ -191,12 +191,12 @@ export default function AboutContentManagement() {
 
   if (loading) {
     return (
-      <div className="p-8">
+      <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/4 mb-6"></div>
           <div className="space-y-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-12 bg-gray-200 rounded"></div>
+              <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
             ))}
           </div>
         </div>
@@ -205,33 +205,33 @@ export default function AboutContentManagement() {
   }
 
   return (
-    <div className="p-8">
+    <div className="p-8 bg-gray-50 dark:bg-gray-900 min-h-screen">
       <div className="mb-8">
         <button
           onClick={() => router.back()}
-          className="text-blue-600 hover:text-blue-800 mb-6 flex items-center gap-2 font-medium"
+          className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 mb-6 flex items-center gap-2 font-medium transition-colors"
         >
           ← بازگشت به مدیریت محتوا
         </button>
         
         <div className="flex items-center gap-4 mb-6">
-          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+          <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
             <span className="text-2xl">ℹ️</span>
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">ویرایش محتوای درباره ما</h1>
-            <p className="text-gray-600">مدیریت اطلاعات شرکت، ماموریت، چشم‌انداز، آمار و تیم</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">ویرایش محتوای درباره ما</h1>
+            <p className="text-gray-600 dark:text-gray-400">مدیریت اطلاعات شرکت، ماموریت، چشم‌انداز، آمار و تیم</p>
           </div>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-4xl">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">اطلاعات اصلی صفحه</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">اطلاعات اصلی صفحه</h2>
           
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="heroTitle" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="heroTitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 عنوان اصلی صفحه
               </label>
               <input
@@ -239,13 +239,13 @@ export default function AboutContentManagement() {
                 id="heroTitle"
                 value={content.heroTitle}
                 onChange={(e) => handleChange('heroTitle', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="درباره تراشه"
               />
             </div>
             
             <div>
-              <label htmlFor="heroSubtitle" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="heroSubtitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 زیرعنوان صفحه
               </label>
               <input
@@ -253,19 +253,19 @@ export default function AboutContentManagement() {
                 id="heroSubtitle"
                 value={content.heroSubtitle}
                 onChange={(e) => handleChange('heroSubtitle', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="ما در تراشه با بیش از یک ده ه تجربه..."
               />
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">اطلاعات شرکت</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">اطلاعات شرکت</h2>
           
           <div className="space-y-6">
             <div>
-              <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 عنوان شرکت
               </label>
               <input
@@ -273,13 +273,13 @@ export default function AboutContentManagement() {
                 id="title"
                 value={content.aboutInfo.title}
                 onChange={(e) => handleChange('aboutInfo.title', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="درباره تراشه"
               />
             </div>
             
             <div>
-              <label htmlFor="subtitle" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="subtitle" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 توضیحات شرکت
               </label>
               <textarea
@@ -287,14 +287,14 @@ export default function AboutContentManagement() {
                 rows={3}
                 value={content.aboutInfo.subtitle}
                 onChange={(e) => handleChange('aboutInfo.subtitle', e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                 placeholder="توضیحات کلی درباره شرکت..."
               />
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label htmlFor="mission" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="mission" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   ماموریت
                 </label>
                 <textarea
@@ -302,13 +302,13 @@ export default function AboutContentManagement() {
                   rows={4}
                   value={content.aboutInfo.mission}
                   onChange={(e) => handleChange('aboutInfo.mission', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="ماموریت شرکت..."
                 />
               </div>
               
               <div>
-                <label htmlFor="vision" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="vision" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   چشم‌انداز
                 </label>
                 <textarea
@@ -316,7 +316,7 @@ export default function AboutContentManagement() {
                   rows={4}
                   value={content.aboutInfo.vision}
                   onChange={(e) => handleChange('aboutInfo.vision', e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                   placeholder="چشم‌انداز شرکت..."
                 />
               </div>
@@ -324,31 +324,31 @@ export default function AboutContentManagement() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">آمار و ارقام</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">آمار و ارقام</h2>
           
           <div className="grid md:grid-cols-2 gap-6">
             {content.aboutInfo.stats.map((stat, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">آمار {index + 1}</h3>
+              <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">آمار {index + 1}</h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">عدد</label>
+                    <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">عدد</label>
                     <input
                       type="text"
                       value={stat.number || ''}
                       onChange={(e) => handleStatsChange(index, 'number', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="10+"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">برچسب</label>
+                    <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">برچسب</label>
                     <input
                       type="text"
                       value={stat.label || ''}
                       onChange={(e) => handleStatsChange(index, 'label', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="سال تجربه"
                     />
                   </div>
@@ -358,41 +358,41 @@ export default function AboutContentManagement() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">تیم</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6 border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">تیم</h2>
           
           <div className="space-y-6">
             {content.aboutInfo.team.map((member, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">عضو تیم {index + 1}</h3>
+              <div key={index} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+                <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">عضو تیم {index + 1}</h3>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">نام</label>
+                    <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">نام</label>
                     <input
                       type="text"
                       value={member.name || ''}
                       onChange={(e) => handleTeamChange(index, 'name', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="نام عضو تیم"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">سمت</label>
+                    <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">سمت</label>
                     <input
                       type="text"
                       value={member.role || ''}
                       onChange={(e) => handleTeamChange(index, 'role', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="مدیر عامل"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">توضیحات</label>
+                    <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">توضیحات</label>
                     <input
                       type="text"
                       value={member.description || ''}
                       onChange={(e) => handleTeamChange(index, 'description', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500"
                       placeholder="توضیحات کوتاه"
                     />
                   </div>
@@ -406,14 +406,14 @@ export default function AboutContentManagement() {
           <button
             type="button"
             onClick={() => router.back()}
-            className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors bg-white dark:bg-gray-800"
           >
             انصراف
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {saving ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
           </button>
