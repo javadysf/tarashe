@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { formatPrice } from '@/lib/utils'
 
 interface Accessory {
   _id: string
@@ -87,10 +88,6 @@ export default function AccessorySelector({
 
       return total + (discountedPrice * quantity)
     }, 0)
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price)
   }
 
   return (

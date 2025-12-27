@@ -13,6 +13,7 @@ import { toast } from 'react-toastify'
 import AccessorySelector from './AccessorySelector'
 import { api } from '@/lib/api'
 import { useAuthStore } from '@/store/authStore'
+import { formatPrice } from '@/lib/utils'
 
 interface Accessory {
   _id: string
@@ -68,10 +69,6 @@ export default function ProductCard({ product, index, className }: ProductCardPr
   useEffect(() => {
     // Optionally, preload liked status when logged in
   }, [user])
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price)
-  }
 
   const renderStars = (rating: number) => {
     return [...Array(5)].map((_, i) => (

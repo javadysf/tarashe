@@ -6,6 +6,7 @@ import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import Image from 'next/image'
 import { toast } from 'react-toastify'
+import { formatPrice } from '@/lib/utils'
 
 interface Order {
   _id: string
@@ -601,7 +602,7 @@ export default function ProfilePage() {
                           <div className="flex justify-between items-center">
                             <span className="font-semibold text-gray-900 dark:text-gray-100">مجموع:</span>
                             <span className="font-bold text-lg text-blue-600 dark:text-blue-400">
-                              {new Intl.NumberFormat('fa-IR').format(order.totalAmount)} تومان
+                              {formatPrice(order.totalAmount)} تومان
                             </span>
                           </div>
                         </div>
@@ -657,7 +658,7 @@ export default function ProfilePage() {
                         <Image src={p.images?.[0]?.url || '/pics/battery.jpg'} alt={p.name} width={64} height={64} className="rounded object-cover" />
                         <div className="flex-1">
                           <div className="font-semibold text-gray-900 line-clamp-1">{p.name}</div>
-                          <div className="text-sm text-gray-600 mt-1">{new Intl.NumberFormat('fa-IR').format(p.price)} تومان</div>
+                          <div className="text-sm text-gray-600 mt-1">{formatPrice(p.price)} تومان</div>
                         </div>
                       </div>
                     ))}

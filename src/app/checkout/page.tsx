@@ -23,6 +23,7 @@ import OrderSummary from '@/components/OrderSummary'
 import LoadingButton from '@/components/LoadingButton'
 import EmptyState from '@/components/EmptyState'
 import { Truck, CreditCard, MapPin, Phone, User, Package, CheckCircle, Clock, Shield, LogIn, ShoppingCart } from 'lucide-react'
+import { formatPrice } from '@/lib/utils'
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -220,10 +221,6 @@ export default function CheckoutPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price)
   }
 
   if (!user) {

@@ -6,6 +6,7 @@ import { Plus, Edit, Trash2, Package, Search, Filter } from 'lucide-react'
 import { api } from '@/lib/api'
 import Link from 'next/link'
 import Image from 'next/image'
+import { formatPrice } from '@/lib/utils'
 
 interface Accessory {
   _id: string
@@ -123,10 +124,6 @@ export default function AccessoriesPage() {
       console.error('Error updating accessory:', error)
       alert('خطا در به‌روزرسانی متعلق')
     }
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
   }
 
   const formatDate = (dateString: string) => {

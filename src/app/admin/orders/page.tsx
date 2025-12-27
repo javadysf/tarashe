@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
+import { formatPrice } from '@/lib/utils'
 
 interface Order {
   _id: string
@@ -331,7 +332,7 @@ export default function AdminOrdersPage() {
                       </div>
                     </td>
                     <td className="px-3 sm:px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                      <div className="text-xs sm:text-sm">{new Intl.NumberFormat('fa-IR').format(order.totalAmount)} ت</div>
+                      <div className="text-xs sm:text-sm">{formatPrice(order.totalAmount)} ت</div>
                     </td>
                     <td className="px-3 sm:px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-1 sm:px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
@@ -471,7 +472,7 @@ export default function AdminOrdersPage() {
                         {getStatusText(selectedOrder.status)}
                       </span>
                     </p>
-                    <p className="text-gray-700 dark:text-gray-300"><span className="font-medium">مبلغ کل:</span> {new Intl.NumberFormat('fa-IR').format(selectedOrder.totalAmount)} تومان</p>
+                    <p className="text-gray-700 dark:text-gray-300"><span className="font-medium">مبلغ کل:</span> {formatPrice(selectedOrder.totalAmount)} تومان</p>
                   </div>
                 </div>
                 

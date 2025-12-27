@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Share2, Copy, MessageCircle, Send, Instagram, Twitter } from 'lucide-react'
 import { toast } from 'react-toastify'
+import { formatPrice } from '@/lib/utils'
 
 interface ShareButtonProps {
   productName: string
@@ -14,7 +15,7 @@ interface ShareButtonProps {
 export default function ShareButton({ productName, productUrl, productImage, productPrice }: ShareButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const shareText = `${productName} - ${new Intl.NumberFormat('fa-IR').format(productPrice)} تومان`
+  const shareText = `${productName} - ${formatPrice(productPrice)} تومان`
   const fullUrl = `${window.location.origin}${productUrl}`
 
   const handleCopyLink = async () => {

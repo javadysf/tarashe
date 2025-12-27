@@ -8,6 +8,7 @@ import { api } from '@/lib/api'
 import { Carousel } from '@/components/ui/carousel'
 import ProductCard from '@/components/ProductCard'
 import { getImageUrl } from '@/lib/config'
+import { formatPrice } from '@/lib/utils'
 
 interface Product {
   _id: string
@@ -121,10 +122,6 @@ export default function HomeSlider() {
     } finally {
       setLoading(false)
     }
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price)
   }
 
   const brandToText = (brand: Product['brand']) => typeof brand === 'string' ? brand : brand?.name

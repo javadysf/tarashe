@@ -11,6 +11,7 @@ import { toast } from 'react-toastify'
 import { Heart } from 'lucide-react'
 import ShareButton from '@/components/ShareButton'
 import AccessorySelector from '@/components/AccessorySelector'
+import { formatPrice } from '@/lib/utils'
 
 interface Product {
   _id: string
@@ -364,10 +365,6 @@ export default function ProductDetailPage() {
     })
     
     setShowAccessorySelector(false)
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price)
   }
 
   const brandName = typeof product?.brand === 'string' ? product?.brand : product?.brand?.name

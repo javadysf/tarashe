@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useAuthStore } from '@/store/authStore'
 import { api } from '@/lib/api'
 import { useRouter } from 'next/navigation'
+import { formatPrice } from '@/lib/utils'
 
 export default function SalesStatsPage() {
   const { user, checkAuth } = useAuthStore()
@@ -74,7 +75,6 @@ export default function SalesStatsPage() {
     }
   }, [user, fetchStats, router])
 
-  const formatPrice = (price: number) => new Intl.NumberFormat('fa-IR').format(price)
   const formatDate = (date: string) => new Date(date).toLocaleDateString('fa-IR')
 
   if (!user || user.role !== 'admin') {

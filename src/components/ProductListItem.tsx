@@ -10,6 +10,7 @@ import { Star, ShoppingCart, Eye, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { useCartStore } from '@/store/cartStore'
 import { toast } from 'react-toastify'
+import { formatPrice } from '@/lib/utils'
 
 interface Product {
   _id: string
@@ -37,10 +38,6 @@ interface ProductListItemProps {
 export default function ProductListItem({ product, index }: ProductListItemProps) {
   const [isFavorite, setIsFavorite] = useState(false)
   const { addItem } = useCartStore()
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('fa-IR').format(price)
-  }
 
   const renderStars = (rating: number) => {
     return [...Array(5)].map((_, i) => (

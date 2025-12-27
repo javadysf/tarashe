@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import Link from 'next/link'
 import { toast } from 'react-toastify'
 import AdminSidebar from '@/components/AdminSidebar'
+import { formatPrice } from '@/lib/utils'
 
 interface Product {
   _id: string
@@ -346,7 +347,7 @@ export default function AdminProductsPage() {
                           {typeof product.brand === 'object' ? product.brand?.name : product.brand}
                         </td>
                         <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm ${isLowStock ? 'text-red-700 dark:text-red-300' : 'text-gray-500 dark:text-gray-400'}`}>
-                          <div className="text-xs sm:text-sm">{new Intl.NumberFormat('fa-IR').format(product.price)} ت</div>
+                          <div className="text-xs sm:text-sm">{formatPrice(product.price)} ت</div>
                         </td>
                         <td className={`px-3 sm:px-6 py-4 whitespace-nowrap text-sm font-semibold hidden md:table-cell ${isLowStock ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'}`}>
                           <span className="flex items-center gap-1">

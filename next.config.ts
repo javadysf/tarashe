@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
       "via.placeholder.com",
       "localhost",
       "127.0.0.1",
+      "parsstock.ir",
+      "technosun.ir",
+      "media.mehrnews.com",
+      "www.technolife.com",
     ],
     remotePatterns: [
       // برای توسعه لوکال بک‌اند

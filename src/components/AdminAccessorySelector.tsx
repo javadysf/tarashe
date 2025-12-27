@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { api } from '@/lib/api'
 import Image from 'next/image'
+import { formatPrice } from '@/lib/utils'
 
 interface Accessory {
   _id: string
@@ -333,7 +334,7 @@ export default function AdminAccessorySelector({ selectedAccessories, onAccessor
                     </p>
                   )}
                   <p className="text-green-600 dark:text-green-400 font-semibold text-sm">
-                    {new Intl.NumberFormat('fa-IR').format(accessory.price)} تومان
+                    {formatPrice(accessory.price)} تومان
                   </p>
                 </div>
                 

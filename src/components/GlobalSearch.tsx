@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search, Clock } from 'lucide-react'
 import { api } from '@/lib/api'
 import Image from 'next/image'
+import { formatPrice } from '@/lib/utils'
 
 interface Product {
   _id: string
@@ -152,11 +153,11 @@ export default function GlobalSearch() {
                     )}
                     <div className="flex items-center gap-2 mt-1">
                       <span className="font-semibold text-blue-600">
-                        {product.price.toLocaleString('fa-IR')} تومان
+                        {formatPrice(product.price)} تومان
                       </span>
                       {product.originalPrice && product.originalPrice > product.price && (
                         <span className="text-xs text-gray-400 line-through">
-                          {product.originalPrice.toLocaleString('fa-IR')}
+                          {formatPrice(product.originalPrice)}
                         </span>
                       )}
                     </div>
@@ -212,11 +213,11 @@ export default function GlobalSearch() {
                     )}
                     <div className="flex items-center gap-2 mt-1">
                       <span className="font-semibold text-blue-600 text-base">
-                        {product.price.toLocaleString('fa-IR')} تومان
+                        {formatPrice(product.price)} تومان
                       </span>
                       {product.originalPrice && product.originalPrice > product.price && (
                         <span className="text-sm text-gray-400 line-through">
-                          {product.originalPrice.toLocaleString('fa-IR')}
+                          {formatPrice(product.originalPrice)}
                         </span>
                       )}
                     </div>
