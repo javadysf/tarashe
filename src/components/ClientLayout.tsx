@@ -1,7 +1,8 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Suspense } from 'react'
+import { Suspense, useEffect } from 'react'
+import { setupGlobalErrorHandlers } from '@/lib/errorHandler'
 
 // Dynamically import components that might cause SSR issues
 const DynamicThemeProvider = dynamic(
@@ -15,6 +16,11 @@ const DynamicConditionalLayout = dynamic(
 )
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    // Setup global error handlers on client side
+    setupGlobalErrorHandlers()
+  }, [])
+
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <DynamicThemeProvider>
