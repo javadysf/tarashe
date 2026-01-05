@@ -85,7 +85,7 @@ export function setupGlobalErrorHandlers() {
     
     // Call original handler if it exists
     if (originalUnhandledRejection) {
-      originalUnhandledRejection(event);
+      originalUnhandledRejection.call(window,event);
     }
   };
   
